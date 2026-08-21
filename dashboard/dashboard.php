@@ -51,7 +51,17 @@ $userName = $_SESSION['user_name'] ?? 'User';
         }
     </style>
 </head>
-<body class="h-full mesh-bg flex flex-col items-center justify-center p-4 antialiased font-body">
+<body class="h-full mesh-bg flex flex-col items-center justify-center p-4 antialiased font-body relative">
+
+    <!-- Top Right Settings Button -->
+    <a href="tetapan.php" class="absolute top-6 right-6 md:top-8 md:right-8 bg-surface-container hover:bg-[#e7d8c1] text-primary p-3 rounded-full shadow-sm border border-[#e7d8c1] flex items-center justify-center transition-all group active:scale-95">
+        <span class="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300">settings</span>
+    </a>
+
+    <!-- Top Left Chat Button -->
+    <a href="../chat/index.php" class="absolute top-6 left-6 md:top-8 md:left-8 bg-surface-container hover:bg-[#e7d8c1] text-primary p-3 rounded-full shadow-sm border border-[#e7d8c1] flex items-center justify-center transition-all group active:scale-95">
+        <span class="material-symbols-outlined">chat</span>
+    </a>
 
     <main class="w-full max-w-[440px]">
         <div class="bg-surface-container p-8 md:p-10 rounded-[32px] shadow-md border border-[#e7d8c1] text-center">
