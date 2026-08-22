@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Footer Links -->
                 <div class="flex flex-col items-center gap-4 relative z-10 mt-2">
                     <a class="font-label-lg text-label-lg text-primary hover:text-primary/80 transition-colors hover:underline underline-offset-4 decoration-primary/50"
-                        href="#">Forgot password?</a>
+                        href="forgotpass.php">Forgot password?</a>
                     <div class="w-16 h-px bg-outline-variant/50"></div>
                     <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
                         href="register.php">
