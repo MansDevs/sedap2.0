@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Clinical Staff Live Chat - Health Platform</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,700;8..144,800&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#a6caf3",
+                        "surface-dim": "#d8dadc",
+                        "surface-variant": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#424753",
+                        "on-secondary-fixed": "#001d35",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f7f9fb",
+                        "surface-container-low": "#f2f4f6",
+                        "on-secondary-fixed-variant": "#24496c",
+                        "outline-variant": "#c2c6d5",
+                        "on-tertiary-fixed": "#001f25",
+                        "on-primary-fixed-variant": "#004494",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary-container": "#b1d5ff",
+                        "inverse-primary": "#adc6ff",
+                        "on-primary-fixed": "#001a41",
+                        "tertiary-fixed-dim": "#7bd3e5",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "primary": "#0058bd",
+                        "secondary": "#3d6185",
+                        "on-secondary-container": "#395c80",
+                        "secondary-fixed": "#d0e4ff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "tertiary": "#006673",
+                        "tertiary-fixed": "#a1efff",
+                        "background": "#f7f9fb",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "outline": "#727785",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed-variant": "#004e59",
+                        "on-primary-container": "#fefcff",
+                        "surface-container-highest": "#e0e3e5",
+                        "primary-container": "#2771df",
+                        "on-surface": "#191c1e",
+                        "surface-tint": "#005ac1",
+                        "on-tertiary-container": "#f8fdff",
+                        "tertiary-container": "#148090"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px",
+                        "expressive": "2rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "margin-desktop": "32px",
+                        "stack-lg": "24px",
+                        "margin-tablet": "24px",
+                        "gutter": "16px",
+                        "stack-md": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Roboto Flex", "sans-serif"],
+                        "title-lg": ["Roboto Flex", "sans-serif"],
+                        "label-sm": ["Roboto Flex", "sans-serif"],
+                        "title-md": ["Roboto Flex", "sans-serif"],
+                        "body-md": ["Roboto Flex", "sans-serif"],
+                        "label-lg": ["Roboto Flex", "sans-serif"],
+                        "display-md": ["Roboto Flex", "sans-serif"],
+                        "headline-lg": ["Roboto Flex", "sans-serif"],
+                        "headline-lg-mobile": ["Roboto Flex", "sans-serif"],
+                        "display-lg": ["Roboto Flex", "sans-serif"],
+                        "body-lg": ["Roboto Flex", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "display-md": ["45px", { "lineHeight": "52px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body
+    class="bg-background text-on-surface h-screen w-screen overflow-hidden flex font-body-md selection:bg-primary-container selection:text-on-primary-container">
+    <!-- Shared SideNavBar -->
+    <nav
+        class="bg-surface-container-low dark:bg-surface-container-lowest fixed left-0 top-0 h-full w-[280px] shadow-sm flex flex-col py-4 z-50">
+        <div class="px-margin-desktop mb-stack-lg">
+            <h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Health
+                Platform</h1>
+            <p class="font-label-lg text-label-lg text-on-surface-variant mt-1">Community Care Portal</p>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+            <!-- Active Tab: Patients & Families (Closest match for live chat) -->
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md hover:bg-surface-variant dark:hover:bg-on-surface-variant transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md hover:bg-surface-variant dark:hover:bg-on-surface-variant transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="group">group</span>
+                <span class="">Staff &amp; Volunteers</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md hover:bg-surface-variant dark:hover:bg-on-surface-variant transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+                <span class="">Announcements &amp; Posters</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md hover:bg-surface-variant dark:hover:bg-on-surface-variant transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="assignment_late">assignment_late</span>
+                <span class="">Triage List</span>
+            </a>
+            <a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-full px-4 py-3 mx-3 my-1 font-title-md text-title-md active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="family_restroom"
+                    style="font-variation-settings: 'FILL' 1;">family_restroom</span>
+                <span class="">Patients &amp; Families</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md hover:bg-surface-variant dark:hover:bg-on-surface-variant transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+                <span class="">Health Module</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md hover:bg-surface-variant dark:hover:bg-on-surface-variant transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span class="">Settings</span>
+            </a>
+        </div>
+        <div class="mt-auto px-6 py-4 flex items-center gap-3 border-t border-outline-variant/30">
+            <div
+                class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-title-md text-title-md overflow-hidden">
+                <img alt="User profile avatar" class="w-full h-full object-cover"
+                    data-alt="A clean, professional headshot of a female clinical staff member with short dark hair, wearing a white coat over a light blue scrub top, smiling warmly. Lighting is bright, soft, and modern, reflecting a trustworthy medical professional environment."
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5mFQu6POzN6uqoDcOiYhr0kOs4zvMT3gtpT9K7EZkq2Hdc3DjhqAzEdKbO_i4G_jvPvShsAl15kusQvY1pR2imXYfvIKh8_vIuq4FAIMxFQ6DhdW5SPh-TDjBr00o1K8JAgr_C8KwvDb55nCznffhwle8qe1OtkEuC2lNkqRyzw1k4PFfPKLF3dkfsrcHuB-I6QjpmXomq4dLkQix61mnQAm5KhVdwKLafr-9sGBbvPEprHheKCfX">
+            </div>
+            <div>
+                <p class="font-title-md text-title-md text-on-surface">Dr. Sarah Jenkins</p>
+                <p class="font-label-sm text-label-sm text-on-surface-variant">Triage Nurse</p>
+            </div>
+        </div>
+    </nav>
+    <!-- Main Content Canvas -->
+    <main class="ml-[280px] w-[calc(100%-280px)] h-full flex flex-col relative z-0">
+        <!-- Shared TopNavBar -->
+        <header
+            class="bg-surface dark:bg-on-background docked full-width top-0 flex justify-between items-center w-full px-margin-desktop h-16 z-40 border-b border-outline-variant/20">
+            <div class="flex items-center gap-4">
+                <h2 class="font-title-lg text-title-lg text-on-surface">Active Patient Consultations</h2>
+                <span
+                    class="bg-error text-on-error px-2 py-0.5 rounded-full font-label-sm text-label-sm flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">error</span> High Volume
+                </span>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Search Bar Placeholder left alignment per JSON logic -->
+                <div class="relative hidden lg:flex items-center">
+                    <span class="material-symbols-outlined absolute left-3 text-on-surface-variant">search</span>
+                    <input
+                        class="pl-10 pr-4 py-2 bg-surface-container rounded-full border-none text-body-md text-on-surface focus:ring-2 focus:ring-primary w-64"
+                        placeholder="Search patients..." type="text">
+                </div>
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors group relative">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors"
+                        data-icon="volume_up">volume_up</span>
+                    <!-- Tooltip -->
+                    <span
+                        class="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Sound
+                        On</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors relative group">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors"
+                        data-icon="notifications">notifications</span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-surface"></span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors group">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors"
+                        data-icon="help">help</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors group">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors"
+                        data-icon="account_circle">account_circle</span>
+                </button>
+            </div>
+        </header>
+        <!-- Chat Workspace (Two Panels) -->
+        <div class="flex-1 flex overflow-hidden p-stack-lg gap-stack-lg bg-surface-bright">
+            <!-- Left Panel: Conversation List (Compact for Operational Efficiency) -->
+            <section
+                class="w-80 flex flex-col bg-surface-container-lowest rounded-expressive shadow-sm border border-outline-variant/30 overflow-hidden shrink-0 relative before:absolute before:inset-0 before:bg-primary before:opacity-[0.02] before:pointer-events-none">
+                <div
+                    class="p-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low/50 backdrop-blur-sm z-10">
+                    <h3 class="font-title-md text-title-md text-on-surface font-semibold">Triage Queue</h3>
+                    <button class="text-primary hover:bg-primary-container/50 p-1.5 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">filter_list</span>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-2 space-y-1 z-10">
+                    <!-- Active Conversation Item -->
+                    <div
+                        class="p-3 rounded-xl bg-primary-container/20 border border-primary/20 cursor-pointer flex gap-3 items-center group transition-colors">
+                        <div class="relative">
+                            <div
+                                class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-title-md text-title-md shrink-0">
+                                EM
+                            </div>
+                            <span
+                                class="absolute bottom-0 right-0 w-3 h-3 bg-[#4ade80] border-2 border-surface-container-lowest rounded-full"></span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline mb-0.5">
+                                <h4 class="font-label-lg text-label-lg text-on-surface truncate">Elias Morgan</h4>
+                                <span class="font-label-sm text-label-sm text-primary font-bold">10:42 AM</span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant truncate text-sm">The swelling
+                                hasn't gone down...</p>
+                        </div>
+                        <div
+                            class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary font-label-sm text-label-sm">
+                            2</div>
+                    </div>
+                    <!-- Inactive Conversation Item 1 -->
+                    <div
+                        class="p-3 rounded-xl hover:bg-surface-container cursor-pointer flex gap-3 items-center group transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-title-md text-title-md shrink-0">
+                            SR
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline mb-0.5">
+                                <h4 class="font-label-lg text-label-lg text-on-surface truncate">Sarah Reynolds</h4>
+                                <span class="font-label-sm text-label-sm text-on-surface-variant">10:15 AM</span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant truncate text-sm">Okay, I will
+                                monitor the fever.</p>
+                        </div>
+                    </div>
+                    <!-- Inactive Conversation Item 2 -->
+                    <div
+                        class="p-3 rounded-xl hover:bg-surface-container cursor-pointer flex gap-3 items-center group transition-colors opacity-80">
+                        <div
+                            class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-title-md text-title-md shrink-0">
+                            JD
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline mb-0.5">
+                                <h4 class="font-label-lg text-label-lg text-on-surface truncate">James Davies</h4>
+                                <span class="font-label-sm text-label-sm text-on-surface-variant">09:30 AM</span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant truncate text-sm">Thank you,
+                                doctor.</p>
+                        </div>
+                    </div>
+                    <!-- Alert Conversation Item -->
+                    <div
+                        class="p-3 rounded-xl bg-error-container/20 border border-error/20 hover:bg-error-container/30 cursor-pointer flex gap-3 items-center group transition-colors mt-2">
+                        <div
+                            class="w-10 h-10 rounded-full bg-error text-on-error flex items-center justify-center font-title-md text-title-md shrink-0">
+                            <span class="material-symbols-outlined">warning</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline mb-0.5">
+                                <h4 class="font-label-lg text-label-lg text-error font-bold truncate">Priority: Room 4
+                                </h4>
+                                <span class="font-label-sm text-label-sm text-error">Just now</span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant truncate text-sm">Patient
+                                requesting immediate...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Right Panel: Active Chat Area -->
+            <section
+                class="flex-1 flex flex-col bg-surface-container-lowest rounded-expressive shadow-sm border border-outline-variant/30 overflow-hidden relative">
+                <!-- Chat Header -->
+                <div
+                    class="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest/80 backdrop-blur-md z-20">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-title-lg text-title-lg shadow-sm">
+                            EM
+                        </div>
+                        <div>
+                            <h2
+                                class="font-title-lg text-title-lg text-on-surface font-semibold flex items-center gap-2">
+                                Elias Morgan
+
+                            </h2>
+                            <p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-[#4ade80]"></span> Active Session • ID: #84920
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            class="px-4 py-2 rounded-full border border-outline hover:bg-surface-variant text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">history</span> History
+                        </button>
+                        <button
+                            class="px-4 py-2 rounded-full bg-primary text-on-primary hover:bg-primary/90 font-label-lg text-label-lg transition-colors flex items-center gap-2 shadow-sm">
+                            <span class="material-symbols-outlined text-[18px]"
+                                style="font-variation-settings: 'FILL' 1;">videocam</span> Escalate to Video
+                        </button>
+                    </div>
+                </div>
+                <!-- Chat Messages Area -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-surface-bright relative">
+                    <!-- Subtle background pattern for chat area -->
+                    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+                        style="background-image: radial-gradient(#0058bd 1px, transparent 1px); background-size: 20px 20px;">
+                    </div>
+                    <div class="text-center">
+                        <span
+                            class="inline-block bg-surface-container px-3 py-1 rounded-full text-on-surface-variant font-label-sm text-label-sm">Today,
+                            10:30 AM</span>
+                    </div>
+                    <!-- Patient Bubble (Outlined, Light Greyish) -->
+                    <div class="flex gap-3 max-w-[80%] relative z-10">
+                        <div
+                            class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-label-sm text-label-sm shrink-0 self-end mb-1">
+                            EM</div>
+                        <div>
+                            <div
+                                class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl rounded-bl-none p-4 shadow-sm">
+                                <p class="font-body-md text-body-md text-on-surface">Hello, I applied the cold compress
+                                    as instructed an hour ago, but the swelling on my ankle hasn't gone down. It
+                                    actually feels a bit tighter.</p>
+                            </div>
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm ml-1 mt-1 inline-block">10:35
+                                AM</span>
+                        </div>
+                    </div>
+                    <!-- Staff Bubble (Primary Filled) -->
+                    <div class="flex gap-3 max-w-[80%] self-end ml-auto flex-row-reverse relative z-10">
+                        <div
+                            class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-sm text-label-sm shrink-0 self-end mb-1 overflow-hidden">
+                            <img alt="Staff" class="w-full h-full object-cover"
+                                data-alt="A clean, professional headshot of a female clinical staff member with short dark hair, wearing a white coat over a light blue scrub top, smiling warmly."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs8yrEz-1x51wIBqGXkTOnb--MskaY0VafySRO_fUPw7QwGHQa1JtMbfaHKa5g-1DE-22Vey3bO7cmXdio71BXd0PrF0LMoKFHb21uu_w9wAV_DaToLI6AHmT8_RDvC60bJj7WFCFNc4IC_ct0S1HDggeCfvYXFEG6D3kcQiiOhp0uR2YY56Yd_TEqwC2IbZtGhcWgvvaJQ9F5tRRagwddnZWgIozKFE_QAZ_piOjR2SmqnZRlNc1z">
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <div
+                                class="bg-primary text-on-primary rounded-2xl rounded-br-none p-4 shadow-sm shadow-primary/20">
+                                <p class="font-body-md text-body-md">I understand, Elias. Let's get a better look at it.
+                                    Are you experiencing any numbness or tingling in your toes?</p>
+                            </div>
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm mr-1 mt-1 inline-block flex items-center gap-1">
+                                10:38 AM <span class="material-symbols-outlined text-[14px] text-primary"
+                                    style="font-variation-settings: 'FILL' 1;">done_all</span>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Patient Bubble -->
+                    <div class="flex gap-3 max-w-[80%] relative z-10">
+                        <div
+                            class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-label-sm text-label-sm shrink-0 self-end mb-1">
+                            EM</div>
+                        <div>
+                            <div
+                                class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl rounded-bl-none p-4 shadow-sm">
+                                <p class="font-body-md text-body-md text-on-surface">No numbness, just a throbbing pain.
+                                    The skin looks a bit more red than before too.</p>
+                            </div>
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm ml-1 mt-1 inline-block">10:42
+                                AM</span>
+                        </div>
+                    </div>
+                    <!-- Typign Indicator -->
+                    <div class="flex gap-3 max-w-[80%] relative z-10 opacity-70">
+                        <div
+                            class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-sm text-label-sm shrink-0 self-end mb-1 overflow-hidden">
+                            <img alt="Staff" class="w-full h-full object-cover"
+                                data-alt="A clean, professional headshot of a female clinical staff member with short dark hair."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2L_IutJB-RHvo7GyZ03Qhx0PR5bdRPFkZ03ky6z7FvN84PNahbQRAY3gOmBO3wKouonbNT5-emAE0pGabI3H1k8xWmHhuELFcQzpqnSGceUHI8Mm-BKFuAUiHVnYzKQ7wp_ek3qu1qMQASVWZuxGJ73jg-0Vwk3u9O5-dhYFbl5ddh_5YPbEJKSxiVpQGWSl0SlhRuTQhwBcRqNk1S7uKdaC3dnld9cPDHcDGd8mlDqV5F0LYAGjw">
+                        </div>
+                        <div>
+                            <div
+                                class="bg-surface-container border border-outline-variant/20 rounded-2xl rounded-br-none px-4 py-3 shadow-sm flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-primary animate-bounce"
+                                    style="animation-delay: 0s;"></span>
+                                <span class="w-2 h-2 rounded-full bg-primary animate-bounce"
+                                    style="animation-delay: 0.2s;"></span>
+                                <span class="w-2 h-2 rounded-full bg-primary animate-bounce"
+                                    style="animation-delay: 0.4s;"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Chat Input Area (Outlined, 32px rounded) -->
+                <div class="p-4 bg-surface-container-lowest border-t border-outline-variant/30 z-20">
+                    <!-- Action Bar Above Input -->
+                    <div class="flex gap-2 mb-3">
+                        <button
+                            class="px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 font-label-sm text-label-sm transition-colors flex items-center gap-1 shadow-sm">
+                            <span class="material-symbols-outlined text-[16px]">bolt</span> FAQ Templates
+                        </button>
+                        <button
+                            class="px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant/50 hover:bg-surface-variant text-on-surface-variant font-label-sm text-label-sm transition-colors">
+                            Request Photo
+                        </button>
+                        <button
+                            class="px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant/50 hover:bg-surface-variant text-on-surface-variant font-label-sm text-label-sm transition-colors">
+                            Send Article
+                        </button>
+                    </div>
+                    <div class="flex items-end gap-3 relative">
+                        <button
+                            class="p-3 text-outline hover:text-primary transition-colors mb-1 rounded-full hover:bg-surface-variant">
+                            <span class="material-symbols-outlined">add_circle</span>
+                        </button>
+                        <div class="flex-1 relative">
+                            <textarea
+                                class="w-full bg-surface-container-lowest border border-outline hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-[32px] pl-5 pr-12 py-3.5 font-body-md text-on-surface resize-none h-[52px] min-h-[52px] max-h-[120px] overflow-y-auto leading-relaxed shadow-sm transition-shadow"
+                                placeholder="Type a message..." rows="1"></textarea>
+                            <button
+                                class="absolute right-3 bottom-2.5 p-1 text-outline hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">mic</span>
+                            </button>
+                        </div>
+                        <button
+                            class="w-[52px] h-[52px] rounded-full bg-primary text-on-primary hover:bg-primary/90 hover:shadow-md transition-all flex items-center justify-center shadow-sm mb-0 shrink-0 group active:scale-95">
+                            <span class="material-symbols-outlined group-hover:translate-x-0.5 transition-transform"
+                                style="font-variation-settings: 'FILL' 1;">send</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+
+</body>
+
+</html>

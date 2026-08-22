@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SeDaP Patient Portal - Home</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1e",
+                        "on-secondary-container": "#395c80",
+                        "on-tertiary-container": "#f8fdff",
+                        "secondary-fixed": "#d0e4ff",
+                        "inverse-primary": "#adc6ff",
+                        "on-surface": "#191c1e",
+                        "surface-container-high": "#e6e8ea",
+                        "outline": "#727785",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#148090",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary-fixed": "#001d35",
+                        "primary-fixed": "#d8e2ff",
+                        "surface-variant": "#e0e3e5",
+                        "tertiary-fixed": "#a1efff",
+                        "on-surface-variant": "#424753",
+                        "primary": "#0058bd",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#005ac1",
+                        "on-primary-fixed": "#001a41",
+                        "tertiary": "#006673",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary-fixed-dim": "#a6caf3",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-fixed-dim": "#7bd3e5",
+                        "outline-variant": "#c2c6d5",
+                        "secondary-container": "#b1d5ff",
+                        "on-secondary-fixed-variant": "#24496c",
+                        "on-primary-container": "#fefcff",
+                        "primary-container": "#2771df",
+                        "primary-fixed-dim": "#adc6ff",
+                        "secondary": "#3d6185",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed-variant": "#004494",
+                        "surface-container": "#eceef0",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-tertiary-fixed": "#001f25",
+                        "on-tertiary-fixed-variant": "#004e59"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "margin-tablet": "24px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Roboto Flex"],
+                        "headline-lg-mobile": ["Roboto Flex"],
+                        "headline-md": ["Roboto Flex"],
+                        "display-lg": ["Roboto Flex"],
+                        "label-sm": ["Roboto Flex"],
+                        "body-md": ["Roboto Flex"],
+                        "label-lg": ["Roboto Flex"],
+                        "headline-lg": ["Roboto Flex"],
+                        "body-lg": ["Roboto Flex"],
+                        "title-lg": ["Roboto Flex"],
+                        "title-md": ["Roboto Flex"]
+                    },
+                    "fontSize": {
+                        "display-md": ["45px", { "lineHeight": "52px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400" }],
+                        "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto Flex', sans-serif;
+            background-color: #f7f9fb;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* Subtle elevation for cards */
+        .elevation-1 {
+            box-shadow: 0px 1px 3px 1px rgba(26, 28, 30, 0.15), 0px 1px 2px 0px rgba(26, 28, 30, 0.3);
+        }
+
+        .elevation-2 {
+            box-shadow: 0px 2px 6px 2px rgba(26, 28, 30, 0.15), 0px 1px 2px 0px rgba(26, 28, 30, 0.3);
+        }
+
+        .elevation-3 {
+            box-shadow: 0px 4px 8px 3px rgba(26, 28, 30, 0.15), 0px 1px 3px 0px rgba(26, 28, 30, 0.3);
+        }
+
+        /* Fixed 1920x1080 canvas for the design preview constraint */
+        .canvas-container {
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Expressive shapes */
+        .shape-expressive-r {
+            border-radius: 4px 32px 32px 32px;
+        }
+
+        .shape-expressive-l {
+            border-radius: 32px 4px 32px 32px;
+        }
+
+        .shape-expressive-leaf {
+            border-radius: 32px 4px 32px 4px;
+        }
+
+        /* TopBar subtle background tint */
+        .topbar-bg {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background flex justify-center items-center min-h-screen p-0 m-0">
+    <div class="canvas-container bg-surface flex flex-row">
+        <!-- SIDE NAVIGATION -->
+        <!-- "style_shell_layout": "fixed left-0 top-0 h-screen w-[280px] flex flex-col p-4 gap-2" -->
+        <nav
+            class="fixed left-0 top-0 h-screen w-[280px] flex flex-col p-4 gap-2 bg-surface-container-low border-r border-outline-variant z-40">
+            <!-- Header -->
+            <div class="flex items-center gap-4 px-4 py-6 mb-4">
+                <div
+                    class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined icon-filled text-title-lg">monitor_heart</span>
+                </div>
+                <div>
+                    <!-- "style_brand_logo": "font-headline-md text-headline-md font-black text-primary" -->
+                    <h1 class="font-headline-md text-headline-md font-black text-primary tracking-tight"
+                        style="font-size: 24px; line-height: 28px;">SeDaP</h1>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Your Health,
+                        Simplified</p>
+                </div>
+            </div>
+            <!-- CTA -->
+            <div class="px-2 mb-6">
+                <button
+                    class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl py-4 px-6 elevation-1 hover:elevation-2 transition-shadow active:scale-95 duration-200">
+                    <span class="material-symbols-outlined icon-filled">add</span>
+                    <span class="font-label-lg text-label-lg font-bold">Add Log</span>
+                </button>
+            </div>
+            <!-- Nav Links -->
+            <div class="flex flex-col gap-1 flex-1 overflow-y-auto">
+                <!-- ACTIVE TAB: Home -->
+                <!-- "style_active_navigation": "flex items-center gap-4 bg-secondary-container text-on-secondary-container rounded-full px-6 py-3 font-bold" -->
+                <a class="flex items-center gap-4 bg-secondary-container text-on-secondary-container rounded-full px-6 py-3 font-bold group"
+                    href="#">
+                    <span class="material-symbols-outlined icon-filled">home</span>
+                    <span class="font-label-lg text-label-lg">Home</span>
+                </a>
+                <!-- INACTIVE TABS -->
+                <!-- "style_inactive_navigation": "flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant/50 rounded-full" -->
+                <!-- "style_universal_hover": "hover:bg-surface-variant transition-all duration-200" -->
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full group"
+                    href="#">
+                    <span
+                        class="material-symbols-outlined group-hover:text-primary transition-colors">health_and_safety</span>
+                    <span class="font-label-lg text-label-lg group-hover:text-on-surface transition-colors">Health
+                        Screening</span>
+                </a>
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full group"
+                    href="#">
+                    <span
+                        class="material-symbols-outlined group-hover:text-primary transition-colors">family_restroom</span>
+                    <span
+                        class="font-label-lg text-label-lg group-hover:text-on-surface transition-colors">Family</span>
+                </a>
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">chat</span>
+                    <span class="font-label-lg text-label-lg group-hover:text-on-surface transition-colors">Chat</span>
+                </a>
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">menu_book</span>
+                    <span class="font-label-lg text-label-lg group-hover:text-on-surface transition-colors">Health
+                        Module</span>
+                </a>
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+                    <span
+                        class="font-label-lg text-label-lg group-hover:text-on-surface transition-colors">Settings</span>
+                </a>
+            </div>
+            <!-- Footer Links -->
+            <div class="flex flex-col gap-1 mt-auto pt-4 border-t border-outline-variant/30">
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full"
+                    href="#">
+                    <span class="material-symbols-outlined">contact_support</span>
+                    <span class="font-label-lg text-label-lg">Help</span>
+                </a>
+                <a class="flex items-center gap-4 text-on-surface-variant px-6 py-3 hover:bg-surface-variant transition-all duration-200 rounded-full"
+                    href="#">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="font-label-lg text-label-lg">Logout</span>
+                </a>
+            </div>
+        </nav>
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col ml-[280px] h-full w-[calc(100%-280px)] overflow-hidden">
+            <!-- TOP APP BAR -->
+            <!-- "style_shell_layout": "sticky top-0 z-50 flex justify-between items-center px-margin-desktop w-full" -->
+            <!-- "style_separation_logic": "bg-surface shadow-sm" -->
+            <header
+                class="sticky top-0 z-50 flex justify-between items-center px-margin-desktop w-full h-[88px] bg-surface topbar-bg shadow-sm">
+                <!-- Left: Title (Contextual for Home) -->
+                <div class="flex items-center">
+                    <h2 class="font-title-lg text-title-lg text-on-surface font-medium">Dashboard</h2>
+                </div>
+                <!-- Right: Actions & Profile -->
+                <div class="flex items-center gap-4">
+                    <!-- "trailing_icon_actions": ["notifications", "help_outline"] -->
+                    <button
+                        class="w-12 h-12 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-primary-container/10 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                    <button
+                        class="w-12 h-12 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-primary-container/10 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined">help_outline</span>
+                    </button>
+                    <div class="h-8 w-[1px] bg-outline-variant/50 mx-2"></div>
+                    <!-- Profile -->
+                    <button
+                        class="flex items-center gap-3 pl-2 pr-4 py-2 rounded-full hover:bg-primary-container/10 active:scale-95 transition-all">
+                        <img alt="Patient Profile Avatar"
+                            class="w-10 h-10 rounded-full object-cover border border-outline-variant/30"
+                            data-alt="A small circular avatar showing a friendly patient smiling in a well-lit indoor environment. Professional portrait style with a soft light blue background."
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9GFPtnhPthq3TCrb_vS1QSlesc_65VLnQVZbEBRXdpOhBXvXxNinjqRrZ2pzicH6ziBVFL-tQ_zVNrYpUoPlB9Zw2o5ikQi_klUVufBz4TAAenYE-Kyb4Gca3-ye-wJKAOc0NfZ4hMeZIo8Z-mJZ4kR9Nf_wClKIQNTc18x4hk3gRb-zXsM0VNWFJkfGljSIFdqUTi5_35KR1BKMqDpHoSP37cbsa0ysfqz6aOpEM5bLfwZb056KB" />
+                        <div class="flex flex-col items-start">
+                            <span class="font-label-lg text-label-lg text-on-surface">Sarah J.</span>
+                        </div>
+                    </button>
+                </div>
+            </header>
+            <!-- CANVAS CONTENT -->
+            <div class="flex-1 overflow-y-auto p-margin-desktop bg-surface">
+                <div class="max-w-[1200px] mx-auto flex flex-col gap-stack-lg">
+                    <!-- Welcome Card -->
+                    <section
+                        class="bg-surface-container-lowest rounded-[32px] p-8 elevation-1 border border-outline-variant/20 relative overflow-hidden flex justify-between items-center min-h-[220px]">
+                        <!-- Decorative background element -->
+                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary-container/10 rounded-full blur-3xl">
+                        </div>
+                        <div
+                            class="absolute right-40 -bottom-20 w-48 h-48 bg-secondary-container/20 rounded-full blur-2xl">
+                        </div>
+                        <div class="relative z-10 max-w-2xl">
+                            <h1
+                                class="font-headline-lg text-headline-lg text-on-surface mb-2 tracking-tight text-primary">
+                                Good morning, Sarah</h1>
+                            <p class="font-body-lg text-body-lg text-on-surface-variant mb-6 leading-relaxed">Your vital
+                                readings are stable today. You have one upcoming community health screening event this
+                                weekend.</p>
+                            <div class="flex gap-4">
+                                <button
+                                    class="bg-primary text-on-primary px-6 py-3 rounded-full font-label-lg text-label-lg hover:shadow-md hover:bg-primary/90 transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                                    View Schedule
+                                </button>
+                                <button
+                                    class="bg-surface-container-high text-on-surface px-6 py-3 rounded-full font-label-lg text-label-lg hover:bg-surface-variant transition-all">
+                                    Read Health Tips
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Illustration Placeholder / Accent Area -->
+                        <div
+                            class="hidden lg:flex w-48 h-48 rounded-full bg-secondary-container text-on-secondary-container items-center justify-center relative z-10 border-4 border-surface shadow-sm">
+                            <span
+                                class="material-symbols-outlined icon-filled text-[80px] text-primary/80">local_florist</span>
+                        </div>
+                    </section>
+                    <!-- Two Column Grid -->
+                    <div class="grid grid-cols-12 gap-gutter">
+                        <!-- Left Column: Announcements (7 columns) -->
+                        <div class="col-span-7 flex flex-col gap-stack-md">
+                            <div class="flex justify-between items-end px-2 mb-2">
+                                <h2 class="font-title-lg text-title-lg text-on-surface">Community Updates</h2>
+                                <button class="text-primary font-label-lg text-label-lg hover:underline">View
+                                    All</button>
+                            </div>
+                            <!-- Latest Announcement Filled Tonal Card -->
+                            <article
+                                class="bg-secondary-container text-on-secondary-container rounded-[24px] p-6 elevation-1 hover:elevation-2 transition-shadow shape-expressive-r">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-on-secondary-container/10 flex items-center justify-center">
+                                        <span class="material-symbols-outlined icon-filled">campaign</span>
+                                    </div>
+                                    <div>
+                                        <span
+                                            class="font-label-sm text-label-sm uppercase tracking-wider opacity-80">Latest
+                                            Announcement</span>
+                                        <h3 class="font-title-md text-title-md font-bold mt-0.5">Free Vision Screening
+                                            Clinic</h3>
+                                    </div>
+                                </div>
+                                <p class="font-body-md text-body-md opacity-90 mb-6 max-w-lg leading-relaxed">
+                                    Join us this Saturday at the Community Center for complimentary vision checks. Open
+                                    to all registered portal members and their immediate family. Pre-registration is
+                                    recommended to secure a time slot.
+                                </p>
+                                <div class="flex items-center justify-between mt-auto">
+                                    <div class="flex items-center gap-2 text-sm opacity-80">
+                                        <span class="material-symbols-outlined text-[16px]">schedule</span>
+                                        <span>Sat, 9:00 AM - 2:00 PM</span>
+                                    </div>
+                                    <button
+                                        class="px-4 py-2 bg-on-secondary-container text-secondary-container rounded-full font-label-lg text-label-lg hover:bg-on-secondary-container/90 transition-colors">
+                                        Register Now
+                                    </button>
+                                </div>
+                            </article>
+                            <!-- Secondary small cards row -->
+                            <div class="grid grid-cols-2 gap-gutter mt-2">
+                                <div
+                                    class="bg-surface-container rounded-2xl p-5 border border-outline-variant/30 hover:bg-surface-container-high transition-colors cursor-pointer group">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <span
+                                            class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">medication</span>
+                                        <span
+                                            class="font-label-sm text-label-sm text-on-surface-variant bg-surface px-2 py-1 rounded-md shadow-sm">Due</span>
+                                    </div>
+                                    <h4 class="font-title-md text-title-md text-on-surface">Medication Refill</h4>
+                                    <p class="font-body-md text-body-md text-on-surface-variant mt-1 text-sm">Pharmacy
+                                        ready for pickup</p>
+                                </div>
+                                <div
+                                    class="bg-surface-container rounded-2xl p-5 border border-outline-variant/30 hover:bg-surface-container-high transition-colors cursor-pointer group">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <span
+                                            class="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">water_drop</span>
+                                    </div>
+                                    <h4 class="font-title-md text-title-md text-on-surface">Daily Hydration</h4>
+                                    <div class="w-full bg-outline-variant/30 h-2 rounded-full mt-3 overflow-hidden">
+                                        <div class="bg-tertiary h-full w-[60%] rounded-full"></div>
+                                    </div>
+                                    <p class="font-body-md text-body-md text-on-surface-variant mt-2 text-sm">1.2L /
+                                        2.0L goal</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Right Column: Poster (5 columns) -->
+                        <div class="col-span-5 h-full">
+                            <div class="h-full pt-10"> <!-- Aligns with the cards on the left -->
+                                <div
+                                    class="w-full h-full min-h-[400px] rounded-[32px] overflow-hidden elevation-2 relative group shape-expressive-leaf">
+                                    <!-- Using provided image placeholder -->
+                                    <div class="absolute inset-0 bg-cover bg-center w-full h-full transition-transform duration-700 group-hover:scale-105"
+                                        style="background-image: url('https://lh3.googleusercontent.com/aida/AEtjO1VzSeg8nFB7_-ovMteiTDHdVboP0MkjrAMw37BmERlKOTMNSo8u1Qjsh0YHfFEbbHKoHtJGrzgZZUL0FsBKZqVxgDDbhDX4xu60g5uZi5x4Cd8DOnYsrfDhNFxli3_z8QEdcAHTXY4R2ztO7Dzg6fmjjk7Qd3AFMEyXr7SkW6-cGHtR0tk8oYwvFsnyVMxcVsMmlKQB8RHRT_2x_wfCHHAD5mZb0LUm96NifGe-Kk-D7NgbabcvVKB94BI')">
+                                    </div>
+                                    <!-- Gradient Overlay for text readability -->
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-on-background/20 to-transparent">
+                                    </div>
+                                    <!-- Content over poster -->
+                                    <div class="absolute bottom-0 left-0 w-full p-8 text-on-secondary">
+                                        <span
+                                            class="inline-block px-3 py-1 bg-primary/90 rounded-full font-label-sm text-label-sm mb-3 backdrop-blur-sm">Featured
+                                            Program</span>
+                                        <h3 class="font-headline-md text-headline-md font-medium mb-2 text-white">
+                                            Community Walk for Wellness</h3>
+                                        <p class="font-body-lg text-body-lg opacity-90 mb-4 text-white/90">Join our
+                                            monthly group walk to stay active and connected with your neighbors.</p>
+                                        <button
+                                            class="w-full py-3 bg-white text-primary rounded-xl font-label-lg text-label-lg flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors shadow-sm">
+                                            <span class="material-symbols-outlined text-[20px]">directions_walk</span>
+                                            Learn More
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- End Grid -->
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

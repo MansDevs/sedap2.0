@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SeDaP - Patients &amp; Families</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#adc6ff",
+                        "secondary-fixed-dim": "#a6caf3",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#006673",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary-container": "#395c80",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#a1efff",
+                        "on-primary-container": "#fefcff",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary-fixed-variant": "#004e59",
+                        "surface-bright": "#f7f9fb",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#b1d5ff",
+                        "tertiary-fixed-dim": "#7bd3e5",
+                        "surface-dim": "#d8dadc",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary-fixed": "#d0e4ff",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "surface-container-high": "#e6e8ea",
+                        "primary": "#0058bd",
+                        "surface-tint": "#005ac1",
+                        "surface": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#24496c",
+                        "on-primary-fixed-variant": "#004494",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary-container": "#148090",
+                        "outline-variant": "#c2c6d5",
+                        "on-secondary-fixed": "#001d35",
+                        "surface-variant": "#e0e3e5",
+                        "on-tertiary-container": "#f8fdff",
+                        "outline": "#727785",
+                        "secondary": "#3d6185",
+                        "primary-container": "#2771df",
+                        "on-error-container": "#93000a",
+                        "background": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "on-background": "#191c1e",
+                        "on-surface-variant": "#424753",
+                        "on-surface": "#191c1e",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary": "#ffffff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-lg": "24px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "margin-tablet": "24px",
+                        "stack-md": "16px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Roboto Flex"],
+                        "label-lg": ["Roboto Flex"],
+                        "headline-lg": ["Roboto Flex"],
+                        "headline-md": ["Roboto Flex"],
+                        "body-lg": ["Roboto Flex"],
+                        "label-sm": ["Roboto Flex"],
+                        "display-md": ["Roboto Flex"],
+                        "headline-lg-mobile": ["Roboto Flex"],
+                        "title-lg": ["Roboto Flex"],
+                        "display-lg": ["Roboto Flex"],
+                        "title-md": ["Roboto Flex"]
+                    },
+                    fontSize: {
+                        "body-md": ["14px", { lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400" }],
+                        "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "400" }],
+                        "headline-md": ["28px", { lineHeight: "36px", fontWeight: "400" }],
+                        "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400" }],
+                        "label-sm": ["11px", { lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500" }],
+                        "display-md": ["45px", { lineHeight: "52px", fontWeight: "400" }],
+                        "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "400" }],
+                        "title-lg": ["22px", { lineHeight: "28px", fontWeight: "500" }],
+                        "display-lg": ["57px", { lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400" }],
+                        "title-md": ["16px", { lineHeight: "24px", letterSpacing: "0.15px", fontWeight: "500" }]
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto Flex', sans-serif;
+            background-color: #f7f9fb;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* Custom Scrollbar for sleekness */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c2c6d5;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #727785;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background text-on-background h-screen w-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+    <!-- SideNavBar (Predicted & Anchored) -->
+    <nav
+        class="hidden md:flex flex-col w-[280px] h-full bg-surface-container-low border-r border-outline-variant shadow-sm z-40 fixed left-0 top-0 bottom-0 py-6">
+        <div class="px-6 pb-6 flex items-center gap-4">
+            <div
+                class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+                <span class="material-symbols-outlined filled">local_hospital</span>
+            </div>
+            <div>
+                <h1 class="text-title-lg font-title-lg font-bold text-primary">SeDaP</h1>
+                <p class="text-label-sm font-label-sm text-on-surface-variant">Community Health</p>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto pt-4 flex flex-col gap-1">
+            <!-- Nav Items -->
+            <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-3 hover:bg-surface-container-high transition-colors duration-200 rounded-full"
+                href="#">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-label-lg font-label-lg">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-3 hover:bg-surface-container-high transition-colors duration-200 rounded-full"
+                href="#">
+                <span class="material-symbols-outlined">medical_services</span>
+                <span class="text-label-lg font-label-lg">Triage</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-3 hover:bg-surface-container-high transition-colors duration-200 rounded-full"
+                href="#">
+                <span class="material-symbols-outlined">chat_bubble</span>
+                <span class="text-label-lg font-label-lg">Chat</span>
+            </a>
+            <!-- Active State Navigation -->
+            <a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-full px-4 py-3 mx-3 transition-transform duration-150 active:scale-95"
+                href="#">
+                <span class="material-symbols-outlined filled">group</span>
+                <span class="text-label-lg font-label-lg font-bold">Patients &amp; Families</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-3 hover:bg-surface-container-high transition-colors duration-200 rounded-full"
+                href="#">
+                <span class="material-symbols-outlined">health_and_safety</span>
+                <span class="text-label-lg font-label-lg">Health Module</span>
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-3 hover:bg-surface-container-high transition-colors duration-200 rounded-full"
+                href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="text-label-lg font-label-lg">Settings</span>
+            </a>
+        </div>
+        <div class="mt-auto px-4 flex flex-col gap-4">
+            <button
+                class="w-full flex items-center justify-center gap-2 bg-[#D64545] text-white py-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity">
+                <span class="material-symbols-outlined">warning</span>
+                <span class="text-label-lg font-label-lg">Emergency Alert</span>
+            </button>
+            <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-colors duration-200 rounded-full"
+                href="#">
+                <span class="material-symbols-outlined">help</span>
+                <span class="text-label-lg font-label-lg">Help Center</span>
+            </a>
+        </div>
+    </nav>
+    <!-- Main Content Area -->
+    <main class="flex-1 ml-[280px] h-full flex flex-col bg-background relative overflow-hidden">
+        <!-- TopAppBar (Predicted & Anchored) -->
+        <header
+            class="flex justify-between items-center w-full px-8 h-16 bg-surface z-30 sticky top-0 bg-opacity-90 backdrop-blur-md">
+            <!-- Left side intentionally left empty or for breadcrumbs if needed, searching is handled in page -->
+            <div class="flex items-center">
+                <h2 class="text-headline-md font-headline-md text-primary font-bold">Patients &amp; Families</h2>
+            </div>
+            <div class="flex items-center gap-4 text-on-surface-variant">
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant cursor-pointer">
+                    <img alt="User Profile" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDllCOB8Ayu7AVhQetLtqyNWW8iVmfDmSJGqLrDoZbBzSwtvztgyHOSRZT3rAsqV02v3WLaoD9BQ7jWoonv9FtRe74s6RXe7MvqpDCwTUwmogyXKSelxDXy-3cGVScOHDguhDDN-MqAeyCWZ0ppMcHYe3e3ClKjYzt8BS4_bhNTH50cqSpR0XBuKOVwP5oBCqaOaTN2N9ovx3adG9cOpXmNFq6imnHCYn9tzah09M39yaRcjGCY74R8" />
+                </div>
+            </div>
+        </header>
+        <!-- Canvas -->
+        <div class="flex-1 overflow-y-auto p-margin-desktop">
+            <!-- Tabs -->
+            <div class="flex border-b border-outline-variant mb-8 w-max">
+                <button
+                    class="px-6 py-4 text-label-lg font-label-lg text-primary font-bold border-b-2 border-primary transition-colors flex items-center gap-2"
+                    id="tab-patients" onclick="switchTab('patients')">
+                    <span class="material-symbols-outlined">person</span> Patients
+                </button>
+                <button
+                    class="px-6 py-4 text-label-lg font-label-lg text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"
+                    id="tab-families" onclick="switchTab('families')">
+                    <span class="material-symbols-outlined">family_restroom</span> Families
+                </button>
+            </div>
+            <!-- Tab Content: Patients (Table) -->
+            <div class="block animate-fade-in" id="content-patients">
+                <!-- Action Bar -->
+                <div class="flex justify-between items-center mb-6 gap-4 flex-wrap">
+                    <div class="relative w-full max-w-md">
+                        <span
+                            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+                        <input
+                            class="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-full text-body-lg font-body-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
+                            placeholder="Search patients by name, ID, or contact..." type="text" />
+                    </div>
+                    <button
+                        class="bg-primary text-on-primary px-6 py-3 rounded-full text-label-lg font-label-lg font-medium flex items-center gap-2 hover:bg-surface-tint shadow-md transition-all active:scale-95">
+                        <span class="material-symbols-outlined">person_add</span> Add Patient
+                    </button>
+                </div>
+                <!-- Elevated Data Table Card -->
+                <div
+                    class="bg-surface-container-lowest rounded-[2rem] shadow-sm border border-surface-variant overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr
+                                    class="bg-surface-container-low text-on-surface-variant text-label-sm font-label-sm uppercase tracking-wider">
+                                    <th class="py-4 px-6 font-medium">Patient Details</th>
+                                    <th class="py-4 px-6 font-medium">ID Number</th>
+                                    <th class="py-4 px-6 font-medium">Contact</th>
+                                    <th class="py-4 px-6 font-medium">Zone / Area</th>
+                                    <th class="py-4 px-6 font-medium">Status</th>
+                                    <th class="py-4 px-6 font-medium text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-body-md font-body-md text-on-surface divide-y divide-surface-variant">
+                                <!-- Row 1 -->
+                                <tr class="hover:bg-surface-bright transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold">
+                                                JD
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-on-background">Jane Doe</p>
+                                                <p class="text-label-sm text-outline">F • 34 yrs</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-on-surface-variant font-mono">PT-2023-0891</td>
+                                    <td class="py-4 px-6 text-on-surface-variant">+1 (555) 019-2834</td>
+                                    <td class="py-4 px-6">
+                                        <span
+                                            class="inline-flex items-center gap-1 bg-surface-container px-2 py-1 rounded-md text-label-sm">
+                                            <span class="material-symbols-outlined text-[14px]">location_on</span> North
+                                            District
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <span
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary font-medium text-label-sm">
+                                            <span class="w-2 h-2 rounded-full bg-tertiary"></span> Stable
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button
+                                            class="text-primary hover:bg-primary-container hover:text-on-primary-container p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
+                                        <button
+                                            class="text-outline hover:bg-surface-variant p-2 rounded-full transition-colors ml-1">
+                                            <span class="material-symbols-outlined">more_vert</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- Row 2 -->
+                                <tr class="hover:bg-surface-bright transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold">
+                                                MS
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-on-background">Michael Smith</p>
+                                                <p class="text-label-sm text-outline">M • 62 yrs</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-on-surface-variant font-mono">PT-2023-0102</td>
+                                    <td class="py-4 px-6 text-on-surface-variant">+1 (555) 832-1190</td>
+                                    <td class="py-4 px-6">
+                                        <span
+                                            class="inline-flex items-center gap-1 bg-surface-container px-2 py-1 rounded-md text-label-sm">
+                                            <span class="material-symbols-outlined text-[14px]">location_on</span> West
+                                            Valley
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <span
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D64545]/10 text-[#D64545] font-medium text-label-sm">
+                                            <span class="w-2 h-2 rounded-full bg-[#D64545] animate-pulse"></span>
+                                            Critical
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button
+                                            class="text-primary hover:bg-primary-container hover:text-on-primary-container p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
+                                        <button
+                                            class="text-outline hover:bg-surface-variant p-2 rounded-full transition-colors ml-1">
+                                            <span class="material-symbols-outlined">more_vert</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div
+                        class="px-6 py-4 border-t border-surface-variant flex items-center justify-between text-label-sm text-on-surface-variant">
+                        <span>Showing 1-2 of 145 Patients</span>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1 hover:bg-surface-container rounded" disabled=""><span
+                                    class="material-symbols-outlined">chevron_left</span></button>
+                            <button class="p-1 hover:bg-surface-container rounded"><span
+                                    class="material-symbols-outlined">chevron_right</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab Content: Families (Cards) -->
+            <div class="hidden animate-fade-in" id="content-families">
+                <div class="flex justify-between items-center mb-6 gap-4 flex-wrap">
+                    <h3 class="text-title-lg font-title-lg font-medium">Household Records</h3>
+                    <button
+                        class="bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full text-label-lg font-label-lg font-medium flex items-center gap-2 hover:bg-secondary-fixed transition-all active:scale-95 shadow-sm">
+                        <span class="material-symbols-outlined">diversity_3</span> New Family Unit
+                    </button>
+                </div>
+                <!-- Bento Grid for Families -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Family Card 1 -->
+                    <div
+                        class="bg-surface-container-lowest rounded-[2rem] rounded-tr-[4rem] p-6 shadow-sm border border-surface-variant flex flex-col relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-headline-md font-headline-md font-medium text-on-background">The
+                                    Rodriguez Family</h4>
+                                <p class="text-body-md text-outline flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-[16px]">home</span> 1422 Sycamore Ln,
+                                    Eastside
+                                </p>
+                            </div>
+                            <button
+                                class="p-2 text-outline hover:text-primary hover:bg-primary-container/20 rounded-full transition-colors">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                        </div>
+                        <div class="flex gap-2 mb-6">
+                            <span
+                                class="px-3 py-1 bg-surface-container rounded-full text-label-sm text-on-surface-variant font-medium">4
+                                Members</span>
+                            <span
+                                class="px-3 py-1 bg-tertiary-container/10 text-tertiary rounded-full text-label-sm font-medium">Low
+                                Risk</span>
+                        </div>
+                        <!-- Members List (Expandable Concept) -->
+                        <div class="mt-auto border-t border-surface-variant pt-4">
+                            <details class="group/details">
+                                <summary
+                                    class="flex items-center justify-between cursor-pointer list-none text-label-lg text-primary font-medium hover:text-primary-container transition-colors">
+                                    View Members
+                                    <span
+                                        class="material-symbols-outlined transition-transform group-open/details:rotate-180">expand_more</span>
+                                </summary>
+                                <div class="mt-4 flex flex-col gap-3">
+                                    <div
+                                        class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-lowest transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-label-sm font-bold">
+                                                MR</div>
+                                            <span class="text-body-md font-medium">Maria Rodriguez (HOH)</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-lowest transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center text-label-sm font-bold">
+                                                JR</div>
+                                            <span class="text-body-md font-medium">Juan Rodriguez</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    <!-- Family Card 2 -->
+                    <div
+                        class="bg-surface-container-lowest rounded-[2rem] rounded-tl-[4rem] p-6 shadow-sm border border-surface-variant flex flex-col relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 left-0 w-32 h-32 bg-secondary/5 rounded-br-full -z-10 transition-transform group-hover:scale-110">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-headline-md font-headline-md font-medium text-on-background">The Chen
+                                    Family</h4>
+                                <p class="text-body-md text-outline flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-[16px]">home</span> 88 Pine St, West
+                                    Valley
+                                </p>
+                            </div>
+                            <button
+                                class="p-2 text-outline hover:text-primary hover:bg-primary-container/20 rounded-full transition-colors">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                        </div>
+                        <div class="flex gap-2 mb-6">
+                            <span
+                                class="px-3 py-1 bg-surface-container rounded-full text-label-sm text-on-surface-variant font-medium">3
+                                Members</span>
+                            <span
+                                class="px-3 py-1 bg-error-container text-error rounded-full text-label-sm font-medium flex items-center gap-1"><span
+                                    class="material-symbols-outlined text-[14px]">warning</span> Active Follow-up</span>
+                        </div>
+                        <!-- Members List -->
+                        <div class="mt-auto border-t border-surface-variant pt-4">
+                            <details class="group/details">
+                                <summary
+                                    class="flex items-center justify-between cursor-pointer list-none text-label-lg text-primary font-medium hover:text-primary-container transition-colors">
+                                    View Members
+                                    <span
+                                        class="material-symbols-outlined transition-transform group-open/details:rotate-180">expand_more</span>
+                                </summary>
+                                <div class="mt-4 flex flex-col gap-3">
+                                    <div
+                                        class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-lowest transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-label-sm font-bold">
+                                                DC</div>
+                                            <span class="text-body-md font-medium">David Chen (HOH)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Simple Tab Switching Logic -->
+    <script>
+        function switchTab(tabId) {
+            // Tabs
+            const tabPatients = document.getElementById('tab-patients');
+            const tabFamilies = document.getElementById('tab-families');
+
+            // Content
+            const contentPatients = document.getElementById('content-patients');
+            const contentFamilies = document.getElementById('content-families');
+
+            // Reset classes
+            const activeClasses = ['text-primary', 'font-bold', 'border-b-2', 'border-primary'];
+            const inactiveClasses = ['text-on-surface-variant', 'hover:text-primary'];
+
+            if (tabId === 'patients') {
+                tabPatients.classList.add(...activeClasses);
+                tabPatients.classList.remove(...inactiveClasses);
+
+                tabFamilies.classList.remove(...activeClasses);
+                tabFamilies.classList.add(...inactiveClasses);
+
+                contentPatients.classList.remove('hidden');
+                contentFamilies.classList.add('hidden');
+            } else {
+                tabFamilies.classList.add(...activeClasses);
+                tabFamilies.classList.remove(...inactiveClasses);
+
+                tabPatients.classList.remove(...activeClasses);
+                tabPatients.classList.add(...inactiveClasses);
+
+                contentFamilies.classList.remove('hidden');
+                contentPatients.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>

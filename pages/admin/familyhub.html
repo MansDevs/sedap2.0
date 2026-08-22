@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SeDaP - Patient &amp; Family Records</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Roboto Flex as specified in the Design System -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e6e8ea",
+                        "primary-container": "#2771df",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary": "#3d6185",
+                        "background": "#f7f9fb",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#395c80",
+                        "on-tertiary-fixed-variant": "#004e59",
+                        "inverse-primary": "#adc6ff",
+                        "secondary-fixed": "#d0e4ff",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary": "#0058bd",
+                        "on-primary-fixed-variant": "#004494",
+                        "on-primary-fixed": "#001a41",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#006673",
+                        "on-tertiary-container": "#f8fdff",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "on-surface-variant": "#424753",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-dim": "#d8dadc",
+                        "secondary-container": "#b1d5ff",
+                        "on-tertiary-fixed": "#001f25",
+                        "on-secondary-fixed": "#001d35",
+                        "inverse-surface": "#2d3133",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#c2c6d5",
+                        "outline": "#727785",
+                        "secondary-fixed-dim": "#a6caf3",
+                        "on-background": "#191c1e",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#148090",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#a1efff",
+                        "tertiary-fixed-dim": "#7bd3e5",
+                        "surface-container": "#eceef0",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-fixed-variant": "#24496c",
+                        "surface-bright": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#005ac1",
+                        "on-primary-container": "#fefcff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px",
+                        "expressive-card": "2rem 0.5rem 2rem 2rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "margin-desktop": "32px",
+                        "margin-tablet": "24px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Roboto Flex"],
+                        "headline-lg": ["Roboto Flex"],
+                        "headline-md": ["Roboto Flex"],
+                        "title-lg": ["Roboto Flex"],
+                        "body-md": ["Roboto Flex"],
+                        "title-md": ["Roboto Flex"],
+                        "body-lg": ["Roboto Flex"],
+                        "label-sm": ["Roboto Flex"],
+                        "display-lg": ["Roboto Flex"],
+                        "display-md": ["Roboto Flex"],
+                        "headline-lg-mobile": ["Roboto Flex"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400" }],
+                        "display-md": ["45px", { "lineHeight": "52px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-surface');
+        }
+        /* Custom scrollbar for better visual on fixed layout */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: theme('colors.outline-variant');
+            border-radius: 4px;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="font-body-md overflow-hidden h-screen w-screen flex antialiased">
+<!-- SideNavBar (from JSON) -->
+<nav class="fixed left-0 top-0 h-full w-[280px] z-40 flex flex-col py-stack-lg bg-surface dark:bg-surface-dim shadow-md transition-all duration-200 ease-in-out rounded-r-lg">
+<!-- Header -->
+<div class="px-6 mb-8 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-black text-primary">SeDaP</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Community Health</p>
+</div>
+</div>
+<!-- Main Navigation Tabs -->
+<div class="flex-1 flex flex-col gap-1 px-2 font-label-lg text-label-lg text-primary dark:text-primary-fixed">
+<!-- Dashboard -->
+<a class="text-on-surface-variant hover:bg-surface-variant/30 rounded-full mx-2 flex items-center px-4 py-3 hover:bg-surface-variant dark:hover:bg-on-surface-variant/10 group" href="#">
+<span class="material-symbols-outlined mr-3 text-on-surface-variant group-hover:text-on-surface">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Health Records (Active semantic mapping for Patient and Family Records) -->
+<a class="bg-secondary-container text-on-secondary-container rounded-full mx-2 flex items-center px-4 py-3" href="#">
+<span class="material-symbols-outlined mr-3 text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<span>Health Records</span>
+</a>
+<!-- Appointments -->
+<a class="text-on-surface-variant hover:bg-surface-variant/30 rounded-full mx-2 flex items-center px-4 py-3 hover:bg-surface-variant dark:hover:bg-on-surface-variant/10 group" href="#">
+<span class="material-symbols-outlined mr-3 text-on-surface-variant group-hover:text-on-surface">calendar_today</span>
+<span>Appointments</span>
+</a>
+<!-- Community -->
+<a class="text-on-surface-variant hover:bg-surface-variant/30 rounded-full mx-2 flex items-center px-4 py-3 hover:bg-surface-variant dark:hover:bg-on-surface-variant/10 group" href="#">
+<span class="material-symbols-outlined mr-3 text-on-surface-variant group-hover:text-on-surface">groups</span>
+<span>Community</span>
+</a>
+<!-- Resources -->
+<a class="text-on-surface-variant hover:bg-surface-variant/30 rounded-full mx-2 flex items-center px-4 py-3 hover:bg-surface-variant dark:hover:bg-on-surface-variant/10 group" href="#">
+<span class="material-symbols-outlined mr-3 text-on-surface-variant group-hover:text-on-surface">library_books</span>
+<span>Resources</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="px-6 mt-auto mb-4">
+<button class="w-full bg-primary text-on-primary font-label-lg text-label-lg rounded-full py-3 flex items-center justify-center shadow hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined mr-2 text-[18px]">add</span>
+                Book Appointment
+            </button>
+</div>
+<!-- Footer Tabs -->
+<div class="flex flex-col gap-1 px-2 font-label-lg text-label-lg">
+<a class="text-on-surface-variant hover:bg-surface-variant/30 rounded-full mx-2 flex items-center px-4 py-3 hover:bg-surface-variant dark:hover:bg-on-surface-variant/10 group" href="#">
+<span class="material-symbols-outlined mr-3 text-on-surface-variant group-hover:text-on-surface">settings</span>
+<span>Settings</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/30 rounded-full mx-2 flex items-center px-4 py-3 hover:bg-surface-variant dark:hover:bg-on-surface-variant/10 group" href="#">
+<span class="material-symbols-outlined mr-3 text-on-surface-variant group-hover:text-on-surface">help</span>
+<span>Help</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area Wrapper -->
+<div class="ml-[280px] flex-1 flex flex-col h-full bg-surface-container-lowest">
+<!-- TopAppBar (Based on JSON intent, adapted for desktop view) -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-30 bg-surface-container-lowest bg-opacity-90 backdrop-blur-sm transition-colors border-b border-surface-variant/50">
+<!-- Contextual Title (Since SideNav has Branding) -->
+<div class="flex items-center gap-2">
+<h2 class="font-title-lg text-title-lg text-on-surface">Records Management</h2>
+</div>
+<!-- Search & Actions -->
+<div class="flex items-center gap-4">
+<!-- Search Bar -->
+<div class="relative hidden md:flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
+<input class="bg-surface-container-highest text-on-surface font-body-md text-body-md rounded-full pl-12 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-primary border-none" placeholder="Search patients or IDs..." type="text"/>
+</div>
+<!-- Trailing Icon Actions -->
+<button class="w-10 h-10 rounded-full hover:bg-surface-variant/50 flex items-center justify-center text-on-surface-variant cursor-pointer active:scale-95 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-secondary-container hover:bg-secondary-fixed-dim flex items-center justify-center text-on-secondary-container cursor-pointer active:scale-95 transition-all overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female clinic administrator in her 30s with warm natural lighting, wearing a light blue smart casual blouse against a neutral soft gray background. High quality, crisp focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCumrx9ljR6m-MPkE8Bp3UjnyvcbvaRtKyeToCXtX0iRIsco_5GeEoGn7G7Wf5eqNCgjkBH3IU-DhVlPdaYsG2J7kHdjDEIv5r9bDqJ8w66MnTUVdD1uvgZivZI-dY5_RbH6hcc9nUDVHouYlSF3r_9bOoVhp71Vx6D8zjtz7pVKQ8mf4Hyo7WGdhxXDweYao-6CunjXRamRMivyyvW1PQQxQc01kJU2yCrqEABZ75xQUFhxu6eDqfX"/>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="flex-1 overflow-y-auto p-margin-desktop bg-surface-container-lowest">
+<!-- Page Header & Actions -->
+<div class="flex justify-between items-end mb-stack-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Patients &amp; Families</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage community health records and household data.</p>
+</div>
+<div class="flex gap-3">
+<button class="border border-outline font-label-lg text-label-lg text-primary rounded-[32px] px-6 py-2.5 flex items-center hover:bg-surface-variant/30 transition-colors">
+<span class="material-symbols-outlined mr-2 text-[18px]">download</span>
+                        Export CSV
+                    </button>
+<button class="bg-primary font-label-lg text-label-lg text-on-primary rounded-full px-6 py-2.5 flex items-center hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-colors shadow-sm">
+<span class="material-symbols-outlined mr-2 text-[18px]">add</span>
+                        New Record
+                    </button>
+</div>
+</div>
+<!-- M3 Tabs -->
+<div class="border-b border-surface-variant mb-stack-lg flex gap-8 px-2">
+<button class="relative pb-3 font-title-md text-title-md text-primary font-bold transition-colors" id="tab-btn-patients" onclick="switchTab('patients')">
+                    Patients
+                    <!-- Active Indicator -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" id="indicator-patients"></div>
+</button>
+<button class="relative pb-3 font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors" id="tab-btn-families" onclick="switchTab('families')">
+                    Families
+                    <!-- Active Indicator (Hidden by default) -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full hidden" id="indicator-families"></div>
+</button>
+</div>
+<!-- Tab Content: Patients -->
+<div class="tab-content active" id="content-patients">
+<!-- Data Table Container (Elevated Card) -->
+<div class="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-4 px-6 font-label-lg text-label-lg text-on-surface-variant font-medium">Name</th>
+<th class="py-4 px-6 font-label-lg text-label-lg text-on-surface-variant font-medium">ID</th>
+<th class="py-4 px-6 font-label-lg text-label-lg text-on-surface-variant font-medium">Contact</th>
+<th class="py-4 px-6 font-label-lg text-label-lg text-on-surface-variant font-medium">Zone/Area</th>
+<th class="py-4 px-6 font-label-lg text-label-lg text-on-surface-variant font-medium text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-surface-variant hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-label-lg font-bold">SM</div>
+<span class="font-medium text-on-surface">Sarah Mitchell</span>
+</div>
+</td>
+<td class="py-4 px-6 text-on-surface-variant">PT-8942-A</td>
+<td class="py-4 px-6">(555) 123-4567</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-container text-on-tertiary-container">
+                                            North Sector
+                                        </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="font-label-lg text-label-lg text-primary hover:text-on-primary-fixed-variant hover:bg-surface-variant/30 px-3 py-1.5 rounded-full transition-colors">View</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-surface-variant hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-label-lg font-bold">DR</div>
+<span class="font-medium text-on-surface">David Rodriguez</span>
+</div>
+</td>
+<td class="py-4 px-6 text-on-surface-variant">PT-7721-C</td>
+<td class="py-4 px-6">(555) 987-6543</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-container text-on-secondary-container">
+                                            East Sector
+                                        </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="font-label-lg text-label-lg text-primary hover:text-on-primary-fixed-variant hover:bg-surface-variant/30 px-3 py-1.5 rounded-full transition-colors">View</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-label-lg font-bold">EK</div>
+<span class="font-medium text-on-surface">Elena Kowalski</span>
+</div>
+</td>
+<td class="py-4 px-6 text-on-surface-variant">PT-3390-B</td>
+<td class="py-4 px-6">(555) 456-7890</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-container text-on-tertiary-container">
+                                            North Sector
+                                        </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="font-label-lg text-label-lg text-primary hover:text-on-primary-fixed-variant hover:bg-surface-variant/30 px-3 py-1.5 rounded-full transition-colors">View</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination (Simplified) -->
+<div class="flex items-center justify-between px-6 py-3 border-t border-surface-variant bg-surface-container-lowest">
+<span class="font-body-md text-body-md text-on-surface-variant">Showing 1 to 3 of 124 records</span>
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-surface-variant/50 text-outline disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-variant/50 text-on-surface">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Content: Families -->
+<div class="tab-content" id="content-families">
+<!-- Bento Grid / Asymmetric Card Layout for Families -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Family Card 1 -->
+<div class="bg-surface rounded-expressive-card p-6 shadow-sm border border-outline-variant hover:shadow-md transition-shadow relative overflow-hidden group cursor-pointer">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary-fixed opacity-50 rounded-bl-full -mr-8 -mt-8 z-0 transition-transform group-hover:scale-110"></div>
+<div class="relative z-10 flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary">family_restroom</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Household Head</p>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface">The Mitchell Family</h3>
+</div>
+<!-- Member Count Badge (Red semantic alert style as per instructions if needed, but using primary here for neutral data) -->
+<div class="bg-primary-container text-on-primary-container font-label-md text-label-md font-bold px-3 py-1 rounded-full flex items-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] mr-1">group</span>
+                                4
+                            </div>
+</div>
+<div class="relative z-10 mt-6 flex justify-between items-end border-t border-surface-variant pt-4">
+<p class="font-body-md text-body-md text-on-surface-variant">ID: HH-8942-North</p>
+<button class="w-8 h-8 rounded-full hover:bg-surface-variant/50 flex items-center justify-center text-on-surface transition-colors">
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Family Card 2 -->
+<div class="bg-surface rounded-expressive-card p-6 shadow-sm border border-outline-variant hover:shadow-md transition-shadow relative overflow-hidden group cursor-pointer">
+<div class="absolute top-0 right-0 w-24 h-24 bg-secondary-fixed opacity-50 rounded-bl-full -mr-8 -mt-8 z-0 transition-transform group-hover:scale-110"></div>
+<div class="relative z-10 flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-secondary">family_restroom</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Household Head</p>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface">The Rodriguez Family</h3>
+</div>
+<div class="bg-secondary-container text-on-secondary-container font-label-md text-label-md font-bold px-3 py-1 rounded-full flex items-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] mr-1">group</span>
+                                6
+                            </div>
+</div>
+<div class="relative z-10 mt-6 flex justify-between items-end border-t border-surface-variant pt-4">
+<p class="font-body-md text-body-md text-on-surface-variant">ID: HH-7721-East</p>
+<button class="w-8 h-8 rounded-full hover:bg-surface-variant/50 flex items-center justify-center text-on-surface transition-colors">
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Family Card 3 - Alert State -->
+<div class="bg-surface rounded-expressive-card p-6 shadow-sm border border-error-container hover:shadow-md transition-shadow relative overflow-hidden group cursor-pointer">
+<div class="absolute top-0 right-0 w-24 h-24 bg-error-container opacity-30 rounded-bl-full -mr-8 -mt-8 z-0 transition-transform group-hover:scale-110"></div>
+<div class="relative z-10 flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-error">family_restroom</span>
+<p class="font-label-sm text-label-sm text-error uppercase tracking-wider">Household Head</p>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface">The Kowalski Family</h3>
+</div>
+<!-- Semantic Alert Badge -->
+<div class="bg-error text-on-error font-label-md text-label-md font-bold px-3 py-1 rounded-full flex items-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] mr-1">warning</span>
+                                2
+                            </div>
+</div>
+<div class="relative z-10 mt-6 flex justify-between items-end border-t border-error-container pt-4">
+<p class="font-body-md text-body-md text-error">Follow-up Required</p>
+<button class="w-8 h-8 rounded-full hover:bg-error-container/50 flex items-center justify-center text-on-surface transition-colors">
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Simple Tab Logic -->
+<script>
+        function switchTab(tabId) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Reset tab styles
+            const btnPatients = document.getElementById('tab-btn-patients');
+            const btnFamilies = document.getElementById('tab-btn-families');
+            const indPatients = document.getElementById('indicator-patients');
+            const indFamilies = document.getElementById('indicator-families');
+
+            // Reset to inactive state classes
+            btnPatients.className = "relative pb-3 font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors";
+            btnFamilies.className = "relative pb-3 font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors";
+            indPatients.classList.add('hidden');
+            indFamilies.classList.add('hidden');
+
+            // Set active state
+            if(tabId === 'patients') {
+                document.getElementById('content-patients').classList.add('active');
+                btnPatients.className = "relative pb-3 font-title-md text-title-md text-primary font-bold transition-colors";
+                indPatients.classList.remove('hidden');
+            } else {
+                document.getElementById('content-families').classList.add('active');
+                btnFamilies.className = "relative pb-3 font-title-md text-title-md text-primary font-bold transition-colors";
+                indFamilies.classList.remove('hidden');
+            }
+        }
+    </script>
+</body></html>

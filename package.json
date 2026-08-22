@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "material": "github:material-esm/material"
+  }
+}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SeDaP - Announcements &amp; Posters</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#7bd3e5",
+                        "on-primary-container": "#fefcff",
+                        "surface-variant": "#e0e3e5",
+                        "surface-container-low": "#f2f4f6",
+                        "inverse-surface": "#2d3133",
+                        "on-background": "#191c1e",
+                        "outline": "#727785",
+                        "surface-tint": "#005ac1",
+                        "on-primary-fixed-variant": "#004494",
+                        "inverse-primary": "#adc6ff",
+                        "on-surface-variant": "#424753",
+                        "tertiary": "#006673",
+                        "secondary": "#3d6185",
+                        "secondary-container": "#b1d5ff",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-surface": "#191c1e",
+                        "surface": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#d0e4ff",
+                        "secondary-fixed-dim": "#a6caf3",
+                        "on-secondary-fixed-variant": "#24496c",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#d8e2ff",
+                        "surface-bright": "#f7f9fb",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#001f25",
+                        "on-error": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-dim": "#d8dadc",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary-container": "#f8fdff",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#2771df",
+                        "tertiary-fixed": "#a1efff",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004e59",
+                        "outline-variant": "#c2c6d5",
+                        "tertiary-container": "#148090",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#395c80",
+                        "on-secondary-fixed": "#001d35",
+                        "primary": "#0058bd",
+                        "background": "#f7f9fb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "margin-tablet": "24px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Roboto Flex"],
+                        "headline-lg": ["Roboto Flex"],
+                        "body-md": ["Roboto Flex"],
+                        "display-md": ["Roboto Flex"],
+                        "label-lg": ["Roboto Flex"],
+                        "body-lg": ["Roboto Flex"],
+                        "display-lg": ["Roboto Flex"],
+                        "title-md": ["Roboto Flex"],
+                        "headline-md": ["Roboto Flex"],
+                        "title-lg": ["Roboto Flex"],
+                        "headline-lg-mobile": ["Roboto Flex"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "display-md": ["45px", { "lineHeight": "52px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto Flex', sans-serif;
+            background-color: #f7f9fb;
+            overflow: hidden;
+            width: 1920px;
+            height: 1080px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .elevation-1 {
+            box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
+        }
+
+        .elevation-2 {
+            box-shadow: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
+        }
+    </style>
+</head>
+
+<body class="flex w-full h-full text-on-surface bg-background">
+    <!-- SideNavBar -->
+    <aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low shadow-sm flex flex-col py-4 z-50">
+        <div class="px-6 mb-8 flex items-center gap-4">
+            <img class="w-10 h-10 rounded-full object-cover"
+                data-alt="A stylized, modern geometric logo for a health platform, rendered in cool blues and white, conveying trust and innovation in a clean, light-mode environment."
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrbM2Z5JsCerqZ9UHuyo6K9QbL-mzR-_9ZQTQiMBFw5yVbUccpb1eOSwok4wN8mJHjd5jpRwlhLPXto4_a--hzRwut663OsHTO5On4LA7Bfi0GWqu4R7ayaOTGALUUzpqD0PBChNBfAXj_quhSwUcshwe98jeDpz2b1u49kdl82Bk-ADpsgfJ7HEyslkhYAFxD1rMq67sWLKDIgpXJci2Kb_bFJtYpjXfmmwD2EXWG18tcZ5fXwEU3" />
+            <div>
+                <h1 class="font-headline-md text-headline-md font-bold text-primary">Health Platform</h1>
+                <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mt-1">Community
+                    Care Portal</p>
+            </div>
+        </div>
+        <nav class="flex-1 flex flex-col gap-1 px-3">
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="group">group</span>
+                Staff &amp; Volunteers
+            </a>
+            <a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-full px-4 py-3 mx-3 my-1 font-title-md text-title-md active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined icon-filled" data-icon="campaign"
+                    data-weight="fill">campaign</span>
+                Announcements &amp; Posters
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="assignment_late">assignment_late</span>
+                Triage List
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="family_restroom">family_restroom</span>
+                Patients &amp; Families
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md transition-colors active:scale-95 transition-transform duration-150"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+                Health Module
+            </a>
+            <a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full px-4 py-3 mx-3 my-1 font-body-md text-body-md transition-colors active:scale-95 transition-transform duration-150 mt-auto"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+        </nav>
+    </aside>
+    <!-- Main Content Area -->
+    <main class="ml-[280px] w-[calc(100%-280px)] h-full flex flex-col relative z-0">
+        <!-- TopNavBar -->
+        <header class="flex justify-between items-center w-full px-margin-desktop h-16 bg-surface z-40 sticky top-0">
+            <div class="flex items-center gap-8">
+                <!-- Search (on_left) -->
+                <div class="relative w-96">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                    <input
+                        class="w-full pl-10 pr-4 py-2 bg-surface-container-highest rounded-full font-body-md text-body-md text-on-surface border-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all"
+                        placeholder="Search announcements..." type="text" />
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button
+                    class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
+                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
+                    <span class="material-symbols-outlined" data-icon="help">help</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
+                    <span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+                </button>
+            </div>
+        </header>
+        <!-- Canvas / Content Hub -->
+        <div class="flex-1 overflow-y-auto p-margin-desktop flex gap-margin-desktop bg-surface">
+            <!-- Structural Layering: Tonal Surface Layering -->
+            <div class="flex-1 flex flex-col gap-6 max-w-5xl mx-auto w-full">
+                <!-- Page Header & M3 Tabs -->
+                <div class="flex flex-col gap-6 mb-2">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h2 class="font-display-md text-display-md text-on-surface mb-2">Content Hub</h2>
+                            <p class="font-body-lg text-body-lg text-on-surface-variant">Manage community announcements
+                                and digital assets.</p>
+                        </div>
+                        <button
+                            class="bg-primary text-on-primary font-label-lg text-label-lg px-6 py-3 rounded-full flex items-center gap-2 hover:opacity-90 transition-opacity elevation-1">
+                            <span class="material-symbols-outlined">add</span>
+                            New Announcement
+                        </button>
+                    </div>
+                    <!-- M3 Tabs -->
+                    <div class="flex border-b border-outline-variant w-full">
+                        <button
+                            class="px-6 py-3 font-title-md text-title-md text-primary border-b-2 border-primary">Active
+                            Editor</button>
+                        <button
+                            class="px-6 py-3 font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors">Asset
+                            Library</button>
+                        <button
+                            class="px-6 py-3 font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors">Drafts</button>
+                    </div>
+                </div>
+                <!-- Editing Environment & Grid Layout -->
+                <div class="grid grid-cols-12 gap-6 items-start">
+                    <!-- Main Editor Surface (Tonal Layering) -->
+                    <div
+                        class="col-span-8 bg-surface-container rounded-xl p-8 elevation-1 border border-surface-dim flex flex-col gap-6">
+                        <div class="flex items-center gap-3 pb-4 border-b border-outline-variant">
+                            <span class="material-symbols-outlined text-primary">edit_document</span>
+                            <h3 class="font-headline-md text-headline-md text-on-surface">Rich Text Editor</h3>
+                        </div>
+                        <!-- Editor Toolbar -->
+                        <div class="flex items-center gap-2 bg-surface-container-high p-2 rounded-lg">
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">format_bold</span></button>
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">format_italic</span></button>
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">format_underlined</span></button>
+                            <div class="w-px h-6 bg-outline-variant mx-2"></div>
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">format_list_bulleted</span></button>
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">format_list_numbered</span></button>
+                            <div class="w-px h-6 bg-outline-variant mx-2"></div>
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">add_photo_alternate</span></button>
+                            <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant"><span
+                                    class="material-symbols-outlined">link</span></button>
+                        </div>
+                        <!-- Editor Canvas -->
+                        <div class="bg-surface-container-lowest rounded-lg p-6 min-h-[400px] border border-outline-variant font-body-lg text-body-lg text-on-surface focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all outline-none"
+                            contenteditable="true">
+                            <h1 class="text-3xl font-bold mb-4">Upcoming Flu Clinic Schedule</h1>
+                            <p class="mb-4 text-on-surface-variant">We are organizing several community clinics next
+                                month. Please ensure all posters are distributed to local centers by Friday.</p>
+                            <ul class="list-disc pl-6 mb-4 text-on-surface-variant">
+                                <li>Northside Community Center: Oct 12</li>
+                                <li>South Park Rec Hall: Oct 15</li>
+                            </ul>
+                        </div>
+                        <div class="flex justify-end gap-3 mt-4">
+                            <button
+                                class="px-6 py-2 rounded-full font-label-lg text-label-lg text-primary border border-outline hover:bg-surface-variant transition-colors">Save
+                                Draft</button>
+                            <button
+                                class="px-6 py-2 rounded-full font-label-lg text-label-lg bg-primary text-on-primary hover:opacity-90 transition-opacity">Publish</button>
+                        </div>
+                    </div>
+                    <!-- Asset Management Grid (Side Panel) -->
+                    <div class="col-span-4 flex flex-col gap-6">
+                        <div class="bg-surface-container-low rounded-xl p-6 border border-surface-dim">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-title-lg text-title-lg text-on-surface">Recent Posters</h3>
+                                <button class="text-primary hover:bg-surface-variant p-2 rounded-full"><span
+                                        class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div
+                                    class="group relative rounded-lg overflow-hidden border border-outline-variant cursor-pointer aspect-[3/4]">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="A clean, modern health clinic promotional poster design featuring abstract blue and teal geometric shapes, clear typography, and a welcoming tone, rendered in a crisp light-mode aesthetic."
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUGQ_SludgoBVuDJmKXAbjtuUv8taLADYkYaf4VksCKpyyIO7vMaSS8yiwrqQtCSf51BxzJSoza2DYuEnkM7-sZgkxEc8dO_mkN_kuA2Rqi6crzp9HD8JXa3YmX3brqMo6vMSz1CFAxKO1BNvBXMt659A76yDrhCQ4snLBK2ztZeq3ciOYFrhVAOHDy1x3Qd4yy58eGBkFNkrDlfqObxNs3A4AREeQ8ZMk2v2eFm3pp_8YTXcxO3hf" />
+                                    <div
+                                        class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-white">visibility</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="group relative rounded-lg overflow-hidden border border-outline-variant cursor-pointer aspect-[3/4]">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="An informative public health announcement poster featuring soft lighting, a diverse group of abstract figures representing community, and bold blue primary colors on a white background."
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3qpA8u-Lw3NtGAuGQ2Y9ufYDQrspxb4IK8Df6j1Jy-AsN3eyNYCUKFNTgJOLv9BpgucLL-GY6z0RdS5IdYTUPCp0YfS79e0nTT2g497dCv808-cJmyAfbG0GfsJSXwudP6eMXMjZLXBsFs0IF2AT5bwu1bhSQuIgcfZhXcXmqJsUh9Aw4dssOzLy0snKLD2iLQ9dPEOfLXkCXls_Yjf3tuH_n49aweFzBhSWXrMQd6M1yU3sXk6tT" />
+                                    <div
+                                        class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-white">visibility</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="group relative rounded-lg overflow-hidden border border-outline-variant cursor-pointer aspect-[3/4]">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="A minimalist vaccine drive poster design utilizing generous white space, bold typography, and subtle gradients in cool tertiary blues, conveying safety and modern healthcare."
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdg700geYP2ts6meBvA-bx9YGct9fMuTE1KTaf1dt9VHGu4h1M06FCn-I1_Xg4XuygIkIIVozA2GWsh_iKHHJZMKPTULCxqVkGD0JiDcJLIQCUjvASeO4ZIy_5aDsIw9KeNeydq9oYxIjLi3ZrBAvcnrVgKverNIailrdDnoXaXGJGU318zrwDF1ettGlzaZxBJa0Xn1fZZYNHSqCUqigcSRDOV9KGK87YJqXrvP2kbG1yGoi2iPzt" />
+                                    <div
+                                        class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-white">visibility</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="rounded-lg border border-dashed border-outline-variant flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-colors cursor-pointer aspect-[3/4]">
+                                    <span class="material-symbols-outlined mb-2">upload</span>
+                                    <span class="font-label-sm text-label-sm">Upload</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-6 border border-surface-dim">
+                            <h3 class="font-title-lg text-title-lg text-on-surface mb-4">Metadata</h3>
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <label
+                                        class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Category</label>
+                                    <select
+                                        class="w-full bg-surface-container-lowest border border-outline rounded-lg px-4 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary outline-none">
+                                        <option>Public Health Alert</option>
+                                        <option>Community Event</option>
+                                        <option>Internal Memo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Tags</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span
+                                            class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-sm text-label-sm flex items-center gap-1">Flu
+                                            Season <span
+                                                class="material-symbols-outlined text-[14px] cursor-pointer hover:text-error">close</span></span>
+                                        <span
+                                            class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-sm text-label-sm flex items-center gap-1">Urgent
+                                            <span
+                                                class="material-symbols-outlined text-[14px] cursor-pointer hover:text-error">close</span></span>
+                                        <span
+                                            class="px-3 py-1 border border-outline rounded-full font-label-sm text-label-sm text-on-surface-variant cursor-pointer hover:bg-surface-variant">+
+                                            Add</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
