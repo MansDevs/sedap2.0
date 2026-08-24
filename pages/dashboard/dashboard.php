@@ -7,8 +7,25 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Get the user's name from the session (set during login)
-$userName = $_SESSION['user_name'] ?? 'User';
+require_once __DIR__ . '/../config/db.php';
+
+$userId = (int) $_SESSION['user_id'];
+$stmt = $pdo->prepare("SELECT name, role FROM users WHERE id = ?");
+$stmt->execute([$userId]);
+$user = $stmt->fetch();
+
+$userName = $user['name'] ?? ($_SESSION['user_name'] ?? 'User');
+$userRole = $user['role'] ?? 'staff';
+
+$portalUrl = null;
+$portalLabel = null;
+if ($userRole === 'admin') {
+    $portalUrl = '../admin/dashboard.php';
+    $portalLabel = 'Admin Panel';
+} elseif (in_array($userRole, ['doctor', 'nurse', 'medical_assistant'], true)) {
+    $portalUrl = '../doctor/dashboard.php';
+    $portalLabel = ucwords(str_replace('_', ' ', $userRole)) . ' Panel';
+}
 ?>
 
 <!DOCTYPE html>
@@ -74,6 +91,15 @@ $userName = $_SESSION['user_name'] ?? 'User';
             <p class="text-lg text-[#3f494a] mb-8">
                 Welcome back, <strong class="text-[#221a0c]"><?php echo htmlspecialchars($userName); ?></strong>!
             </p>
+
+            <!-- Portal Button (role-based) -->
+            <?php if ($portalUrl): ?>
+            <a href="<?php echo htmlspecialchars($portalUrl); ?>"
+               class="w-full bg-primary hover:bg-[#136d74] text-white font-semibold py-4 px-6 rounded-[32px] transition-colors shadow-sm flex justify-center items-center gap-2 group mb-3">
+                <span class="material-symbols-outlined text-[20px]">space_dashboard</span>
+                <span><?php echo htmlspecialchars($portalLabel); ?></span>
+            </a>
+            <?php endif; ?>
 
             <!-- The Logout Button -->
             <a href="../auth/logout.php" 
