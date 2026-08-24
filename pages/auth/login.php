@@ -6,40 +6,53 @@ require_once __DIR__ . '/../config/db.php';
 
 $error = '';
 
-// If the user is already logged in, redirect them to the homepage
-if (isset($_SESSION['user_id'])) {
-    header("Location: ../dashboard/dashboard.php");
+// If the user is already logged in, redirect them to their portal
+if (isset($_SESSION['user_id']) && !empty($_SESSION['user_role'])) {
+    switch ($_SESSION['user_role']) {
+        case 'admin':     $redirect = "../admin/dashboard.php"; break;
+        case 'doctor':    $redirect = "../doctor/cdashboard.php"; break;
+        case 'volunteer': $redirect = "../volunteer/dashboard.php"; break;
+        case 'user':
+        default:          $redirect = "../patient/dashboard.php"; break;
+    }
+    header("Location: $redirect");
     exit();
 }
 
 // Process the form when it is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+    $emailInput = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($email) || empty($password)) {
-        $error = "Please enter both your email and password.";
+    if (empty($emailInput) || empty($password)) {
+        $error = "Please enter both your email/username and password.";
     } else {
         try {
-            // Find the user by their email
-            $stmt = $pdo->prepare("SELECT id, name, password, role FROM users WHERE email = ?");
-            $stmt->execute([$email]);
+            // Find the user by email or username
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? OR username = ?");
+            $stmt->execute([$emailInput, $emailInput]);
             $user = $stmt->fetch();
 
-            // Verify if the user exists AND the password matches the hash in the database
+            // Verify if user exists and password matches
             if ($user && password_verify($password, $user['password'])) {
-                // Login successful! Set session variables
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
-                if (!empty($user['role'])) {
-                    $_SESSION['role'] = $user['role'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'] ?? 'user';
+                $_SESSION['role'] = $user['role'] ?? 'user';
+                $_SESSION['dark_mode'] = $user['dark_mode'] ?? 0;
+
+                switch ($user['role']) {
+                    case 'admin':     $redirect = "../admin/dashboard.php"; break;
+                    case 'doctor':    $redirect = "../doctor/cdashboard.php"; break;
+                    case 'volunteer': $redirect = "../volunteer/dashboard.php"; break;
+                    case 'user':
+                    default:          $redirect = "../patient/dashboard.php"; break;
                 }
-                
-                // Redirect to the main app dashboard (adjust this path if your main page is named differently)
-                header("Location: ../dashboard/dashboard.php");
+                header("Location: $redirect");
                 exit();
             } else {
-                $error = "Invalid email or password.";
+                $error = "Invalid username/email or password.";
             }
         } catch (\PDOException $e) {
             $error = "System error: " . $e->getMessage();

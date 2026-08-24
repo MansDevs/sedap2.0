@@ -7,9 +7,16 @@ require_once __DIR__ . '/../config/db.php';
 $error = '';
 $success = '';
 
-// If the user is already logged in, redirect them to the dashboard
-if (isset($_SESSION['user_id'])) {
-    header("Location: ../dashboard/dashboard.php");
+// If the user is already logged in, redirect them to their portal
+if (isset($_SESSION['user_id']) && !empty($_SESSION['user_role'])) {
+    switch ($_SESSION['user_role']) {
+        case 'admin':     $redirect = "../admin/dashboard.php"; break;
+        case 'doctor':    $redirect = "../doctor/cdashboard.php"; break;
+        case 'volunteer': $redirect = "../volunteer/dashboard.php"; break;
+        case 'user':
+        default:          $redirect = "../patient/dashboard.php"; break;
+    }
+    header("Location: $redirect");
     exit();
 }
 
@@ -23,6 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? $_POST['confirm-password'] ?? '';
     $role = trim($_POST['role'] ?? 'user');
+    if (empty($username)) {
+        $username = strtolower(explode('@', $email)[0]);
+    }
 
     // Basic Validation
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
@@ -33,30 +43,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Password must be at least 6 characters long.";
     } else {
         try {
-            // Check if the email is already registered using PDO
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
-            $stmt->execute([$email]);
+            // Check if email or username is already registered using PDO
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ? OR username = ?");
+            $stmt->execute([$email, $username]);
             $count = $stmt->fetchColumn();
 
             if ($count > 0) {
-                $error = "This email is already registered.";
+                $error = "This email or username is already registered.";
             } else {
                 // Hash the password for security
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                // Insert the new user into the database using PDO (with fallback if schema differs)
-                try {
-                    $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, contact, username) VALUES (?, ?, ?, ?, ?, ?)");
-                    $inserted = $insert_stmt->execute([$name, $email, $hashed_password, $role, $contact, $username]);
-                } catch (\PDOException $pe1) {
-                    try {
-                        $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-                        $inserted = $insert_stmt->execute([$name, $email, $hashed_password, $role]);
-                    } catch (\PDOException $pe2) {
-                        $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-                        $inserted = $insert_stmt->execute([$name, $email, $hashed_password]);
-                    }
-                }
+                // Insert the new user into the database
+                $insert_stmt = $pdo->prepare("INSERT INTO users (name, username, email, password, role, contact_number, phone) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $inserted = $insert_stmt->execute([$name, $username, $email, $hashed_password, $role, $contact, $contact]);
                 
                 if ($inserted) {
                     $success = "Registration successful! You can now log in.";
