@@ -1,63 +1,72 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor'])) {
-    header('Location: ../auth/login.php');
-    exit;
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor', 'admin', 'volunteer'])) {
+    header('Location: ../auth/login.php'); exit;
 }
-$page_title = "Announcements";
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
+$announcements = [];
+try {
+    $stmt = $pdo->query("SELECT * FROM announcements WHERE status='published' ORDER BY created_at DESC");
+    $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/announcements.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><?= __('page_announcements_title', 'Pengumuman') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../shared/includes/sidebar_doctor.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-primary/20">
-            <span class="bg-primary-light/20 text-primary px-3 py-1 rounded-full text-xs font-bold">Important</span>
-            <h3 class="mt-4 font-bold text-lg">System Update Notice</h3>
-            <p class="text-sm text-on-surface-muted mt-2">The system will be down for maintenance from 2 AM to 4 AM on Sunday.</p>
-        </div>
-    </div>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">campaign</span><?= __('page_announcements_title', 'Pengumuman Rasmi') ?></h1>
+        <p class="page-subtitle"><?= __('page_announcements_sub', 'Maklumat terkini dan pekeliling kesihatan komuniti') ?></p>
+      </div>
 
+      <?php if (empty($announcements)): ?>
+        <div class="card text-center p-5">
+          <span class="material-symbols-outlined d-block text-muted mb-2" style="font-size:48px;opacity:.4;">campaign</span>
+          <h5 class="fw-semibold text-muted"><?= __('no_announcements_published', 'Tiada Pengumuman Diterbitkan') ?></h5>
+          <p class="text-muted small"><?= __('no_announcements_desc', 'Semua maklumat rasmi akan dipaparkan di sini apabila diterbitkan oleh pentadbir.') ?></p>
+        </div>
+      <?php else: ?>
+        <div class="row g-4">
+          <?php foreach ($announcements as $a): ?>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold text-primary"><?= htmlspecialchars($a['title']) ?></span>
+                </div>
+                <div class="card-body">
+                  <p class="card-text text-muted small" style="white-space:pre-line;"><?= htmlspecialchars($a['content'] ?? '') ?></p>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-muted small d-flex align-items-center gap-1">
+                  <span class="material-symbols-outlined" style="font-size:16px;">calendar_today</span>
+                  <?= date('d M Y, H:i', strtotime($a['created_at'])) ?>
+                </div>
+              </div>
             </div>
-        </main>
-    </div>
-    <script src="js/announcements.js"></script>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

@@ -1,65 +1,81 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['volunteer'])) {
-    header('Location: ../auth/login.php');
-    exit;
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
+    header('Location: ../auth/login.php'); exit;
 }
-$page_title = "Patient Registration";
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $ic   = trim($_POST['ic_number'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    if ($name) {
+        $pdo->prepare("INSERT INTO patients (full_name, ic_number, phone, created_at) VALUES (?,?,?,NOW())")->execute([$name, $ic, $phone]);
+        header("Location: patients.php?success=1"); exit;
+    }
+}
+$patients = $pdo->query("SELECT * FROM patients ORDER BY full_name LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/patients.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pendaftaran Pesakit — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../shared/includes/sidebar_volunteer.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <div class="bg-white rounded-2xl shadow-sm border border-primary/20 p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-primary">Patient Directory</h2>
-            <button class="bg-primary text-white px-4 py-2 rounded-full font-medium shadow-sm">+ Add New Patient</button>
-        </div>
-        <div class="text-center py-10 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
-            Directory list will appear here.
-        </div>
-    </div>
-
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar_volunteer.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">person_add</span>Pendaftaran Pesakit Komuniti</h1>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header"><strong>Daftar Pesakit</strong></div>
+            <div class="card-body">
+              <form method="POST">
+                <div class="mb-3"><label class="form-label small fw-semibold">Nama Penuh *</label><input type="text" name="name" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label small fw-semibold">No. IC</label><input type="text" name="ic_number" class="form-control"></div>
+                <div class="mb-3"><label class="form-label small fw-semibold">Telefon</label><input type="tel" name="phone" class="form-control"></div>
+                <button type="submit" class="btn btn-primary w-100">Daftar</button>
+              </form>
             </div>
-        </main>
-    </div>
-    <script src="js/patients.js"></script>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header"><strong>Senarai Pesakit</strong></div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light"><tr><th>Nama</th><th>No. IC</th><th>Telefon</th></tr></thead>
+                  <tbody>
+                    <?php foreach ($patients as $p): ?>
+                      <tr><td class="fw-semibold"><?= htmlspecialchars($p['full_name']) ?></td><td class="small text-muted"><?= htmlspecialchars($p['ic_number'] ?? '—') ?></td><td class="small"><?= htmlspecialchars($p['phone'] ?? '—') ?></td></tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

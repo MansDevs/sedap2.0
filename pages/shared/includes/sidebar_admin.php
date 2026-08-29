@@ -1,124 +1,79 @@
 <?php
 /**
- * sidebar_admin.php — Admin Portal Sidebar
- * Location: pages/shared/includes/sidebar_admin.php
+ * CoreUI Sidebar — Admin Portal
  */
-$currentScriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF']);
-if (strpos($currentScriptPath, '/pages/') !== false) {
-    $afterPagesPath = substr($currentScriptPath, strpos($currentScriptPath, '/pages/') + 7);
-    $dirDepth = substr_count($afterPagesPath, '/');
-    $pagesBase = str_repeat('../', $dirDepth);
-} else {
-    $pagesBase = '../';
-}
-
-$current = basename($_SERVER['PHP_SELF']);
-$currentDir = basename(dirname($_SERVER['PHP_SELF']));
-if (!function_exists('navActive')) {
-    function navActive($file, $current, $dir = '') {
-        return (basename($file) === $current || $dir === $current) ? 'active' : '';
-    }
-}
-$userName = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
-$initials = strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1));
+require_once __DIR__ . '/lang.php';
 ?>
-<nav class="sedap-sidebar">
-    <div class="logo-area" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-        <div style="display:flex;align-items:center;gap:0.75rem;">
-            <div class="logo-icon"><span class="material-symbols-outlined filled" style="font-size:22px;">health_and_safety</span></div>
-            <div class="logo-text">
-                <h1>SeDaP</h1>
-                <p>Admin Portal</p>
-            </div>
-        </div>
-        <button type="button" id="sidebar-dark-btn" class="header-btn" title="Toggle dark mode" onclick="toggleDarkMode()" style="background:transparent;border:none;cursor:pointer;color:var(--on-muted);padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined" id="dark-icon" style="font-size:20px;">dark_mode</span>
-        </button>
-    </div>
+<div class="sidebar sidebar-fixed sidebar-dark" id="sidebar">
+  <div class="sidebar-brand d-flex align-items-center justify-content-between px-3 py-3 border-bottom" style="border-color:rgba(255,255,255,0.1)!important;min-height:56px;">
+    <a href="/sedap/sedap2.0/pages/admin/dashboard.php" class="sidebar-brand-full d-flex align-items-center gap-2 text-decoration-none text-white">
+      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">admin_panel_settings</span>
+      <span class="fw-bold fs-5 text-white">SeDaP Admin</span>
+    </a>
+    <a href="javascript:void(0)" onclick="sedapToggleSidebar()" class="sidebar-brand-narrow text-decoration-none text-white" title="Buka / Tutup Menu">
+      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">menu</span>
+    </a>
+    <button class="sidebar-toggle-btn sidebar-brand-full" type="button" onclick="sedapToggleSidebar()" title="Kecilkan / Buka Sidebar">
+      <span class="material-symbols-outlined" style="font-size:22px;">menu</span>
+    </button>
+  </div>
 
-    <span class="nav-section-label">Dashboard</span>
-    <a href="<?php echo $pagesBase; ?>admin/dashboard.php" class="nav-link <?php echo navActive('dashboard.php', $current); ?>">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span>Dashboard</span>
-    </a>
+  <ul class="sidebar-nav">
+    <li class="nav-title"><?= __('nav_admin_portal', 'Admin Portal') ?></li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/dashboard.php">
+        <span class="material-symbols-outlined nav-icon">dashboard</span><span><?= __('nav_dashboard', 'Dashboard') ?></span>
+      </a>
+    </li>
+    <li class="nav-title"><?= __('nav_personnel', 'Pengurusan') ?></li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/triage/index.php">
+        <span class="material-symbols-outlined nav-icon">monitor_heart</span><span><?= __('nav_triage', 'Triaj') ?></span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/patients/index.php">
+        <span class="material-symbols-outlined nav-icon">person</span><span><?= __('nav_patients', 'Pesakit') ?></span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/family/index.php">
+        <span class="material-symbols-outlined nav-icon">family_restroom</span><span><?= __('nav_family', 'Maklumat Keluarga') ?></span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/personnel/index.php">
+        <span class="material-symbols-outlined nav-icon">badge</span><span><?= __('nav_personnel', 'Kakitangan & Sukarelawan') ?></span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/screening/index.php">
+        <span class="material-symbols-outlined nav-icon">fact_check</span><span><?= __('nav_screening', 'Saringan Kesihatan') ?></span>
+      </a>
+    </li>
+    <li class="nav-title"><?= __('nav_announcements', 'Kandungan') ?></li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/announcements/index.php">
+        <span class="material-symbols-outlined nav-icon">campaign</span><span><?= __('nav_announcements', 'Pengumuman') ?></span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/posters/index.php">
+        <span class="material-symbols-outlined nav-icon">image</span><span><?= __('nav_posters', 'Galeri Poster') ?></span>
+      </a>
+    </li>
+    <li class="nav-title"><?= __('nav_settings', 'Sistem') ?></li>
+    <li class="nav-item">
+      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/settings.php">
+        <span class="material-symbols-outlined nav-icon">settings</span><span><?= __('nav_settings', 'Tetapan') ?></span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-danger" href="/sedap/sedap2.0/pages/auth/logout.php" onclick="return confirm('<?= __('settings_confirm_logout', 'Log keluar?') ?>')">
+        <span class="material-symbols-outlined nav-icon text-danger">logout</span><span><?= __('nav_logout', 'Log Keluar') ?></span>
+      </a>
+    </li>
+  </ul>
 
-    <span class="nav-section-label">Content Management</span>
-    <a href="<?php echo $pagesBase; ?>admin/announcements/index.php" class="nav-link <?php echo navActive('index.php', $current, 'announcements'); ?>">
-        <span class="material-symbols-outlined">campaign</span>
-        <span>Announcements</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/posters/index.php" class="nav-link <?php echo navActive('index.php', $current, 'posters'); ?>">
-        <span class="material-symbols-outlined">image</span>
-        <span>Posters</span>
-    </a>
-
-    <span class="nav-section-label">Clinical</span>
-    <a href="<?php echo $pagesBase; ?>admin/triage/index.php" class="nav-link <?php echo navActive('index.php', $current, 'triage'); ?>">
-        <span class="material-symbols-outlined">emergency</span>
-        <span>Triage List</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/triage/add.php" class="nav-link <?php echo navActive('add.php', $current); ?>">
-        <span class="material-symbols-outlined">add_circle</span>
-        <span>New Triage Entry</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/screening/index.php" class="nav-link <?php echo navActive('index.php', $current, 'screening'); ?>">
-        <span class="material-symbols-outlined">quiz</span>
-        <span>Health Screening</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/patients/index.php" class="nav-link <?php echo navActive('index.php', $current, 'patients'); ?>">
-        <span class="material-symbols-outlined">person</span>
-        <span>Patients</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/family/index.php" class="nav-link <?php echo navActive('index.php', $current, 'family'); ?>">
-        <span class="material-symbols-outlined">family_restroom</span>
-        <span>Family Info</span>
-    </a>
-
-    <span class="nav-section-label">Health Modules</span>
-    <a href="<?php echo $pagesBase; ?>admin/health/bristol.php" class="nav-link <?php echo navActive('bristol.php', $current); ?>">
-        <span class="material-symbols-outlined">analytics</span>
-        <span>Bristol Scale</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/health/water.php" class="nav-link <?php echo navActive('water.php', $current); ?>">
-        <span class="material-symbols-outlined">water_drop</span>
-        <span>Water Tracker</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/health/mood.php" class="nav-link <?php echo navActive('mood.php', $current); ?>">
-        <span class="material-symbols-outlined">sentiment_satisfied</span>
-        <span>Mood Journal</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/health/medicine.php" class="nav-link <?php echo navActive('medicine.php', $current); ?>">
-        <span class="material-symbols-outlined">medication</span>
-        <span>Medicine & Reminders</span>
-    </a>
-
-    <span class="nav-section-label">Administration</span>
-    <a href="<?php echo $pagesBase; ?>admin/personnel/index.php" class="nav-link <?php echo navActive('index.php', $current, 'personnel'); ?>">
-        <span class="material-symbols-outlined">badge</span>
-        <span>Staff & Volunteers</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/myaccount.php" class="nav-link <?php echo navActive('myaccount.php', $current); ?>">
-        <span class="material-symbols-outlined">manage_accounts</span>
-        <span>My Account</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>admin/settings.php" class="nav-link <?php echo navActive('settings.php', $current); ?>">
-        <span class="material-symbols-outlined">settings</span>
-        <span>Settings</span>
-    </a>
-
-    <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar"><?php echo $initials; ?></div>
-            <div>
-                <div class="user-name"><?php echo $userName; ?></div>
-                <div class="user-role">Administrator</div>
-            </div>
-        </div>
-        <a href="<?php echo $pagesBase; ?>auth/logout.php" class="nav-link" style="margin-top:0.5rem;"
-           onclick="return confirm('Log keluar?')">
-            <span class="material-symbols-outlined">logout</span>
-            <span>Log Out</span>
-        </a>
-    </div>
-</nav>
-<script src="<?php echo $pagesBase; ?>shared/js/sedap-spa.js"></script>
+  <button class="sidebar-toggler" type="button" onclick="sedapToggleSidebar()"></button>
+</div>

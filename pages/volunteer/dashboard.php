@@ -1,71 +1,105 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['volunteer'])) {
-    header('Location: ../auth/login.php');
-    exit;
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
+    header('Location: ../auth/login.php'); exit;
 }
-$page_title = "Volunteer Dashboard";
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
+// Stats
+$triageCount = 0;
+$annCount    = 0;
+try { $triageCount = $pdo->query("SELECT COUNT(*) FROM triage_records WHERE DATE(triaged_at)=CURDATE()")->fetchColumn(); } catch(Exception $e) {}
+try { $annCount = $pdo->query("SELECT COUNT(*) FROM announcements WHERE status='published'")->fetchColumn(); } catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/dashboard.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard Sukarelawan — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../shared/includes/sidebar_volunteer.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <div class="bg-primary text-white rounded-3xl p-8 mb-6 shadow-md bg-[url('../shared/assets/pattern.png')] bg-cover">
-        <h1 class="text-3xl font-bold mb-2">Welcome Back, Volunteer!</h1>
-        <p class="opacity-90">Thank you for contributing to community health.</p>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-primary/20 p-6 flex flex-col items-center justify-center">
-            <span class="text-primary font-bold text-lg">Triages Registered Today</span>
-            <span class="text-5xl font-extrabold text-primary mt-4">12</span>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar_volunteer.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h1 class="page-title">
+            <span class="material-symbols-outlined" style="color:var(--cui-primary);">volunteer_activism</span>
+            Dashboard Sukarelawan
+          </h1>
+          <p class="page-subtitle">Selamat datang, <?= $userName ?>. Terima kasih atas sumbangan anda.</p>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-primary/20 p-6 flex flex-col gap-3 justify-center">
-            <a href="triage_counter.php" class="bg-primary text-white text-center rounded-xl py-3 font-bold hover:bg-primary-dark transition shadow-sm">New Triage Entry</a>
-            <a href="triage_list.php" class="bg-surface-dark text-primary border border-primary/20 text-center rounded-xl py-3 font-bold hover:bg-surface transition">View Triage List</a>
-            <a href="announcements.php" class="bg-gray-50 text-gray-700 border border-gray-200 text-center rounded-xl py-3 font-medium hover:bg-gray-100 transition">View Announcements</a>
-        </div>
-    </div>
+      </div>
 
+      <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-4">
+          <div class="stat-card stat-teal">
+            <div>
+              <div class="stat-value"><?= $triageCount ?></div>
+              <div class="stat-label">Triaj Hari Ini</div>
             </div>
-        </main>
-    </div>
-    <script src="js/dashboard.js"></script>
+            <span class="material-symbols-outlined stat-icon">monitor_heart</span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+          <div class="stat-card stat-green">
+            <div>
+              <div class="stat-value"><?= $annCount ?></div>
+              <div class="stat-label">Pengumuman Aktif</div>
+            </div>
+            <span class="material-symbols-outlined stat-icon">campaign</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header"><span class="material-symbols-outlined">task_alt</span><strong>Tugasan Semasa</strong></div>
+            <div class="card-body">
+              <div class="alert alert-info d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">info</span>
+                Tiada tugasan ditetapkan buat masa ini.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header"><span class="material-symbols-outlined">campaign</span><strong>Pengumuman Terkini</strong></div>
+            <div class="card-body">
+              <?php
+              try {
+                $anns = $pdo->query("SELECT title, created_at FROM announcements WHERE status='published' ORDER BY created_at DESC LIMIT 5")->fetchAll();
+                if ($anns): foreach ($anns as $a): ?>
+                  <div class="d-flex align-items-center gap-2 mb-2 small">
+                    <span class="material-symbols-outlined text-primary" style="font-size:16px;">fiber_manual_record</span>
+                    <span><?= htmlspecialchars($a['title']) ?></span>
+                    <span class="ms-auto text-muted"><?= date('d/m', strtotime($a['created_at'])) ?></span>
+                  </div>
+                <?php endforeach; else: ?>
+                  <p class="text-muted small">Tiada pengumuman.</p>
+                <?php endif;
+              } catch(Exception $e) { echo '<p class="text-muted small">Tiada pengumuman.</p>'; } ?>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

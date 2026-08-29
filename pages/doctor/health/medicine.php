@@ -1,82 +1,57 @@
 <?php
 session_start();
 require_once '../../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor'])) {
-    header('Location: ../../auth/login.php');
-    exit;
+require_once '../../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor', 'admin'])) {
+    header('Location: ../../auth/login.php'); exit;
 }
-$page_title = "Medicine Manager";
-
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/medicine.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><?= __('page_medicine_title', 'Pengurusan Ubat') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../../shared/includes/sidebar_doctor.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <div class="bg-white rounded-2xl shadow-sm border border-primary/20 p-6">
-        <div class="flex justify-between items-center mb-6">
-            <select class="rounded-xl border-gray-300 p-2 border w-64"><option>Select Patient</option></select>
-            <button class="bg-primary text-white px-4 py-2 rounded-full font-medium shadow-sm">+ Add Medicine</button>
+<body class="layout-fixed">
+  <?php include '../../shared/includes/sidebar.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">medication</span><?= __('page_medicine_title', 'Preskripsi & Peringatan Ubat') ?></h1>
+        <p class="page-subtitle"><?= __('page_medicine_sub', 'Senarai ubat-ubatan lazim dan pematuhan dos pesakit') ?></p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="material-symbols-outlined">inventory_2</span><strong><?= __('med_stock_title', 'Senarai Stok Ubat Rawatan Awal') ?></strong></div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr><th><?= __('col_med_name', 'Nama Ubat') ?></th><th><?= __('col_category', 'Kategori') ?></th><th><?= __('col_standard_dosage', 'Dos Lazim') ?></th><th><?= __('col_stock_status', 'Status Stok') ?></th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Oral Rehydration Salts (ORS)</td><td><?= __('cat_electrolyte', 'Elektrolit') ?></td><td><?= __('ors_dosage_desc', '1 paket dalam 250ml air selepas cirit') ?></td><td><span class="badge bg-success"><?= __('status_adequate', 'Mencukupi') ?></span></td></tr>
+                <tr><td>Paracetamol 500mg</td><td><?= __('cat_antipyretic', 'Antipiretik / Analgesik') ?></td><td><?= __('pcm_dosage_desc', '1-2 biji setiap 6 jam jika demam') ?></td><td><span class="badge bg-success"><?= __('status_adequate', 'Mencukupi') ?></span></td></tr>
+                <tr><td>Metoclopramide 10mg</td><td><?= __('cat_antiemetic', 'Antiemetik') ?></td><td><?= __('meto_dosage_desc', '1 biji 3 kali sehari sebelum makan') ?></td><td><span class="badge bg-success"><?= __('status_adequate', 'Mencukupi') ?></span></td></tr>
+                <tr><td>Loperamide 2mg</td><td><?= __('cat_antidiarrheal', 'Antidiarrheal') ?></td><td><?= __('lop_dosage_desc', 'Atas preskripsi doktor sahaja') ?></td><td><span class="badge bg-warning text-dark"><?= __('status_controlled', 'Kawalan Ketat') ?></span></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-surface text-primary border-b border-primary/20">
-                    <th class="p-3 font-semibold">Medicine</th>
-                    <th class="p-3 font-semibold">Dosage</th>
-                    <th class="p-3 font-semibold">Schedule</th>
-                    <th class="p-3 font-semibold">Adherence %</th>
-                    <th class="p-3 font-semibold">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="border-b border-gray-100">
-                    <td class="p-3 font-medium">Amoxicillin</td>
-                    <td class="p-3 text-gray-600">500mg</td>
-                    <td class="p-3 text-gray-600">3x Daily</td>
-                    <td class="p-3"><div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-triage-green h-2.5 rounded-full" style="width: 85%"></div></div> <span class="text-xs text-gray-500 mt-1 inline-block">85%</span></td>
-                    <td class="p-3"><button class="text-red-500 hover:underline text-sm font-medium">Remove</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-            </div>
-        </main>
-    </div>
-    <script src="js/medicine.js"></script>
+      </div>
+    </main>
+  </div>
+  <?php include '../../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

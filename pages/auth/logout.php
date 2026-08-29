@@ -4,6 +4,7 @@
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+require_once '../shared/includes/lang.php';
 }
 
 // 1. Unset all session variables

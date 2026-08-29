@@ -1,50 +1,86 @@
 <?php
 session_start();
 require_once '../../config/db.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') { header('Location: ../../auth/login.php'); exit; }
-$userName = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
+require_once '../../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    header('Location: ../../auth/login.php'); exit;
+}
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
+
+$triages = [];
+try {
+    $triages = $pdo->query("SELECT tr.*, p.full_name AS patient_name, p.ic_number, u.name AS staff_name FROM triage_records tr LEFT JOIN patients p ON tr.patient_id=p.id LEFT JOIN users u ON tr.triaged_by=u.id ORDER BY tr.triaged_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+} catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Live Triage — SeDaP</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../shared/css/sedap.css">
-  <link rel="stylesheet" href="css/index.css">
-  
+  <title>Pengurusan Triaj — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-[#f7f9fb] text-[#1a1a1a]">
-<div class="flex h-screen overflow-hidden">
+<body class="layout-fixed">
   <?php include '../../shared/includes/sidebar_admin.php'; ?>
-  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+  <div class="wrapper d-flex flex-column min-vh-100">
     <?php include '../../shared/includes/header.php'; ?>
-    <main class="flex-1 overflow-y-auto p-6">
-      
-<div class="mb-6 flex justify-between items-center">
-    <h1 class="text-2xl font-bold">Live Triage</h1>
-    <a href="add.php" class="bg-[#0058bd] text-white px-4 py-2 rounded-full text-sm font-medium">+ New Triage</a>
-</div>
-<div class="flex gap-2 mb-4">
-    <button class="px-4 py-1 rounded-full bg-gray-200 text-sm font-medium">All</button>
-    <button class="px-4 py-1 rounded-full bg-[#C0392B]/10 text-[#C0392B] text-sm font-medium border border-[#C0392B]/20">RED</button>
-    <button class="px-4 py-1 rounded-full bg-[#D4A017]/10 text-[#D4A017] text-sm font-medium border border-[#D4A017]/20">YELLOW</button>
-    <button class="px-4 py-1 rounded-full bg-[#1E8449]/10 text-[#1E8449] text-sm font-medium border border-[#1E8449]/20">GREEN</button>
-</div>
-<div class="bg-white rounded-2xl shadow-sm border">
-    <table class="w-full text-left text-sm">
-        <thead><tr class="text-[#5a5a5a] border-b bg-gray-50 rounded-t-2xl"><th class="p-3">Patient</th><th class="p-3">Level</th><th class="p-3">Complaint</th><th class="p-3">Vitals</th><th class="p-3">Time</th></tr></thead>
-        <tbody>
-            <tr class="border-b border-l-4 border-l-[#C0392B]"><td class="p-3 font-medium">Ahmad (IC: 9010...)</td><td class="p-3"><span class="px-2 py-1 bg-[#C0392B] text-white rounded text-xs font-bold">RED</span></td><td class="p-3">Chest Pain</td><td class="p-3 text-xs">Temp: 38°C<br>BP: 140/90</td><td class="p-3 text-xs text-gray-500">10:30 AM</td></tr>
-        </tbody>
-    </table>
-</div>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+          <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">monitor_heart</span>Pengurusan Triaj</h1>
+          <p class="page-subtitle">Paparan pentadbiran rekod triaj dan statistik kesihatan komuniti</p>
+        </div>
+        <a href="add.php" class="btn btn-primary d-flex align-items-center gap-1">
+          <span class="material-symbols-outlined" style="font-size:18px;">add_circle</span>Triaj Baharu
+        </a>
+      </div>
 
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr><th>#</th><th>Pesakit</th><th>No. IC</th><th>Tahap</th><th>Aduan</th><th><?= __('col_status', 'Status') ?></th><th>Ditapis Oleh</th><th><?= __('col_time', 'Masa') ?></th></tr>
+              </thead>
+              <tbody>
+                <?php if (empty($triages)): ?>
+                  <tr><td colspan="8" class="text-center text-muted py-4"><?= __('doc_no_records', 'Tiada rekod triaj dijumpai') ?></td></tr>
+                <?php else: ?>
+                  <?php foreach ($triages as $idx => $tr): 
+                    $lv = strtolower($tr['triage_level'] ?? 'green');
+                    $bcMap = ['red' => 'badge-triage-red', 'yellow' => 'badge-triage-yellow', 'green' => 'badge-triage-green'];
+                        $bc = $bcMap[$lv] ?? 'badge-triage-green';
+                    $llMap = ['red' => __('triage_red', 'Merah'), 'yellow' => __('triage_yellow', 'Kuning'), 'green' => __('triage_green', 'Hijau')];
+                        $ll = $llMap[$lv] ?? 'Hijau';
+                  ?>
+                  <tr>
+                    <td><?= $idx + 1 ?></td>
+                    <td class="fw-semibold"><?= htmlspecialchars($tr['patient_name'] ?? 'Pesakit #' . $tr['id']) ?></td>
+                    <td class="small text-muted"><?= htmlspecialchars($tr['ic_number'] ?? '—') ?></td>
+                    <td><span class="badge <?= $bc ?>"><?= $ll ?></span></td>
+                    <td class="small"><?= htmlspecialchars(mb_strimwidth($tr['chief_complaint'] ?? '—', 0, 35, '…')) ?></td>
+                    <td><span class="badge bg-secondary"><?= htmlspecialchars($tr['status'] ?? 'waiting') ?></span></td>
+                    <td class="small"><?= htmlspecialchars($tr['staff_name'] ?? 'Sistem') ?></td>
+                    <td class="small text-muted"><?= $tr['triaged_at'] ? date('d/m H:i', strtotime($tr['triaged_at'])) : '—' ?></td>
+                  </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
+  <?php include '../../shared/includes/footer.php'; ?>
 </div>
-<script src="js/index.js"></script>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

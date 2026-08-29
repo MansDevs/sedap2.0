@@ -1,214 +1,167 @@
 <?php
 session_start();
 require_once '../config/db.php';
+require_once '../shared/includes/lang.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../auth/login.php'); exit;
 }
-$userName = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
-// ── Stats ──
-$patientCount      = $pdo->query("SELECT COUNT(*) FROM patients")->fetchColumn();
-$personnelCount    = $pdo->query("SELECT COUNT(*) FROM personnel")->fetchColumn();
-$annCount          = $pdo->query("SELECT COUNT(*) FROM announcements WHERE status='published'")->fetchColumn();
-$triageTodayRows   = $pdo->query("SELECT triage_level, COUNT(*) cnt FROM triage_records WHERE DATE(triaged_at)=CURDATE() GROUP BY triage_level")->fetchAll(PDO::FETCH_KEY_PAIR);
-$triageRed         = $triageTodayRows['red']    ?? 0;
-$triageYellow      = $triageTodayRows['yellow'] ?? 0;
-$triageGreen       = $triageTodayRows['green']  ?? 0;
+// Stat counts
+$patientCount = 0; $triageToday = 0; $annCount = 0; $staffCount = 0;
+try {
+    $patientCount = (int)$pdo->query("SELECT COUNT(*) FROM patients")->fetchColumn();
+    $triageToday  = (int)$pdo->query("SELECT COUNT(*) FROM triage_records WHERE DATE(triaged_at) = CURDATE()")->fetchColumn();
+    $annCount     = (int)$pdo->query("SELECT COUNT(*) FROM announcements WHERE status='published'")->fetchColumn();
+    $staffCount   = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role IN ('doctor','volunteer') AND status='active'")->fetchColumn();
+} catch (Exception $e) {}
 
-// ── Recent triage (last 10) ──
-$recentTriage = $pdo->query(
-    "SELECT tr.*, p.full_name AS patient_name, u.name AS staff_name
-     FROM triage_records tr
-     JOIN patients p ON tr.patient_id = p.id
-     JOIN users u ON tr.triaged_by = u.id
-     ORDER BY tr.triaged_at DESC LIMIT 10"
-)->fetchAll();
-
-// ── Recent announcements ──
-$recentAnn = $pdo->query(
-    "SELECT * FROM announcements ORDER BY created_at DESC LIMIT 5"
-)->fetchAll();
+// Recent 5 triage records
+$recentTriages = [];
+try {
+    $recentTriages = $pdo->query(
+        "SELECT tr.*, p.name AS patient_name, u.name AS staff_name 
+         FROM triage_records tr 
+         LEFT JOIN patients p ON tr.patient_id = p.id 
+         LEFT JOIN users u ON tr.triaged_by = u.id 
+         ORDER BY tr.triaged_at DESC LIMIT 5"
+    )->fetchAll();
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin Dashboard — SeDaP</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script>
-    tailwind.config = {
-      darkMode:'class',
-      theme:{extend:{
-        colors:{'primary':'#0058bd','primary-dark':'#004494','primary-light':'#2771df','primary-container':'#2771df','secondary':'#3d6185','tertiary':'#006673','surface':'#f7f9fb','surface-container':'#eceef0','surface-container-low':'#f2f4f6','surface-container-lowest':'#ffffff','on-primary':'#ffffff','on-surface':'#191c1e','on-surface-muted':'#424753','outline':'#727785','triage-red':'#ba1a1a','triage-yellow':'#d4a017','triage-green':'#1e8449'},
-        fontFamily:{sans:['Roboto Flex','sans-serif']},
-        borderRadius:{'DEFAULT':'1rem','lg':'2rem','xl':'3rem','full':'9999px'}
-      }}
-    }
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../shared/css/sedap.css">
-  <link rel="stylesheet" href="css/dashboard.css">
+  <title><?= __('admin_dash_title', 'Dashboard Pentadbir') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="font-sans bg-surface text-on-surface">
-<div class="sedap-layout">
+<body class="layout-fixed">
   <?php include '../shared/includes/sidebar_admin.php'; ?>
-  <div class="sedap-main">
+  <div class="wrapper d-flex flex-column min-vh-100">
     <?php include '../shared/includes/header.php'; ?>
-    <div class="sedap-content">
-
-      <!-- Page Header -->
-      <div class="flex-between mb-6">
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-          <h1 class="page-title">Admin Dashboard</h1>
-          <p class="page-subtitle">Overview for <?php echo date('l, d F Y'); ?></p>
+          <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">admin_panel_settings</span><?= __('admin_dash_title', 'Dashboard Pentadbir') ?></h1>
+          <p class="page-subtitle"><?= __('admin_dash_subtitle', 'Ringkasan operasi dan pemantauan sistem SeDaP') ?></p>
         </div>
-        <div class="flex gap-3 flex-wrap">
-          <a href="triage/add.php" class="btn btn-primary">
-            <span class="material-symbols-outlined">add_circle</span> New Triage
-          </a>
-          <a href="patients/index.php" class="btn btn-outline">
-            <span class="material-symbols-outlined">person_add</span> Register Patient
+        <div class="d-flex gap-2">
+          <a href="announcements/index.php" class="btn btn-primary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:18px;">campaign</span><?= __('btn_add', 'Pengumuman Baru') ?>
           </a>
         </div>
       </div>
 
       <!-- Stat Cards -->
-      <div class="grid-stats">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(8,115,131,0.1)">
-            <span class="material-symbols-outlined" style="color:#0058bd">person</span>
+      <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+          <div class="stat-card stat-teal">
+            <div>
+              <div class="stat-value"><?= $patientCount ?></div>
+              <div class="stat-label"><?= __('admin_stat_patients', 'Jumlah Pesakit') ?></div>
+            </div>
+            <span class="material-symbols-outlined stat-icon">people</span>
           </div>
-          <div class="stat-value"><?php echo number_format((int)$patientCount); ?></div>
-          <div class="stat-label">Total Patients</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(192,57,43,0.1)">
-            <span class="material-symbols-outlined" style="color:#C0392B">emergency</span>
+        <div class="col-sm-6 col-xl-3">
+          <div class="stat-card stat-green">
+            <div>
+              <div class="stat-value"><?= $triageToday ?></div>
+              <div class="stat-label"><?= __('admin_stat_triage_today', 'Triaj Hari Ini') ?></div>
+            </div>
+            <span class="material-symbols-outlined stat-icon">monitor_heart</span>
           </div>
-          <div class="stat-value" style="color:#C0392B"><?php echo $triageRed; ?></div>
-          <div class="stat-label">Critical (Red) Today</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(212,160,23,0.1)">
-            <span class="material-symbols-outlined" style="color:#D4A017">warning</span>
+        <div class="col-sm-6 col-xl-3">
+          <div class="stat-card stat-amber">
+            <div>
+              <div class="stat-value"><?= $annCount ?></div>
+              <div class="stat-label"><?= __('admin_stat_announcements', 'Pengumuman Aktif') ?></div>
+            </div>
+            <span class="material-symbols-outlined stat-icon">campaign</span>
           </div>
-          <div class="stat-value" style="color:#D4A017"><?php echo $triageYellow; ?></div>
-          <div class="stat-label">Urgent (Yellow) Today</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(30,132,73,0.1)">
-            <span class="material-symbols-outlined" style="color:#1E8449">check_circle</span>
+        <div class="col-sm-6 col-xl-3">
+          <div class="stat-card stat-red">
+            <div>
+              <div class="stat-value"><?= $staffCount ?></div>
+              <div class="stat-label"><?= __('admin_stat_staff', 'Petugas & Sukarelawan') ?></div>
+            </div>
+            <span class="material-symbols-outlined stat-icon">badge</span>
           </div>
-          <div class="stat-value" style="color:#1E8449"><?php echo $triageGreen; ?></div>
-          <div class="stat-label">Standard (Green) Today</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(8,115,131,0.1)">
-            <span class="material-symbols-outlined" style="color:#0058bd">campaign</span>
-          </div>
-          <div class="stat-value"><?php echo (int)$annCount; ?></div>
-          <div class="stat-label">Active Announcements</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(8,115,131,0.1)">
-            <span class="material-symbols-outlined" style="color:#0058bd">badge</span>
-          </div>
-          <div class="stat-value"><?php echo (int)$personnelCount; ?></div>
-          <div class="stat-label">Total Personnel</div>
         </div>
       </div>
 
-      <!-- Two-column layout -->
-      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-        <!-- Recent Triage (spans 2 cols) -->
-        <div class="xl:col-span-2 card">
-          <div class="card-header">
-            <h3><span class="material-symbols-outlined">emergency</span> Recent Triage Records</h3>
-            <a href="triage/index.php" class="btn btn-sm btn-outline">View All</a>
-          </div>
-          <div class="table-wrap">
-            <table class="sedap-table">
-              <thead>
-                <tr>
-                  <th>Patient</th>
-                  <th>Level</th>
-                  <th>Complaint</th>
-                  <th>Temp</th>
-                  <th>Time</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if (empty($recentTriage)): ?>
-                <tr><td colspan="6" class="text-center py-8" style="color:var(--on-muted)">No triage records today</td></tr>
-                <?php else: foreach ($recentTriage as $t): ?>
-                <tr class="triage-<?php echo htmlspecialchars($t['triage_level']); ?>">
-                  <td>
-                    <div style="font-weight:600"><?php echo htmlspecialchars($t['patient_name']); ?></div>
-                    <div style="font-size:0.75rem;color:var(--on-muted)">by <?php echo htmlspecialchars($t['staff_name']); ?></div>
-                  </td>
-                  <td>
-                    <?php
-                      $lvl = $t['triage_level'];
-                      $cls = ['red'=>'badge-red','yellow'=>'badge-yellow','green'=>'badge-green'][$lvl] ?? 'badge-muted';
-                      echo "<span class='badge $cls'>".strtoupper($lvl)."</span>";
-                    ?>
-                  </td>
-                  <td><?php echo htmlspecialchars(substr($t['chief_complaint'] ?? '—', 0, 35)); ?></td>
-                  <td><?php echo htmlspecialchars($t['temperature'] ?? '—'); ?>°C</td>
-                  <td style="white-space:nowrap;font-size:0.8rem"><?php echo date('H:i d/m', strtotime($t['triaged_at'])); ?></td>
-                  <td><span class="badge badge-muted"><?php echo htmlspecialchars($t['status']); ?></span></td>
-                </tr>
-                <?php endforeach; endif; ?>
-              </tbody>
-            </table>
+      <div class="row g-4">
+        <!-- Recent Triage -->
+        <div class="col-12 col-xl-8">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span class="d-flex align-items-center gap-2"><span class="material-symbols-outlined">monitor_heart</span><strong><?= __('admin_recent_triage', 'Rekod Triaj Terkini') ?></strong></span>
+              <a href="triage/index.php" class="btn btn-sm btn-outline-primary"><?= __('btn_view_all', 'Lihat Semua') ?></a>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr><th><?= __('col_patient_name', 'Pesakit') ?></th><th><?= __('col_level', 'Tahap') ?></th><th><?= __('col_status', 'Status') ?></th><th><?= __('col_triaged_by', 'Ditapis Oleh') ?></th><th><?= __('col_time', 'Masa') ?></th></tr>
+                  </thead>
+                  <tbody>
+                    <?php if (empty($recentTriages)): ?>
+                      <tr><td colspan="5" class="text-center text-muted py-4"><?= __('doc_no_records', 'Tiada rekod triaj') ?></td></tr>
+                    <?php else: ?>
+                      <?php foreach ($recentTriages as $tr): 
+                        $lv = strtolower($tr['triage_level'] ?? 'green');
+                        $bcMap = ['red' => 'badge-triage-red', 'yellow' => 'badge-triage-yellow', 'green' => 'badge-triage-green'];
+                        $bc = $bcMap[$lv] ?? 'badge-triage-green';
+                        $llMap = [
+                            'red' => __('triage_red', 'Merah'),
+                            'yellow' => __('triage_yellow', 'Kuning'),
+                            'green' => __('triage_green', 'Hijau')
+                        ];
+                        $ll = $llMap[$lv] ?? __('triage_green', 'Hijau');
+                      ?>
+                      <tr>
+                        <td class="fw-semibold"><?= htmlspecialchars($tr['patient_name'] ?? 'Pesakit #' . $tr['id']) ?></td>
+                        <td><span class="badge <?= $bc ?>"><?= $ll ?></span></td>
+                        <td><span class="badge bg-secondary"><?= htmlspecialchars($tr['status'] ?? 'waiting') ?></span></td>
+                        <td class="small text-muted"><?= htmlspecialchars($tr['staff_name'] ?? 'Sistem') ?></td>
+                        <td class="small text-muted"><?= $tr['triaged_at'] ? date('d/m H:i', strtotime($tr['triaged_at'])) : '—' ?></td>
+                      </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Right column -->
-        <div class="flex flex-col gap-6">
-
-          <!-- Quick Actions -->
-          <div class="card">
-            <div class="card-header"><h3><span class="material-symbols-outlined">bolt</span> Quick Actions</h3></div>
-            <div class="card-body flex flex-col gap-3">
-              <a href="triage/add.php"          class="btn btn-primary w-full"><span class="material-symbols-outlined">emergency</span>New Triage Entry</a>
-              <a href="announcements/index.php"  class="btn btn-outline w-full"><span class="material-symbols-outlined">campaign</span>New Announcement</a>
-              <a href="patients/index.php"       class="btn btn-surface w-full"><span class="material-symbols-outlined">person</span>Register Patient</a>
-              <a href="personnel/index.php"      class="btn btn-surface w-full"><span class="material-symbols-outlined">badge</span>Add Staff/Volunteer</a>
-              <a href="posters/index.php"        class="btn btn-surface w-full"><span class="material-symbols-outlined">image</span>Create Poster</a>
+        <!-- Quick Links -->
+        <div class="col-12 col-xl-4">
+          <div class="card h-100">
+            <div class="card-header"><span class="material-symbols-outlined">bolt</span><strong><?= __('btn_quick_actions', 'Tindakan Pantas') ?></strong></div>
+            <div class="card-body d-flex flex-column gap-2">
+              <a href="triage/add.php" class="btn btn-primary d-flex align-items-center gap-2"><span class="material-symbols-outlined">add_circle</span><?= __('admin_btn_new_triage', 'Daftar Triaj Baru') ?></a>
+              <a href="patients/index.php" class="btn btn-outline-primary d-flex align-items-center gap-2"><span class="material-symbols-outlined">person_add</span><?= __('admin_btn_patients', 'Pengurusan Pesakit') ?></a>
+              <a href="personnel/index.php" class="btn btn-outline-secondary d-flex align-items-center gap-2"><span class="material-symbols-outlined">badge</span><?= __('admin_btn_staff', 'Pengurusan Kakitangan') ?></a>
+              <a href="posters/index.php" class="btn btn-outline-secondary d-flex align-items-center gap-2"><span class="material-symbols-outlined">image</span><?= __('admin_btn_posters', 'Galeri Poster') ?></a>
+              <a href="settings.php" class="btn btn-outline-secondary d-flex align-items-center gap-2"><span class="material-symbols-outlined">settings</span><?= __('admin_btn_settings', 'Tetapan Sistem') ?></a>
             </div>
           </div>
-
-          <!-- Recent Announcements -->
-          <div class="card">
-            <div class="card-header">
-              <h3><span class="material-symbols-outlined">campaign</span> Announcements</h3>
-              <a href="announcements/index.php" class="btn btn-sm btn-outline">Manage</a>
-            </div>
-            <div style="padding:0">
-              <?php if (empty($recentAnn)): ?>
-              <p style="text-align:center;padding:1.5rem;color:var(--on-muted);font-size:0.875rem">No announcements yet</p>
-              <?php else: foreach ($recentAnn as $a): ?>
-              <div style="padding:0.85rem 1.25rem;border-bottom:1px solid var(--outline)">
-                <div class="flex-between">
-                  <span style="font-weight:600;font-size:0.875rem"><?php echo htmlspecialchars($a['title']); ?></span>
-                  <?php $sc = $a['status']==='published'?'badge-green':'badge-muted'; ?>
-                  <span class="badge <?php echo $sc; ?>"><?php echo $a['status']; ?></span>
-                </div>
-                <p style="font-size:0.78rem;color:var(--on-muted);margin-top:0.25rem"><?php echo htmlspecialchars(substr($a['content'],0,75)).'…'; ?></p>
-              </div>
-              <?php endforeach; endif; ?>
-            </div>
-          </div>
-
-        </div><!-- end right col -->
-      </div><!-- end grid -->
-    </div>
+        </div>
+      </div>
+    </main>
   </div>
+  <?php include '../shared/includes/footer.php'; ?>
 </div>
-<script src="js/dashboard.js"></script>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

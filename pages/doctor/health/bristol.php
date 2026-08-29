@@ -1,77 +1,81 @@
 <?php
 session_start();
 require_once '../../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor'])) {
-    header('Location: ../../auth/login.php');
-    exit;
+require_once '../../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor', 'admin'])) {
+    header('Location: ../../auth/login.php'); exit;
 }
-$page_title = "Bristol Scale Editor";
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
+$types_ms = [
+  ['type'=>1, 'title'=>'Tipe 1: Berketul Keras', 'desc'=>'Ketulan keras berasingan seperti kacang, sukar dikeluarkan (Sembelit teruk)'],
+  ['type'=>2, 'title'=>'Tipe 2: Berbentuk Sosej Berketul', 'desc'=>'Berbentuk sosej tetapi berketul-ketul kasar (Sembelit ringan)'],
+  ['type'=>3, 'title'=>'Tipe 3: Sosej Beretak', 'desc'=>'Seperti sosej dengan retakan pada permukaannya (Normal)'],
+  ['type'=>4, 'title'=>'Tipe 4: Sosej Licin & Lembut', 'desc'=>'Bentuk sosej atau ular, licin dan mudah dikeluarkan (Normal / Ideal)'],
+  ['type'=>5, 'title'=>'Tipe 5: Gumpalan Lembut', 'desc'=>'Gumpalan lembut dengan tepi yang jelas, mudah keluar (Kurang serat)'],
+  ['type'=>6, 'title'=>'Tipe 6: Lembik / Berserabut', 'desc'=>'Kepingan gebu dengan tepi bergerigi, najis lembik (Cirit-birit ringan)'],
+  ['type'=>7, 'title'=>'Tipe 7: Cair Sepenuhnya', 'desc'=>'Cair tanpa ketulan pejal, keluar secara mendadak (Cirit-birit teruk / Bahaya)']
+];
+
+$types_en = [
+  ['type'=>1, 'title'=>'Type 1: Separate Hard Lumps', 'desc'=>'Nut-like hard lumps, difficult to pass (Severe constipation)'],
+  ['type'=>2, 'title'=>'Type 2: Sausage-shaped Lumpy', 'desc'=>'Sausage-shaped but distinctly lumpy (Mild constipation)'],
+  ['type'=>3, 'title'=>'Type 3: Sausage with Cracks', 'desc'=>'Like a sausage with cracks on the surface (Normal)'],
+  ['type'=>4, 'title'=>'Type 4: Smooth & Soft Sausage', 'desc'=>'Like a snake or sausage, smooth and easy to pass (Ideal / Normal)'],
+  ['type'=>5, 'title'=>'Type 5: Soft Blobs', 'desc'=>'Soft blobs with clear-cut edges, passed easily (Lacking fiber)'],
+  ['type'=>6, 'title'=>'Type 6: Fluffy Pieces / Mushy', 'desc'=>'Fluffy pieces with ragged edges, a mushy stool (Mild diarrhea)'],
+  ['type'=>7, 'title'=>'Type 7: Entirely Liquid', 'desc'=>'Watery, no solid pieces, entirely liquid (Severe diarrhea / Danger)']
+];
+
+$types = ($_SESSION['lang'] ?? 'ms') === 'en' ? $types_en : $types_ms;
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/bristol.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><?= __('page_bristol_title', 'Skala Bristol') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../../shared/includes/sidebar_doctor.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-primary/20 p-6">
-            <h2 class="text-xl font-bold text-primary mb-4">Bristol Stool Scale Reference</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-4 border rounded-xl border-gray-200"><h4 class="font-bold">Type 1</h4><p class="text-sm text-gray-500">Separate hard lumps</p></div>
-                <div class="p-4 border rounded-xl border-gray-200"><h4 class="font-bold">Type 2</h4><p class="text-sm text-gray-500">Sausage-shaped but lumpy</p></div>
-                <div class="p-4 border rounded-xl border-gray-200"><h4 class="font-bold">Type 3</h4><p class="text-sm text-gray-500">Like a sausage but with cracks</p></div>
-                <div class="p-4 border rounded-xl border-gray-200 bg-green-50"><h4 class="font-bold">Type 4</h4><p class="text-sm text-gray-500">Like a sausage or snake, smooth</p></div>
-                <!-- ... -->
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-primary/20 p-6">
-            <h2 class="text-xl font-bold text-primary mb-4">Log Entry</h2>
-            <form class="space-y-4">
-                <div><label class="block text-sm font-medium mb-1">Patient</label><select class="w-full rounded-xl border-gray-300 p-2 border"><option>Select Patient</option></select></div>
-                <div><label class="block text-sm font-medium mb-1">Type (1-7)</label><input type="number" min="1" max="7" class="w-full rounded-xl border-gray-300 p-2 border"></div>
-                <div><label class="block text-sm font-medium mb-1">Notes</label><textarea class="w-full rounded-xl border-gray-300 p-2 border"></textarea></div>
-                <button type="submit" class="w-full bg-primary text-white rounded-full py-2 font-bold shadow-sm">Save Log</button>
-            </form>
-        </div>
-    </div>
+<body class="layout-fixed">
+  <?php include '../../shared/includes/sidebar.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">bar_chart</span><?= __('page_bristol_title', 'Carta Skala Najis Bristol') ?></h1>
+        <p class="page-subtitle"><?= __('page_bristol_sub', 'Rujukan klinikal untuk mengklasifikasikan bentuk dan konsistensi najis pesakit') ?></p>
+      </div>
 
+      <div class="row g-3">
+        <?php foreach ($types as $t): 
+          $isDanger = $t['type'] >= 6;
+          $isGood = in_array($t['type'], [3, 4]);
+        ?>
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-<?= $isDanger ? 'danger' : ($isGood ? 'success' : 'warning') ?>">
+              <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <span class="badge bg-<?= $isDanger ? 'danger' : ($isGood ? 'success' : 'warning') ?> fs-6"><?= ($_SESSION['lang'] ?? 'ms') === 'en' ? 'Type ' . $t['type'] : 'Tipe ' . $t['type'] ?></span>
+                <span class="small fw-semibold"><?= $isDanger ? (__('lbl_attention', 'Perhatian')) : ($isGood ? (__('lbl_ideal', 'Ideal')) : (__('lbl_moderate', 'Sederhana'))) ?></span>
+              </div>
+              <div class="card-body">
+                <h6 class="fw-bold mb-2"><?= htmlspecialchars($t['title']) ?></h6>
+                <p class="small text-muted mb-0"><?= htmlspecialchars($t['desc']) ?></p>
+              </div>
             </div>
-        </main>
-    </div>
-    <script src="js/bristol.js"></script>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </main>
+  </div>
+  <?php include '../../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

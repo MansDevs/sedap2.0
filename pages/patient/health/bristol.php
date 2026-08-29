@@ -1,64 +1,70 @@
 <?php
 session_start();
 require_once '../../config/db.php';
-if (!isset($_SESSION['user_id'])) { header('Location: ../../auth/login.php'); exit; }
-if ($_SESSION['user_role'] !== 'user') { header('Location: ../../auth/login.php'); exit; }
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $_SESSION['msg'] = "Log saved!";
-    header("Location: bristol.php");
-    exit;
+require_once '../../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
+    header('Location: ../../auth/login.php'); exit;
 }
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
+
+$types = [
+  ['type'=>1, 'title'=>'Tipe 1: Berketul Keras', 'desc'=>'Ketulan keras berasingan seperti kacang (Sembelit teruk)'],
+  ['type'=>2, 'title'=>'Tipe 2: Berbentuk Sosej Berketul', 'desc'=>'Berbentuk sosej tetapi berketul-ketul kasar (Sembelit)'],
+  ['type'=>3, 'title'=>'Tipe 3: Sosej Beretak', 'desc'=>'Bentuk sosej dengan retakan di permukaan (Normal)'],
+  ['type'=>4, 'title'=>'Tipe 4: Sosej Licin & Lembut', 'desc'=>'Bentuk sosej atau ular, licin dan mudah keluar (Paling Ideal)'],
+  ['type'=>5, 'title'=>'Tipe 5: Gumpalan Lembut', 'desc'=>'Gumpalan lembut dengan tepi jelas (Kurang serat)'],
+  ['type'=>6, 'title'=>'Tipe 6: Lembik / Berserabut', 'desc'=>'Kepingan gebu, najis lembik (Cirit-birit ringan)'],
+  ['type'=>7, 'title'=>'Tipe 7: Cair Sepenuhnya', 'desc'=>'Cair tanpa ketulan pejal (Cirit-birit teruk — jumpa doktor)']
+];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeDaP - Bristol Stool Scale</title>
-    <link rel="stylesheet" href="../../shared/css/sedap.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'primary': '#0058bd', 'surface': '#f7f9fb' } } } }
-    </script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Skala Najis Bristol — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface font-sans antialiased flex h-screen overflow-hidden">
-    <?php include '../../shared/includes/sidebar_user.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <?php include '../../shared/includes/header.php'; ?>
-        <main class="p-6 max-w-4xl mx-auto w-full">
-            <h1 class="text-3xl font-bold mb-8 text-primary">Bristol Stool Scale</h1>
-            
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-primary/20 mb-8">
-                <h2 class="text-xl font-bold mb-4">Log Today</h2>
-                <form method="POST" class="flex gap-4 items-center">
-                    <select name="type" class="p-3 rounded-xl border border-gray-300 flex-1">
-                        <option value="1">Type 1 - Severe Constipation</option>
-                        <option value="2">Type 2 - Mild Constipation</option>
-                        <option value="3">Type 3 - Normal</option>
-                        <option value="4">Type 4 - Normal</option>
-                        <option value="5">Type 5 - Lacking Fiber</option>
-                        <option value="6">Type 6 - Mild Diarrhea</option>
-                        <option value="7">Type 7 - Severe Diarrhea</option>
-                    </select>
-                    <button type="submit" class="bg-primary text-white px-6 py-3 rounded-xl font-bold">Save Log</button>
-                </form>
-            </div>
+<body class="layout-fixed">
+  <?php include '../../shared/includes/sidebar_user.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">bar_chart</span>Panduan Skala Najis Bristol</h1>
+        <p class="page-subtitle">Kenal pasti tahap kesihatan pencernaan anda berdasarkan bentuk najis</p>
+      </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <?php for($i=1; $i<=7; $i++): ?>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                    <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl"><?= $i ?></div>
-                    <div>
-                        <h3 class="font-bold">Type <?= $i ?></h3>
-                        <p class="text-sm text-gray-500">Description for type <?= $i ?> goes here.</p>
-                    </div>
-                </div>
-                <?php endfor; ?>
+      <div class="row g-3">
+        <?php foreach ($types as $t): 
+          $isAlert = $t['type'] >= 6;
+          $isGood = in_array($t['type'], [3,4]);
+        ?>
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-<?= $isAlert ? 'danger' : ($isGood ? 'success' : 'warning') ?>">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="badge bg-<?= $isAlert ? 'danger' : ($isGood ? 'success' : 'warning') ?>">Tipe <?= $t['type'] ?></span>
+                <span class="small fw-semibold"><?= $isAlert ? 'Bahaya / Cirit' : ($isGood ? 'Sihat' : 'Sederhana') ?></span>
+              </div>
+              <div class="card-body">
+                <h6 class="fw-bold mb-1"><?= htmlspecialchars($t['title']) ?></h6>
+                <p class="small text-muted mb-0"><?= htmlspecialchars($t['desc']) ?></p>
+              </div>
             </div>
-        </main>
-    </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </main>
+  </div>
+  <?php include '../../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

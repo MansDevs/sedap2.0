@@ -1,80 +1,35 @@
 <?php
 /**
- * sidebar_volunteer.php — Volunteer Portal Sidebar
- * Location: pages/shared/includes/sidebar_volunteer.php
+ * CoreUI Sidebar — Volunteer Portal
  */
-$currentScriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF']);
-if (strpos($currentScriptPath, '/pages/') !== false) {
-    $afterPagesPath = substr($currentScriptPath, strpos($currentScriptPath, '/pages/') + 7);
-    $dirDepth = substr_count($afterPagesPath, '/');
-    $pagesBase = str_repeat('../', $dirDepth);
-} else {
-    $pagesBase = '../';
-}
-
-$current = basename($_SERVER['PHP_SELF']);
-$userName = htmlspecialchars($_SESSION['user_name'] ?? 'Volunteer');
-$initials = strtoupper(substr($_SESSION['user_name'] ?? 'V', 0, 1));
-if (!function_exists('navActiveVol')) {
-    function navActiveVol($file, $current) {
-        return basename($file) === $current ? 'active' : '';
-    }
-}
+require_once __DIR__ . '/lang.php';
 ?>
-<nav class="sedap-sidebar">
-    <div class="logo-area" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-        <div style="display:flex;align-items:center;gap:0.75rem;">
-            <div class="logo-icon"><span class="material-symbols-outlined filled" style="font-size:22px;">health_and_safety</span></div>
-            <div class="logo-text">
-                <h1>SeDaP</h1>
-                <p>Volunteer Portal</p>
-            </div>
-        </div>
-        <button type="button" id="sidebar-dark-btn" class="header-btn" title="Toggle dark mode" onclick="toggleDarkMode()" style="background:transparent;border:none;cursor:pointer;color:var(--on-muted);padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined" id="dark-icon" style="font-size:20px;">dark_mode</span>
-        </button>
-    </div>
+<div class="sidebar sidebar-fixed sidebar-dark" id="sidebar">
+  <div class="sidebar-brand d-flex align-items-center justify-content-between px-3 py-3 border-bottom" style="border-color:rgba(255,255,255,0.1)!important;min-height:56px;">
+    <a href="/sedap/sedap2.0/pages/volunteer/dashboard.php" class="sidebar-brand-full d-flex align-items-center gap-2 text-decoration-none text-white">
+      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">volunteer_activism</span>
+      <span class="fw-bold fs-5 text-white">SeDaP</span>
+    </a>
+    <a href="javascript:void(0)" onclick="sedapToggleSidebar()" class="sidebar-brand-narrow text-decoration-none text-white" title="Buka / Tutup Menu">
+      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">menu</span>
+    </a>
+    <button class="sidebar-toggle-btn sidebar-brand-full" type="button" onclick="sedapToggleSidebar()" title="Kecilkan / Buka Sidebar">
+      <span class="material-symbols-outlined" style="font-size:22px;">menu</span>
+    </button>
+  </div>
 
-    <a href="<?php echo $pagesBase; ?>volunteer/dashboard.php" class="nav-link <?php echo navActiveVol('dashboard.php', $current); ?>">
-        <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
-    </a>
+  <ul class="sidebar-nav">
+    <li class="nav-title"><?= __('nav_volunteer_portal', 'Portal Sukarelawan') ?></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/dashboard.php"><span class="material-symbols-outlined nav-icon">dashboard</span><span><?= __('nav_dashboard', 'Dashboard') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/triage_counter.php"><span class="material-symbols-outlined nav-icon">add_circle</span><span><?= __('nav_triage_counter', 'Kaunter Triaj') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/triage_list.php"><span class="material-symbols-outlined nav-icon">format_list_bulleted</span><span><?= __('nav_triage_list', 'Senarai Triaj') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/patients.php"><span class="material-symbols-outlined nav-icon">person_add</span><span><?= __('nav_patients', 'Pendaftaran Pesakit') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/announcements.php"><span class="material-symbols-outlined nav-icon">campaign</span><span><?= __('nav_announcements', 'Pengumuman') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/posters.php"><span class="material-symbols-outlined nav-icon">image</span><span><?= __('nav_posters', 'Poster') ?></span></a></li>
+    <li class="nav-title"><?= __('nav_settings', 'Akaun') ?></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/volunteer/settings.php"><span class="material-symbols-outlined nav-icon">settings</span><span><?= __('nav_settings', 'Tetapan') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link text-danger" href="/sedap/sedap2.0/pages/auth/logout.php" onclick="return confirm('<?= __('settings_confirm_logout', 'Log keluar?') ?>')"><span class="material-symbols-outlined nav-icon text-danger">logout</span><span><?= __('nav_logout', 'Log Keluar') ?></span></a></li>
+  </ul>
 
-    <span class="nav-section-label">Information</span>
-    <a href="<?php echo $pagesBase; ?>volunteer/announcements.php" class="nav-link <?php echo navActiveVol('announcements.php', $current); ?>">
-        <span class="material-symbols-outlined">campaign</span><span>Announcements</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>volunteer/posters.php" class="nav-link <?php echo navActiveVol('posters.php', $current); ?>">
-        <span class="material-symbols-outlined">image</span><span>Posters</span>
-    </a>
-
-    <span class="nav-section-label">Clinical</span>
-    <a href="<?php echo $pagesBase; ?>volunteer/triage_counter.php" class="nav-link <?php echo navActiveVol('triage_counter.php', $current); ?>">
-        <span class="material-symbols-outlined">emergency</span><span>Triage Entry</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>volunteer/triage_list.php" class="nav-link <?php echo navActiveVol('triage_list.php', $current); ?>">
-        <span class="material-symbols-outlined">view_list</span><span>Triage List</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>volunteer/patients.php" class="nav-link <?php echo navActiveVol('patients.php', $current); ?>">
-        <span class="material-symbols-outlined">person_add</span><span>Patient Registration</span>
-    </a>
-
-    <span class="nav-section-label">Account</span>
-    <a href="<?php echo $pagesBase; ?>volunteer/settings.php" class="nav-link <?php echo navActiveVol('settings.php', $current); ?>">
-        <span class="material-symbols-outlined">settings</span><span>Settings</span>
-    </a>
-
-    <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar"><?php echo $initials; ?></div>
-            <div>
-                <div class="user-name"><?php echo $userName; ?></div>
-                <div class="user-role">Volunteer</div>
-            </div>
-        </div>
-        <a href="<?php echo $pagesBase; ?>auth/logout.php" class="nav-link" style="margin-top:0.5rem;"
-           onclick="return confirm('Log keluar?')">
-            <span class="material-symbols-outlined">logout</span><span>Log Out</span>
-        </a>
-    </div>
-</nav>
-<script src="<?php echo $pagesBase; ?>shared/js/sedap-spa.js"></script>
+  <button class="sidebar-toggler" type="button" onclick="sedapToggleSidebar()"></button>
+</div>

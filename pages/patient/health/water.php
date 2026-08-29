@@ -1,68 +1,61 @@
 <?php
 session_start();
 require_once '../../config/db.php';
-if (!isset($_SESSION['user_id'])) { header('Location: ../../auth/login.php'); exit; }
-if ($_SESSION['user_role'] !== 'user') { header('Location: ../../auth/login.php'); exit; }
-$userId = $_SESSION['user_id'];
-$today = date('Y-m-d');
-
-if (isset($_POST['add_water'])) {
-    $amount = (int)$_POST['amount'];
-    $stmt = $pdo->prepare("INSERT INTO water_intake_logs (user_id, amount_ml) VALUES (?, ?)");
-    $stmt->execute([$userId, $amount]);
-    header("Location: water.php");
-    exit;
+require_once '../../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
+    header('Location: ../../auth/login.php'); exit;
 }
-
-$stmt = $pdo->prepare("SELECT SUM(amount_ml) FROM water_intake_logs WHERE user_id=? AND DATE(created_at)=?");
-$stmt->execute([$userId, $today]);
-$intake = $stmt->fetchColumn() ?: 0;
-$target = 2500;
-$percent = min(100, round(($intake / $target) * 100));
-$color = $percent >= 100 ? 'text-green-500' : ($percent > 50 ? 'text-yellow-500' : 'text-primary');
+$userId    = $_SESSION['user_id'];
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeDaP - Water Tracker</title>
-    <link rel="stylesheet" href="../../shared/css/sedap.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'primary': '#0058bd', 'surface': '#f7f9fb' } } } }
-    </script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Penjejak Air — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface font-sans antialiased flex h-screen overflow-hidden">
-    <?php include '../../shared/includes/sidebar_user.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <?php include '../../shared/includes/header.php'; ?>
-        <main class="p-6 max-w-lg mx-auto w-full flex flex-col items-center">
-            <h1 class="text-3xl font-bold mb-8 text-primary">Water Tracker</h1>
+<body class="layout-fixed">
+  <?php include '../../shared/includes/sidebar_user.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">water_drop</span>Penjejak Pengambilan Air Minum</h1>
+        <p class="page-subtitle">Pantau sasaran pengambilan 8 gelas air bersih setiap hari</p>
+      </div>
 
-            <div class="bg-white rounded-full w-64 h-64 shadow-lg border-8 border-gray-100 flex flex-col items-center justify-center mb-8 relative">
-                <span class="material-symbols-outlined text-4xl mb-2 <?= $color ?>">water_drop</span>
-                <div class="text-4xl font-bold <?= $color ?>"><?= $intake ?></div>
-                <div class="text-gray-400 text-sm">/ <?= $target ?> ml</div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <div class="card text-center p-4">
+            <h5 class="fw-bold mb-3">Gelas Diminum Hari Ini</h5>
+            <div class="display-3 fw-bold text-primary mb-3" id="glassCount">0 / 8</div>
+            <div class="d-flex justify-content-center gap-2">
+              <button class="btn btn-outline-secondary" onclick="addGlass(-1)">- 1 Gelas</button>
+              <button class="btn btn-primary" onclick="addGlass(1)">+ 1 Gelas</button>
             </div>
-
-            <form method="POST" class="grid grid-cols-3 gap-4 w-full mb-8">
-                <button type="submit" name="amount" value="150" class="bg-white p-4 rounded-2xl shadow-sm border border-primary/20 hover:bg-primary/5 flex flex-col items-center">
-                    <span class="material-symbols-outlined text-blue-300 text-3xl">local_cafe</span>
-                    <span class="font-bold mt-2">150 ml</span>
-                </button>
-                <button type="submit" name="amount" value="250" class="bg-white p-4 rounded-2xl shadow-sm border border-primary/20 hover:bg-primary/5 flex flex-col items-center">
-                    <span class="material-symbols-outlined text-blue-400 text-3xl">water_full</span>
-                    <span class="font-bold mt-2">250 ml</span>
-                </button>
-                <button type="submit" name="amount" value="500" class="bg-white p-4 rounded-2xl shadow-sm border border-primary/20 hover:bg-primary/5 flex flex-col items-center">
-                    <span class="material-symbols-outlined text-blue-500 text-3xl">water_bottle</span>
-                    <span class="font-bold mt-2">500 ml</span>
-                </button>
-            </form>
-        </main>
-    </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <?php include '../../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
+<script>
+let count = 0;
+function addGlass(n) {
+  count = Math.max(0, count + n);
+  document.getElementById('glassCount').textContent = count + ' / 8';
+}
+</script>
 </body>
 </html>

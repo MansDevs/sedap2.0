@@ -1,74 +1,50 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id'])) { header('Location: ../auth/login.php'); exit; }
-if ($_SESSION['user_role'] !== 'user') { header('Location: ../auth/login.php'); exit; }
-
-$stmt = $pdo->query("SELECT * FROM announcements ORDER BY created_at DESC");
-$announcements = $stmt->fetchAll();
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
+    header('Location: ../auth/login.php'); exit;
+}
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
+$announcements = $pdo->query("SELECT * FROM announcements WHERE status='published' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeDaP - Announcements</title>
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/announcements.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'primary': '#0058bd', 'surface': '#f7f9fb',
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'], }
-                }
-            }
-        }
-    </script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><?= __('page_announcements_title', 'Pengumuman') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface font-sans antialiased flex h-screen overflow-hidden">
-    <?php include '../shared/includes/sidebar_user.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="p-6 max-w-4xl mx-auto w-full">
-            <h1 class="text-3xl font-bold mb-8 text-primary">Announcements</h1>
-            <div class="flex flex-col gap-4">
-                <?php foreach($announcements as $ann): ?>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-primary/20 hover:shadow-md transition-shadow cursor-pointer" onclick="this.classList.toggle('expanded')">
-                    <div class="flex gap-4 items-start">
-                        <span class="material-symbols-outlined text-primary text-4xl mt-1">campaign</span>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-xl mb-1"><?= htmlspecialchars($ann['title']) ?></h3>
-                            <p class="text-sm text-gray-500 mb-2"><?= date('d M Y, H:i', strtotime($ann['created_at'])) ?></p>
-                            <div class="announcement-content text-gray-700">
-                                <?= nl2br(htmlspecialchars($ann['content'])) ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-                <?php if(!$announcements): ?>
-                    <p class="text-center text-gray-500 mt-10">No announcements yet.</p>
-                <?php endif; ?>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar_user.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">campaign</span><?= __('page_announcements_title', 'Pengumuman Komuniti') ?></h1>
+      </div>
+      <div class="row g-4">
+        <?php foreach ($announcements as $a): ?>
+          <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-transparent fw-semibold text-primary"><?= htmlspecialchars($a['title']) ?></div>
+              <div class="card-body"><p class="card-text small text-muted"><?= htmlspecialchars($a['content'] ?? '') ?></p></div>
+              <div class="card-footer bg-transparent border-0 text-muted small"><?= date('d M Y', strtotime($a['created_at'])) ?></div>
             </div>
-        </main>
-    </div>
-    <style>
-        .announcement-content {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;  
-            overflow: hidden;
-        }
-        .expanded .announcement-content {
-            display: block;
-        }
-    </style>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

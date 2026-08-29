@@ -5,6 +5,7 @@
  */
 session_start();
 require_once '../../config/db.php';
+require_once '../../shared/includes/lang.php';
 if (!isset($_SESSION['user_id'])) { http_response_code(401); exit; }
 $dark = ($_POST['dark'] ?? '0') === '1' ? 1 : 0;
 $stmt = $pdo->prepare("UPDATE users SET dark_mode = ? WHERE id = ?");

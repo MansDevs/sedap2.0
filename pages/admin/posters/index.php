@@ -1,52 +1,104 @@
 <?php
 session_start();
 require_once '../../config/db.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') { header('Location: ../../auth/login.php'); exit; }
-$userName = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
+require_once '../../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    header('Location: ../../auth/login.php'); exit;
+}
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
+
+$msg = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add') {
+    $title = trim($_POST['title'] ?? '');
+    $img   = trim($_POST['image_url'] ?? '');
+    if ($title) {
+        $pdo->prepare("INSERT INTO posters (title, image_url, status, created_at) VALUES (?, ?, 'published', NOW())")->execute([$title, $img]);
+        $msg = 'Poster berjaya ditambah.';
+    }
+}
+$posters = $pdo->query("SELECT * FROM posters ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Poster Editor — SeDaP</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../shared/css/sedap.css">
-  <link rel="stylesheet" href="css/index.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <title>Pengurusan Poster — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-[#f7f9fb] text-[#1a1a1a]">
-<div class="flex h-screen overflow-hidden">
+<body class="layout-fixed">
   <?php include '../../shared/includes/sidebar_admin.php'; ?>
-  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+  <div class="wrapper d-flex flex-column min-vh-100">
     <?php include '../../shared/includes/header.php'; ?>
-    <main class="flex-1 overflow-y-auto p-6">
-      
-<div class="mb-6"><h1 class="text-2xl font-bold">Poster Editor</h1></div>
-<div class="flex gap-6 h-[600px]">
-    <div class="w-2/3 bg-white rounded-2xl border flex items-center justify-center overflow-hidden bg-gray-50">
-        <canvas id="posterCanvas" width="800" height="550" class="border shadow-sm"></canvas>
-    </div>
-    <div class="w-1/3 bg-white rounded-2xl border p-6 flex flex-col">
-        <h2 class="font-bold mb-4">Toolbar</h2>
-        <div class="grid grid-cols-2 gap-2 mb-6">
-            <button class="border p-2 rounded text-sm hover:bg-gray-50" onclick="addText()">Add Text</button>
-            <button class="border p-2 rounded text-sm hover:bg-gray-50" onclick="addRect()">Add Rectangle</button>
-            <button class="border p-2 rounded text-sm hover:bg-gray-50 text-red-500" onclick="deleteSelected()">Delete</button>
-            <button class="border p-2 rounded text-sm hover:bg-gray-50" onclick="canvas.clear()">Clear</button>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+          <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">image</span>Pengurusan Galeri Poster</h1>
+          <p class="page-subtitle">Muat naik dan urus poster infografik kesihatan awam</p>
         </div>
-        <hr class="my-4">
-        <h2 class="font-bold mb-4">Save Poster</h2>
-        <input type="text" placeholder="Poster Title" class="w-full mb-3 rounded border-gray-200">
-        <select class="w-full mb-4 rounded border-gray-200"><option>Draft</option><option>Published</option></select>
-        <button class="w-full bg-[#0058bd] text-white py-2 rounded-full mb-2">Save</button>
-    </div>
-</div>
+      </div>
 
+      <?php if ($msg): ?>
+        <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-4">
+          <span class="material-symbols-outlined" style="font-size:18px;">check_circle</span><?= htmlspecialchars($msg) ?>
+        </div>
+      <?php endif; ?>
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header"><span class="material-symbols-outlined">add_photo_alternate</span><strong>Tambah Poster Baharu</strong></div>
+            <div class="card-body">
+              <form method="POST">
+                <input type="hidden" name="action" value="add">
+                <div class="mb-3"><label class="form-label fw-semibold small">Tajuk Poster</label><input type="text" name="title" class="form-control" placeholder="Contoh: Langkah Mencuci Tangan" required></div>
+                <div class="mb-3"><label class="form-label fw-semibold small">Pautan Imej / URL</label><input type="url" name="image_url" class="form-control" placeholder="https://..."></div>
+                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1"><span class="material-symbols-outlined" style="font-size:18px;">upload</span>Terbitkan Poster</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header"><span class="material-symbols-outlined">collections</span><strong>Poster Diterbitkan (<?= count($posters) ?>)</strong></div>
+            <div class="card-body">
+              <?php if (empty($posters)): ?>
+                <p class="text-muted text-center py-4">Tiada poster dimuat naik.</p>
+              <?php else: ?>
+                <div class="row g-3">
+                  <?php foreach ($posters as $p): ?>
+                    <div class="col-sm-6 col-md-4">
+                      <div class="card h-100 shadow-sm overflow-hidden">
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height:140px;">
+                          <?php if (!empty($p['image_url'])): ?>
+                            <img src="<?= htmlspecialchars($p['image_url']) ?>" class="img-fluid h-100 w-100 object-fit-cover">
+                          <?php else: ?>
+                            <span class="material-symbols-outlined text-muted" style="font-size:48px;opacity:.3;">image</span>
+                          <?php endif; ?>
+                        </div>
+                        <div class="card-body p-2 text-center">
+                          <span class="small fw-semibold d-block"><?= htmlspecialchars($p['title']) ?></span>
+                        </div>
+                      </div>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
+  <?php include '../../shared/includes/footer.php'; ?>
 </div>
-<script src="js/index.js"></script>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

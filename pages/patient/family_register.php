@@ -1,105 +1,74 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id'])) { header('Location: ../auth/login.php'); exit; }
-if ($_SESSION['user_role'] !== 'user') { header('Location: ../auth/login.php'); exit; }
-$userId = $_SESSION['user_id'];
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
+    header('Location: ../auth/login.php'); exit;
+}
+$userId    = $_SESSION['user_id'];
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
+$msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Process form
-    $headName = $_POST['head_name'] ?? '';
-    $stmt = $pdo->prepare("INSERT INTO families (user_id, head_name, address) VALUES (?, ?, ?)");
-    $stmt->execute([$userId, $headName, $_POST['address'] ?? '']);
-    
-    $_SESSION['fam_success'] = "Family registered successfully!";
-    header("Location: dashboard.php");
-    exit;
+    $head_name = trim($_POST['head_name'] ?? '');
+    $phone     = trim($_POST['phone'] ?? '');
+    $address   = trim($_POST['address'] ?? '');
+    $members   = (int)($_POST['total_members'] ?? 1);
+
+    if ($head_name) {
+        $pdo->prepare("INSERT INTO families (user_id, head_name, phone, address, total_members, created_at) VALUES (?, ?, ?, ?, ?, NOW())")
+            ->execute([$userId, $head_name, $phone, $address, $members]);
+        $msg = 'Maklumat keluarga berjaya didaftarkan.';
+    }
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeDaP - Family Register</title>
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'primary': '#0058bd', 'surface': '#f7f9fb' }, fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
-    </script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pendaftaran Keluarga — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface font-sans antialiased flex h-screen overflow-hidden">
-    <?php include '../shared/includes/sidebar_user.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="p-6 max-w-4xl mx-auto w-full">
-            <div class="bg-white rounded-3xl shadow-sm p-8 border border-primary/20">
-                <div class="flex items-center gap-4 mb-8 pb-4 border-b">
-                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary text-2xl">family_restroom</span>
-                    </div>
-                    <h1 class="text-2xl font-bold text-primary">Household Registration</h1>
-                </div>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar_user.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">family_restroom</span>Pendaftaran Isi Rumah</h1>
+        <p class="page-subtitle">Daftarkan maklumat ahli keluarga anda untuk bantuan kecemasan</p>
+      </div>
 
-                <form method="POST" action="">
-                    <h3 class="text-xl font-semibold mb-4 text-primary">Part 1: Ketua Keluarga (Head of Household)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        <div>
-                            <label class="block text-sm mb-1">Nama Penuh</label>
-                            <input type="text" name="head_name" required class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-primary outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm mb-1">No. Telefon</label>
-                            <input type="text" name="head_phone" class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-primary outline-none">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm mb-1">Alamat (Zon)</label>
-                            <textarea name="address" rows="2" class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-primary outline-none"></textarea>
-                        </div>
-                    </div>
+      <?php if ($msg): ?>
+        <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-4">
+          <span class="material-symbols-outlined" style="font-size:18px;">check_circle</span><?= htmlspecialchars($msg) ?>
+        </div>
+      <?php endif; ?>
 
-                    <h3 class="text-xl font-semibold mb-4 text-primary">Part 2: Senarai Ahli Keluarga</h3>
-                    <div id="members-container" class="space-y-4 mb-4">
-                        <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-sm mb-1">Nama</label><input type="text" name="member_name[]" class="w-full p-2 rounded-lg border border-gray-300"></div>
-                                <div><label class="block text-sm mb-1">Hubungan</label>
-                                    <select name="member_rel[]" class="w-full p-2 rounded-lg border border-gray-300">
-                                        <option>Pasangan</option><option>Anak</option><option>Ibu/Bapa</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" onclick="addMember()" class="flex items-center gap-2 text-primary font-medium hover:bg-primary/5 px-4 py-2 rounded-lg mb-8">
-                        <span class="material-symbols-outlined">add</span> Tambah Ahli
-                    </button>
-
-                    <button type="submit" class="w-full bg-primary text-white p-4 rounded-full font-bold text-lg hover:bg-primary-dark transition-colors">
-                        Simpan & Daftar
-                    </button>
-                </form>
+      <div class="card">
+        <div class="card-body">
+          <form method="POST">
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label small fw-semibold">Nama Ketua Keluarga *</label><input type="text" name="head_name" class="form-control" required value="<?= $userName ?>"></div>
+              <div class="col-md-6"><label class="form-label small fw-semibold">No. Telefon</label><input type="tel" name="phone" class="form-control"></div>
+              <div class="col-md-8"><label class="form-label small fw-semibold">Alamat Rumah / Zon Komuniti</label><input type="text" name="address" class="form-control" placeholder="Contoh: No. 12, Lorong 4, Zon B"></div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">Jumlah Ahli Keluarga</label><input type="number" name="total_members" class="form-control" value="1" min="1"></div>
             </div>
-        </main>
-    </div>
-    <script>
-        function addMember() {
-            const html = `
-            <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200 relative mt-4">
-                <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500"><span class="material-symbols-outlined">close</span></button>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm mb-1">Nama</label><input type="text" name="member_name[]" class="w-full p-2 rounded-lg border border-gray-300"></div>
-                    <div><label class="block text-sm mb-1">Hubungan</label>
-                        <select name="member_rel[]" class="w-full p-2 rounded-lg border border-gray-300">
-                            <option>Pasangan</option><option>Anak</option><option>Ibu/Bapa</option><option>Lain-lain</option>
-                        </select>
-                    </div>
-                </div>
-            </div>`;
-            document.getElementById('members-container').insertAdjacentHTML('beforeend', html);
-        }
-    </script>
+            <button type="submit" class="btn btn-primary mt-3 d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:18px;">save</span>Daftar Keluarga</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

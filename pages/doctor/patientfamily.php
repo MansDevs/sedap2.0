@@ -1,69 +1,114 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor'])) {
-    header('Location: ../auth/login.php');
-    exit;
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor', 'admin'])) {
+    header('Location: ../auth/login.php'); exit;
 }
-$page_title = "Patients & Families";
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
+$patients = [];
+$families = [];
+try {
+    $patients = $pdo->query("SELECT * FROM patients ORDER BY full_name LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+    $families = $pdo->query("SELECT * FROM families ORDER BY created_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/patientfamily.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><?= __('page_family_title', 'Pesakit & Maklumat Keluarga') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../shared/includes/sidebar_doctor.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <div class="bg-white rounded-2xl shadow-sm border border-primary/20 p-6">
-        <div class="flex gap-4 border-b border-gray-200 pb-4 mb-4">
-            <button class="text-primary font-bold border-b-2 border-primary px-2 pb-1">Patients</button>
-            <button class="text-gray-500 font-medium px-2 pb-1 hover:text-primary">Families</button>
-        </div>
-        <div>
-            <div class="flex justify-between items-center mb-4">
-                <input type="text" placeholder="Search patients..." class="px-4 py-2 rounded-xl border border-gray-300 w-1/3 focus:border-primary">
-                <button class="px-4 py-2 bg-primary text-white rounded-xl shadow-sm text-sm font-medium">Export CSV</button>
-            </div>
-            <p class="text-gray-500 text-sm">Table placeholder...</p>
-        </div>
-    </div>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">groups</span><?= __('page_family_title', 'Pesakit & Maklumat Keluarga') ?></h1>
+        <p class="page-subtitle"><?= __('page_family_sub', 'Senarai lengkap pesakit berdaftar dan isi rumah komuniti') ?></p>
+      </div>
 
+      <div class="card mb-4">
+        <div class="card-header p-0">
+          <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2" id="patientFamilyTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-semibold" id="patients-tab" data-coreui-toggle="tab" data-coreui-target="#patients-pane" type="button" role="tab"><?= __('tab_registered_patients', 'Pesakit Berdaftar') ?> (<?= count($patients) ?>)</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-semibold" id="families-tab" data-coreui-toggle="tab" data-coreui-target="#families-pane" type="button" role="tab"><?= __('tab_family_info', 'Maklumat Keluarga') ?> (<?= count($families) ?>)</button>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body tab-content" id="patientFamilyTabContent">
+          <!-- Tab 1: Pesakit -->
+          <div class="tab-pane fade show active" id="patients-pane" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>#</th><th><?= __('col_name', 'Nama') ?></th><th><?= __('col_ic', 'No. IC') ?></th><th><?= __('col_gender', 'Jantina') ?></th><th><?= __('col_phone', 'Telefon') ?></th><th><?= __('col_date_reg', 'Tarikh Daftar') ?></th></tr>
+                </thead>
+                <tbody>
+                  <?php if (empty($patients)): ?>
+                    <tr><td colspan="6" class="text-center text-muted py-4"><?= __('no_patients_found', 'Tiada rekod pesakit') ?></td></tr>
+                  <?php else: ?>
+                    <?php foreach ($patients as $idx => $p): ?>
+                      <tr>
+                        <td><?= $idx + 1 ?></td>
+                        <td class="fw-semibold"><?= htmlspecialchars($p['full_name'] ?? '—') ?></td>
+                        <td class="small text-muted"><?= htmlspecialchars($p['ic_number'] ?? '—') ?></td>
+                        <td><span class="badge bg-light text-dark"><?= ucfirst(htmlspecialchars($p['gender'] ?? '—')) ?></span></td>
+                        <td class="small"><?= htmlspecialchars($p['phone'] ?? '—') ?></td>
+                        <td class="small text-muted"><?= !empty($p['created_at']) ? date('d/m/Y', strtotime($p['created_at'])) : '—' ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </tbody>
+              </table>
             </div>
-        </main>
-    </div>
-    <script src="js/patientfamily.js"></script>
+          </div>
+
+          <!-- Tab 2: Keluarga -->
+          <div class="tab-pane fade" id="families-pane" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>#</th><th><?= __('col_head_family', 'Ketua Keluarga') ?></th><th><?= __('col_phone', 'No. Telefon') ?></th><th><?= __('col_address_zone', 'Alamat / Zon') ?></th><th><?= __('col_total_members', 'Jumlah Ahli') ?></th><th><?= __('col_date_reg', 'Tarikh Daftar') ?></th></tr>
+                </thead>
+                <tbody>
+                  <?php if (empty($families)): ?>
+                    <tr><td colspan="6" class="text-center text-muted py-4"><?= __('no_families_found', 'Tiada rekod keluarga') ?></td></tr>
+                  <?php else: ?>
+                    <?php foreach ($families as $idx => $f): ?>
+                      <tr>
+                        <td><?= $idx + 1 ?></td>
+                        <td class="fw-semibold"><?= htmlspecialchars($f['head_name'] ?? '—') ?></td>
+                        <td class="small"><?= htmlspecialchars($f['phone'] ?? '—') ?></td>
+                        <td class="small text-muted"><?= htmlspecialchars($f['address'] ?? '—') ?></td>
+                        <td><span class="badge bg-primary"><?= (int)($f['total_members'] ?? 1) ?> <?= __('unit_people', 'Orang') ?></span></td>
+                        <td class="small text-muted"><?= !empty($f['created_at']) ? date('d/m/Y', strtotime($f['created_at'])) : '—' ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

@@ -1,179 +1,116 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id'])) { header('Location: ../auth/login.php'); exit; }
-if ($_SESSION['user_role'] !== 'user') { header('Location: ../auth/login.php'); exit; }
-$userId = $_SESSION['user_id'];
-$patient = $pdo->prepare("SELECT * FROM patients WHERE user_id=?");
-$patient->execute([$userId]);
-$patient = $patient->fetch() ?: [];
-$patientName = $_SESSION['user_name'] ?? 'User';
-
-// Get user info (water target, weight)
-$userInfo = $pdo->prepare("SELECT water_target_ml, weight_kg FROM users WHERE id=?");
-$userInfo->execute([$userId]);
-$userInfo = $userInfo->fetch() ?: [];
-$waterTarget = $userInfo['water_target_ml'] ?? 2100;
-
-// Get today's water intake (uses patient_id)
-$today = date('Y-m-d');
-$patientId = $patient['id'] ?? null;
-if ($patientId) {
-    $waterStmt = $pdo->prepare("SELECT SUM(amount_ml) FROM water_intake_logs WHERE patient_id=? AND DATE(logged_at)=?");
-    $waterStmt->execute([$patientId, $today]);
-    $waterIntake = (int)($waterStmt->fetchColumn() ?: 0);
-} else {
-    $waterIntake = 0;
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
+    header('Location: ../auth/login.php'); exit;
 }
+$userId    = $_SESSION['user_id'];
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
-// Get last mood entry (uses patient_id)
-$moodEmoji = '—';
-$lastMood = null;
-if ($patientId) {
-    $moodStmt = $pdo->prepare("SELECT mood_score FROM mood_journal_entries WHERE patient_id=? ORDER BY logged_at DESC LIMIT 1");
-    $moodStmt->execute([$patientId]);
-    $lastMood = $moodStmt->fetchColumn();
-}
-$moodEmojis = [5 => '😄', 4 => '😊', 3 => '😐', 2 => '😟', 1 => '😭'];
-$moodEmoji = $lastMood && isset($moodEmojis[$lastMood]) ? $moodEmojis[$lastMood] : '—';
-
-// Get next medicine reminder
-$nextMed = null;
-if ($patientId) {
-    $medStmt = $pdo->prepare("SELECT m.medicine_name, mr.reminder_time FROM medicines m JOIN medicine_reminders mr ON m.id=mr.medicine_id WHERE m.patient_id=? AND mr.is_active=1 AND mr.reminder_time > CURTIME() ORDER BY mr.reminder_time ASC LIMIT 1");
-    $medStmt->execute([$patientId]);
-    $nextMed = $medStmt->fetch();
-}
-
-// Get published announcements
-$annStmt = $pdo->query("SELECT * FROM announcements WHERE status='published' ORDER BY published_at DESC LIMIT 3");
-$announcements = $annStmt->fetchAll();
+// Fetch patient's own triage records
+$myTriages = [];
+try {
+    $myTriages = $pdo->prepare("SELECT tr.triage_level, tr.chief_complaint, tr.status, tr.triaged_at FROM triage_records tr JOIN patients p ON tr.patient_id=p.id WHERE p.user_id=? ORDER BY tr.triaged_at DESC LIMIT 5");
+    $myTriages->execute([$userId]);
+    $myTriages = $myTriages->fetchAll();
+} catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeDaP - Patient Dashboard</title>
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'primary': '#0058bd',
-                        'primary-dark': '#004494',
-                        'primary-light': '#2771df',
-                        'primary-container': '#2771df',
-                        'secondary': '#3d6185',
-                        'tertiary': '#006673',
-                        'surface': '#f7f9fb',
-                        'surface-container': '#eceef0',
-                        'surface-container-low': '#f2f4f6',
-                        'surface-container-lowest': '#ffffff',
-                        'on-primary': '#ffffff',
-                        'on-surface': '#191c1e',
-                        'on-surface-variant': '#424753',
-                        'outline': '#727785',
-                    },
-                    fontFamily: { sans: ['Roboto Flex', 'sans-serif'], }
-                }
-            }
-        }
-    </script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Portal Pesakit — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface font-sans antialiased flex h-screen overflow-hidden">
-    <?php include '../shared/includes/sidebar_user.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="p-6 max-w-7xl mx-auto w-full">
-            <div class="bg-gradient-to-r from-primary to-primary-light rounded-3xl p-8 text-white shadow-md mb-8">
-                <h1 class="text-3xl font-bold mb-2">Welcome back, <?= htmlspecialchars($patientName) ?>! 👋</h1>
-                <p class="opacity-90">How are you feeling today?</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-primary/20 flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Water Today</p>
-                        <p class="text-xl font-bold text-primary"><?= $waterIntake ?> / <?= $waterTarget ?> ml</p>
-                    </div>
-                    <span class="material-symbols-outlined text-4xl text-blue-400">water_drop</span>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-primary/20 flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Last Mood</p>
-                        <p class="text-2xl font-bold"><?= $moodEmoji ?></p>
-                    </div>
-                    <span class="material-symbols-outlined text-4xl text-yellow-500">sentiment_satisfied</span>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-primary/20 flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Next Medicine</p>
-                        <p class="text-xl font-bold text-primary">No alerts</p>
-                    </div>
-                    <span class="material-symbols-outlined text-4xl text-red-400">medication</span>
-                </div>
-            </div>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar_user.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title">
+          <span class="material-symbols-outlined" style="color:var(--cui-primary);">health_and_safety</span>
+          Portal Pesakit
+        </h1>
+        <p class="page-subtitle">Selamat datang, <?= $userName ?>. Semak status kesihatan anda di sini.</p>
+      </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-                <a href="screening.php" class="bg-white hover:bg-surface transition-colors p-6 rounded-3xl shadow-sm border border-primary/20 flex flex-col items-center justify-center text-center group">
-                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl text-primary">quiz</span>
-                    </div>
-                    <span class="font-semibold text-lg">Health Screening</span>
-                </a>
-                <a href="livechat.php" class="bg-white hover:bg-surface transition-colors p-6 rounded-3xl shadow-sm border border-primary/20 flex flex-col items-center justify-center text-center group">
-                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl text-primary">chat</span>
-                    </div>
-                    <span class="font-semibold text-lg">Talk to Doctor</span>
-                </a>
-                <a href="health/water.php" class="bg-white hover:bg-surface transition-colors p-6 rounded-3xl shadow-sm border border-primary/20 flex flex-col items-center justify-center text-center group">
-                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl text-primary">water_drop</span>
-                    </div>
-                    <span class="font-semibold text-lg">Water Tracker</span>
-                </a>
-                <a href="health/mood.php" class="bg-white hover:bg-surface transition-colors p-6 rounded-3xl shadow-sm border border-primary/20 flex flex-col items-center justify-center text-center group">
-                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl text-primary">sentiment_satisfied</span>
-                    </div>
-                    <span class="font-semibold text-lg">Mood Journal</span>
-                </a>
-                <a href="health/medicine.php" class="bg-white hover:bg-surface transition-colors p-6 rounded-3xl shadow-sm border border-primary/20 flex flex-col items-center justify-center text-center group">
-                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl text-primary">medication</span>
-                    </div>
-                    <span class="font-semibold text-lg">My Medicines</span>
-                </a>
-                <a href="family_register.php" class="bg-white hover:bg-surface transition-colors p-6 rounded-3xl shadow-sm border border-primary/20 flex flex-col items-center justify-center text-center group">
-                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl text-primary">family_restroom</span>
-                    </div>
-                    <span class="font-semibold text-lg">Family Info</span>
-                </a>
+      <div class="row g-4">
+        <!-- My Triage Records -->
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <span class="material-symbols-outlined">monitor_heart</span>
+              <strong>Rekod Triaj Saya</strong>
             </div>
-
-            <h2 class="text-2xl font-bold mb-4">Announcements</h2>
-            <div class="flex flex-col gap-4">
-                <?php foreach($announcements as $ann): ?>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-primary/20 flex gap-4 items-center">
-                    <span class="material-symbols-outlined text-primary text-3xl">campaign</span>
-                    <div>
-                        <h3 class="font-semibold"><?= htmlspecialchars($ann['title']) ?></h3>
-                        <p class="text-sm text-gray-600 truncate max-w-xl"><?= htmlspecialchars($ann['content']) ?></p>
-                    </div>
+            <div class="card-body p-0">
+              <?php if (empty($myTriages)): ?>
+                <div class="p-4 text-center text-muted">
+                  <span class="material-symbols-outlined d-block" style="font-size:48px;opacity:.3;">assignment</span>
+                  <?= __('doc_no_records', 'Tiada rekod triaj') ?> ditemui.
                 </div>
-                <?php endforeach; ?>
+              <?php else: ?>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr><th>Tahap</th><th>Aduan</th><th><?= __('col_status', 'Status') ?></th><th>Tarikh</th></tr>
+                    </thead>
+                    <tbody>
+                      <?php foreach ($myTriages as $t):
+                        $lv = strtolower($t['triage_level']);
+                        $bcMap = ['red' => 'badge-triage-red', 'yellow' => 'badge-triage-yellow', 'green' => 'badge-triage-green'];
+                        $bc = $bcMap[$lv] ?? 'badge-triage-green';
+                        $llMap = ['red' => __('triage_red', 'Merah'), 'yellow' => __('triage_yellow', 'Kuning'), 'green' => __('triage_green', 'Hijau')];
+                        $ll = $llMap[$lv] ?? 'Hijau';
+                      ?>
+                      <tr>
+                        <td><span class="badge <?= $bc ?>"><?= $ll ?></span></td>
+                        <td class="small"><?= htmlspecialchars(mb_strimwidth($t['chief_complaint'] ?? '—', 0, 40, '…')) ?></td>
+                        <td><span class="badge bg-secondary"><?= htmlspecialchars($t['status']) ?></span></td>
+                        <td class="small text-muted"><?= $t['triaged_at'] ? date('d/m/Y H:i', strtotime($t['triaged_at'])) : '—' ?></td>
+                      </tr>
+                      <?php endforeach; ?>
+                    </tbody>
+                  </table>
+                </div>
+              <?php endif; ?>
             </div>
-        </main>
-    </div>
-    <script src="js/dashboard.js"></script>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header"><span class="material-symbols-outlined">apps</span><strong>Pautan Pantas</strong></div>
+            <div class="card-body d-flex flex-column gap-2">
+              <a href="settings.php" class="btn btn-outline-primary w-100 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined" style="font-size:18px;">settings</span>Tetapan Akaun
+              </a>
+              <a href="/sedap/sedap2.0/pages/tos.php" class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined" style="font-size:18px;">gavel</span>Terma Penggunaan
+              </a>
+              <a href="/sedap/sedap2.0/pages/privacy.php" class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined" style="font-size:18px;">privacy_tip</span>Dasar Privasi
+              </a>
+              <a href="../auth/logout.php" class="btn btn-outline-danger w-100 d-flex align-items-center gap-2 mt-2">
+                <span class="material-symbols-outlined" style="font-size:18px;">logout</span>Log Keluar
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

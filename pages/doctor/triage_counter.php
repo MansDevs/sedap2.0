@@ -1,145 +1,241 @@
 <?php
 session_start();
 require_once '../config/db.php';
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor'])) {
-    header('Location: ../auth/login.php');
-    exit;
+require_once '../shared/includes/lang.php';
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor', 'admin', 'volunteer'])) {
+    header('Location: ../auth/login.php'); exit;
 }
-$page_title = "Triage Counter";
+$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
+$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
+$_ROOT     = '/sedap/sedap2.0';
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Logic to insert into triage_records
-        // $stmt = $pdo->prepare("INSERT INTO triage_records...");
-        // header('Location: triage_list.php'); exit;
+$msg = ''; $error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $patient_name = trim($_POST['patient_name'] ?? '');
+    $ic_number    = trim($_POST['ic_number'] ?? '');
+    $phone        = trim($_POST['phone'] ?? '');
+    $age          = (int)($_POST['age'] ?? 0);
+    $gender       = $_POST['gender'] ?? 'male';
+    $temp         = (float)($_POST['temp'] ?? 36.5);
+    $bp           = trim($_POST['bp'] ?? '');
+    $glucose      = trim($_POST['glucose'] ?? '');
+    $complaint    = trim($_POST['chief_complaint'] ?? '');
+    $level        = strtolower($_POST['triage_level'] ?? 'green');
+
+    if (empty($patient_name)) {
+        $error = __('error_enter_name', 'Sila masukkan nama pesakit.');
+    } else {
+        try {
+            $pStmt = $pdo->prepare("SELECT id FROM patients WHERE ic_number=? AND ic_number != ''");
+            $pStmt->execute([$ic_number]);
+            $pId = $pStmt->fetchColumn();
+            if (!$pId) {
+                $insP = $pdo->prepare("INSERT INTO patients (full_name, ic_number, phone, gender, created_at) VALUES (?, ?, ?, ?, NOW())");
+                $insP->execute([$patient_name, $ic_number, $phone, $gender]);
+                $pId = $pdo->lastInsertId();
+            }
+
+            $tIns = $pdo->prepare("INSERT INTO triage_records (patient_id, triaged_by, triage_level, chief_complaint, temperature, blood_pressure, status, triaged_at) VALUES (?, ?, ?, ?, ?, ?, 'waiting', NOW())");
+            $tIns->execute([$pId, $_SESSION['user_id'], $level, $complaint, $temp, $bp]);
+            header("Location: triage_list.php?success=1"); exit;
+        } catch (Exception $e) {
+            $error = __('error_registration', 'Ralat pendaftaran: ') . $e->getMessage();
+        }
     }
-    
+}
 ?>
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - SeDaP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: '#0058bd', 'primary-dark': '#004494', 'primary-light': '#2771df',
-                surface: '#f7f9fb', 'surface-dark': '#e0e3e5',
-                'on-primary': '#ffffff', 'on-surface': '#1a1a1a', 'on-surface-muted': '#5a5a5a',
-                'triage-red': '#C0392B', 'triage-yellow': '#D4A017', 'triage-green': '#1E8449',
-              },
-              fontFamily: { sans: ['Inter', 'sans-serif'] },
-              borderRadius: { 'DEFAULT': '0.75rem', 'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem', 'full': '9999px' }
-            }
-          }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../shared/css/sedap.css">
-    <link rel="stylesheet" href="css/triage_counter.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><?= __('page_triage_add_title', 'Kaunter Triaj') ?> — SeDaP</title>
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-    <?php include '../shared/includes/sidebar_doctor.php'; ?>
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        <?php include '../shared/includes/header.php'; ?>
-        <main class="flex-1 overflow-y-auto p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-3xl font-bold text-primary"><?= htmlspecialchars($page_title) ?></h1>
-                </div>
-                
-    <form action="" method="POST" class="space-y-8 bg-white p-8 rounded-3xl shadow-sm border border-primary/20">
-        <!-- Section 1: Personal Info -->
-        <section>
-            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2"><span class="material-symbols-outlined">person</span> Personal Info</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div><label class="block text-sm font-medium mb-1">Full Name</label><input type="text" name="name" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary focus:ring-primary" required></div>
-                <div><label class="block text-sm font-medium mb-1">IC / SeDaP ID</label><input type="text" name="ic" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary" required></div>
-                <div><label class="block text-sm font-medium mb-1">Zone Code</label><input type="text" name="zone" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div><label class="block text-sm font-medium mb-1">Phone</label><input type="text" name="phone" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div><label class="block text-sm font-medium mb-1">Age</label><input type="number" name="age" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Gender</label>
-                    <div class="flex gap-4 mt-2">
-                        <label class="flex items-center gap-1"><input type="radio" name="gender" value="M"> M</label>
-                        <label class="flex items-center gap-1"><input type="radio" name="gender" value="F"> F</label>
-                    </div>
-                </div>
-                <div><label class="block text-sm font-medium mb-1">Occupation</label><input type="text" name="occupation" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Education Level</label>
-                    <select name="education" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary">
-                        <option value="None">None</option>
-                        <option value="Primary">Primary</option>
-                        <option value="Secondary">Secondary</option>
-                        <option value="Tertiary">Tertiary</option>
-                    </select>
-                </div>
-            </div>
-        </section>
+<body class="layout-fixed">
+  <?php include '../shared/includes/sidebar.php'; ?>
+  <div class="wrapper d-flex flex-column min-vh-100">
+    <?php include '../shared/includes/header.php'; ?>
+    <div class="body flex-grow-1">
+    <main class="container-fluid px-4 py-4">
+      <div class="mb-4">
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">add_circle</span><?= __('page_triage_add_title', 'Kaunter Triaj & Saringan') ?></h1>
+        <p class="page-subtitle"><?= __('page_triage_add_sub', 'Borang kemasukan saringan pesakit dan pengesanan tahap kesihatan') ?></p>
+      </div>
 
-        <!-- Section 2: Vitals & Lab -->
-        <section>
-            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2"><span class="material-symbols-outlined">favorite</span> Vitals & Lab</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div><label class="block text-sm font-medium mb-1">Temp (°C)</label><input type="number" step="0.1" name="temp" id="val_temp" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div><label class="block text-sm font-medium mb-1">BP (mmHg)</label><input type="text" placeholder="120/80" name="bp" id="val_bp" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div><label class="block text-sm font-medium mb-1">Blood Glucose</label><input type="number" step="0.1" name="glucose" id="val_gluc" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-                <div><label class="block text-sm font-medium mb-1">Lipid Profile</label><input type="number" step="0.1" name="lipid" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Acute Symptoms</label>
-                <div class="flex flex-wrap gap-4" id="symptoms_container">
-                    <label class="flex items-center gap-1"><input type="checkbox" name="symptoms[]" value="Diarrhea" class="symptom-cb"> Diarrhea</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" name="symptoms[]" value="Vomiting/Nausea" class="symptom-cb"> Vomiting/Nausea</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" name="symptoms[]" value="Fever" class="symptom-cb"> Fever</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" name="symptoms[]" value="Abdominal Pain" class="symptom-cb"> Abdominal Pain</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" name="symptoms[]" value="Dizziness" class="symptom-cb"> Dizziness</label>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: History & Notes -->
-        <section>
-            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2"><span class="material-symbols-outlined">history</span> Medical History & Notes</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-sm font-medium mb-1">Medical History</label><textarea name="history" rows="3" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></textarea></div>
-                <div><label class="block text-sm font-medium mb-1">Interview Notes</label><textarea name="notes" rows="3" class="w-full rounded-xl border-gray-300 shadow-sm p-2 border focus:border-primary"></textarea></div>
-            </div>
-        </section>
-
-        <!-- Section 4: Triage Rating -->
-        <section class="bg-surface rounded-2xl p-6 border border-primary/10">
-            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2"><span class="material-symbols-outlined">local_hospital</span> Triage Rating</h2>
-            <div class="flex flex-col md:flex-row items-center gap-8">
-                <div class="flex-1 text-center">
-                    <div id="auto-badge" class="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold shadow-inner border-4 border-white mx-auto transition-colors duration-500">PENDING</div>
-                    <p class="text-sm mt-2 font-medium text-on-surface-muted">Auto-determined Level</p>
-                </div>
-                <div class="flex-1">
-                    <label class="block text-sm font-medium mb-2">Manual Override</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50"><input type="radio" name="manual_level" value="Red"> 🔴 Red (Severe)</label>
-                        <label class="flex items-center gap-2 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50"><input type="radio" name="manual_level" value="Yellow"> 🟡 Yellow (Moderate)</label>
-                        <label class="flex items-center gap-2 p-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50"><input type="radio" name="manual_level" value="Green" checked> 🟢 Green (Mild)</label>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="text-right">
-            <button type="submit" class="bg-primary hover:bg-primary-dark text-white rounded-full px-8 py-3 transition shadow-md font-bold text-lg">Submit Triage</button>
+      <?php if ($error): ?>
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2">
+          <span class="material-symbols-outlined" style="font-size:18px;">error</span><?= htmlspecialchars($error) ?>
         </div>
-    </form>
+      <?php endif; ?>
 
+      <form method="POST">
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <!-- Section 1: Maklumat Pesakit -->
+            <div class="card mb-4">
+              <div class="card-header"><span class="material-symbols-outlined">person</span><strong>1. <?= __('sec_patient_info', 'Maklumat Pesakit') ?></strong></div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small"><?= __('col_patient_name', 'Nama Penuh') ?> <span class="text-danger">*</span></label>
+                    <input type="text" name="patient_name" class="form-control" placeholder="<?= __('ph_patient_name', 'Nama pesakit') ?>" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small"><?= __('col_ic', 'No. Kad Pengenalan / Pasport') ?></label>
+                    <input type="text" name="ic_number" class="form-control" placeholder="Contoh: 900101-01-1234">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold small"><?= __('col_phone', 'No. Telefon') ?></label>
+                    <input type="tel" name="phone" class="form-control" placeholder="01X-XXXXXXXX">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold small"><?= __('col_age', 'Umur (Tahun)') ?></label>
+                    <input type="number" name="age" class="form-control" placeholder="<?= __('col_age', 'Umur') ?>" min="0" max="130">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold small"><?= __('col_gender', 'Jantina') ?></label>
+                    <select name="gender" class="form-select">
+                      <option value="male"><?= __('gender_male', 'Lelaki') ?></option>
+                      <option value="female"><?= __('gender_female', 'Perempuan') ?></option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
-        </main>
-    </div>
-    <script src="js/triage_counter.js"></script>
+
+            <!-- Section 2: Tanda Vital & Gejala -->
+            <div class="card mb-4">
+              <div class="card-header"><span class="material-symbols-outlined">vital_signs</span><strong>2. <?= __('sec_vitals_symptoms', 'Tanda Vital & Gejala Akut') ?></strong></div>
+              <div class="card-body">
+                <div class="row g-3 mb-3">
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold small"><?= __('vital_temp', 'Suhu Badan') ?> (&deg;C)</label>
+                    <input type="number" step="0.1" name="temp" id="tempInput" class="form-control" value="36.8" oninput="calculateTriage()">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold small"><?= __('vital_bp', 'Tekanan Darah (BP)') ?></label>
+                    <input type="text" name="bp" class="form-control" placeholder="Contoh: 120/80">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold small"><?= __('vital_glucose', 'Glukosa Darah (mmol/L)') ?></label>
+                    <input type="text" name="glucose" class="form-control" placeholder="Contoh: 5.4">
+                  </div>
+                </div>
+
+                <label class="form-label fw-semibold small"><?= __('lbl_symptoms_experienced', 'Gejala Yang Dialami:') ?></label>
+                <div class="d-flex flex-wrap gap-3">
+                  <div class="form-check">
+                    <input class="form-check-input symptom-cb" type="checkbox" id="sym_fever" value="fever" onchange="calculateTriage()">
+                    <label class="form-check-label small" for="sym_fever"><?= __('sym_fever', 'Demam Tinggi') ?></label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input symptom-cb" type="checkbox" id="sym_diarrhea" value="diarrhea" onchange="calculateTriage()">
+                    <label class="form-check-label small" for="sym_diarrhea"><?= __('sym_diarrhea', 'Cirit-birit Kerap') ?></label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input symptom-cb" type="checkbox" id="sym_vomit" value="vomit" onchange="calculateTriage()">
+                    <label class="form-check-label small" for="sym_vomit"><?= __('sym_vomit', 'Muntah Berulang') ?></label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input symptom-cb" type="checkbox" id="sym_breath" value="breath" onchange="calculateTriage()">
+                    <label class="form-check-label small" for="sym_breath"><?= __('sym_breath', 'Sesak Nafas') ?></label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input symptom-cb" type="checkbox" id="sym_pain" value="pain" onchange="calculateTriage()">
+                    <label class="form-check-label small" for="sym_pain"><?= __('sym_pain', 'Sakit Perut Kuat') ?></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Aduan Utama -->
+            <div class="card mb-4">
+              <div class="card-header"><span class="material-symbols-outlined">notes</span><strong>3. <?= __('sec_complaint_notes', 'Aduan & Catatan Klinikal') ?></strong></div>
+              <div class="card-body">
+                <textarea name="chief_complaint" class="form-control" rows="3" placeholder="<?= __('ph_complaint_notes', 'Catatan aduan utama pesakit, sejarah alahan, atau ubat yang diambil...') ?>"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Triage Result Card -->
+          <div class="col-lg-4">
+            <div class="card position-sticky" style="top:1rem;">
+              <div class="card-header"><span class="material-symbols-outlined">health_and_safety</span><strong><?= __('triage_result_title', 'Keputusan Triaj') ?></strong></div>
+              <div class="card-body text-center p-4">
+                <div id="triageBadgeBox" class="p-3 rounded-3 mb-3" style="background:rgba(30,132,73,.15);">
+                  <div class="fs-2 fw-bold text-success" id="triageTitle"><?= __('triage_green_short', 'HIJAU') ?></div>
+                  <div class="small text-muted" id="triageDesc"><?= __('triage_green_desc', 'Kes Biasa / Bukan Kecemasan') ?></div>
+                </div>
+
+                <div class="mb-3 text-start">
+                  <label class="form-label fw-semibold small"><?= __('lbl_manual_override', 'Pengubahsuaian Manual:') ?></label>
+                  <select name="triage_level" id="triageSelect" class="form-select" onchange="updateBadgeFromSelect()">
+                    <option value="green" selected><?= __('triage_green', 'Hijau (Standard / Biasa)') ?></option>
+                    <option value="yellow"><?= __('triage_yellow', 'Kuning (Separa Kritikal)') ?></option>
+                    <option value="red"><?= __('triage_red', 'Merah (Kritikal / Kecemasan)') ?></option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
+                  <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                  <?= __('btn_submit_triage', 'Daftar & Hantar Triaj') ?>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+  <?php include '../shared/includes/footer.php'; ?>
+</div>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
+<script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
+<script>
+const isEn = "<?= ($_SESSION['lang'] ?? 'ms') ?>" === 'en';
+function calculateTriage() {
+  const temp = parseFloat(document.getElementById('tempInput').value) || 36.5;
+  const breath = document.getElementById('sym_breath').checked;
+  const vomit = document.getElementById('sym_vomit').checked;
+  const diarrhea = document.getElementById('sym_diarrhea').checked;
+  const fever = document.getElementById('sym_fever').checked || temp >= 38.5;
+
+  let level = 'green';
+  if (breath || (fever && vomit && diarrhea) || temp >= 39.5) {
+    level = 'red';
+  } else if (fever || vomit || diarrhea) {
+    level = 'yellow';
+  }
+
+  document.getElementById('triageSelect').value = level;
+  updateBadgeFromSelect();
+}
+function updateBadgeFromSelect() {
+  const val = document.getElementById('triageSelect').value;
+  const box = document.getElementById('triageBadgeBox');
+  const title = document.getElementById('triageTitle');
+  const desc = document.getElementById('triageDesc');
+
+  if (val === 'red') {
+    box.style.background = 'rgba(192,57,43,.15)';
+    title.className = 'fs-2 fw-bold text-danger';
+    title.textContent = isEn ? 'RED' : 'MERAH';
+    desc.textContent = isEn ? 'Critical — Immediate Emergency Care Required' : 'Kritikal — Perlu Rawatan Segera';
+  } else if (val === 'yellow') {
+    box.style.background = 'rgba(212,160,23,.15)';
+    title.className = 'fs-2 fw-bold text-warning';
+    title.textContent = isEn ? 'YELLOW' : 'KUNING';
+    desc.textContent = isEn ? 'Semi-Critical — Prompt Medical Attention Needed' : 'Separa Kritikal — Rawatan Diperlukan Segera';
+  } else {
+    box.style.background = 'rgba(30,132,73,.15)';
+    title.className = 'fs-2 fw-bold text-success';
+    title.textContent = isEn ? 'GREEN' : 'HIJAU';
+    desc.textContent = isEn ? 'Standard — Mild / Stable Non-Emergency Case' : 'Biasa — Kes Ringan / Stabil';
+  }
+}
+</script>
 </body>
 </html>

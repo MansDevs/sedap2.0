@@ -1,92 +1,69 @@
 <?php
 /**
- * sidebar_user.php — Patient / User Portal Sidebar
- * Location: pages/shared/includes/sidebar_user.php
+ * CoreUI Sidebar — Patient/User Portal
  */
-$currentScriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF']);
-if (strpos($currentScriptPath, '/pages/') !== false) {
-    $afterPagesPath = substr($currentScriptPath, strpos($currentScriptPath, '/pages/') + 7);
-    $dirDepth = substr_count($afterPagesPath, '/');
-    $pagesBase = str_repeat('../', $dirDepth);
-} else {
-    $pagesBase = '../';
-}
+require_once __DIR__ . '/lang.php';
 
-$current = basename($_SERVER['PHP_SELF']);
-$userName = htmlspecialchars($_SESSION['user_name'] ?? 'Patient');
-$initials = strtoupper(substr($_SESSION['user_name'] ?? 'P', 0, 1));
-if (!function_exists('navActiveUsr')) {
-    function navActiveUsr($file, $current) {
-        return basename($file) === $current ? 'active' : '';
-    }
+// Calculate initial unread chat count (number of unique doctors/staff) for instant server-side badge rendering
+$_chatUnread = 0;
+if (!empty($_SESSION['user_id'])) {
+    try {
+        require_once __DIR__ . '/../../config/db.php';
+        $_chatStmt = $pdo->prepare("
+            SELECT COUNT(DISTINCT m.sender_id)
+            FROM messages m
+            JOIN conversation_participants cp ON m.conversation_id = cp.conversation_id AND cp.user_id = ?
+            WHERE m.sender_id != ?
+              AND m.id > IFNULL(cp.last_read_message_id, 0)
+              AND m.deleted_at IS NULL
+        ");
+        $_chatStmt->execute([(int)$_SESSION['user_id'], (int)$_SESSION['user_id']]);
+        $_chatUnread = (int)$_chatStmt->fetchColumn();
+    } catch (Exception $e) {}
 }
 ?>
-<nav class="sedap-sidebar">
-    <div class="logo-area" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-        <div style="display:flex;align-items:center;gap:0.75rem;">
-            <div class="logo-icon"><span class="material-symbols-outlined filled" style="font-size:22px;">health_and_safety</span></div>
-            <div class="logo-text">
-                <h1>SeDaP</h1>
-                <p>Patient Portal</p>
-            </div>
+<div class="sidebar sidebar-fixed sidebar-dark" id="sidebar">
+  <div class="sidebar-brand d-flex align-items-center justify-content-between px-3 py-3 border-bottom" style="border-color:rgba(255,255,255,0.1)!important;min-height:56px;">
+    <a href="/sedap/sedap2.0/pages/patient/dashboard.php" class="sidebar-brand-full d-flex align-items-center gap-2 text-decoration-none text-white">
+      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">health_and_safety</span>
+      <span class="fw-bold fs-5 text-white">SeDaP</span>
+    </a>
+    <a href="javascript:void(0)" onclick="sedapToggleSidebar()" class="sidebar-brand-narrow text-decoration-none text-white" title="Buka / Tutup Menu">
+      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">menu</span>
+    </a>
+    <button class="sidebar-toggle-btn sidebar-brand-full" type="button" onclick="sedapToggleSidebar()" title="Kecilkan / Buka Sidebar">
+      <span class="material-symbols-outlined" style="font-size:22px;">menu</span>
+    </button>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li class="nav-title"><?= __('nav_patient_portal', 'Menu Pesakit') ?></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/dashboard.php"><span class="material-symbols-outlined nav-icon">dashboard</span><span><?= __('nav_dashboard', 'Dashboard') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/screening.php"><span class="material-symbols-outlined nav-icon">fact_check</span><span><?= __('nav_screening', 'Saringan Kesihatan') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/family_register.php"><span class="material-symbols-outlined nav-icon">family_restroom</span><span><?= __('nav_family', 'Pendaftaran Keluarga') ?></span></a></li>
+    <li class="nav-item">
+      <a class="nav-link d-flex align-items-center justify-content-between" href="/sedap/sedap2.0/pages/patient/livechat.php">
+        <div class="d-flex align-items-center">
+          <span class="material-symbols-outlined nav-icon">chat</span><span><?= __('nav_ask_doctor', 'Tanya Doktor') ?></span>
         </div>
-        <button type="button" id="sidebar-dark-btn" class="header-btn" title="Toggle dark mode" onclick="toggleDarkMode()" style="background:transparent;border:none;cursor:pointer;color:var(--on-muted);padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined" id="dark-icon" style="font-size:20px;">dark_mode</span>
-        </button>
-    </div>
+        <span class="badge rounded-pill bg-danger sidebar-chat-badge <?= $_chatUnread > 0 ? '' : 'd-none' ?>" style="font-size:0.75rem;">
+          <?= $_chatUnread > 99 ? '99+' : $_chatUnread ?>
+        </span>
+      </a>
+    </li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/announcements.php"><span class="material-symbols-outlined nav-icon">campaign</span><span><?= __('nav_announcements', 'Pengumuman') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/posters.php"><span class="material-symbols-outlined nav-icon">image</span><span><?= __('nav_posters', 'Poster') ?></span></a></li>
+    
+    <li class="nav-title"><?= __('nav_health_module', 'Kesihatan Kendiri') ?></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/health/water.php"><span class="material-symbols-outlined nav-icon">water_drop</span><span><?= __('nav_water', 'Air Minum') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/health/bristol.php"><span class="material-symbols-outlined nav-icon">bar_chart</span><span><?= __('nav_bristol', 'Skala Bristol') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/health/mood.php"><span class="material-symbols-outlined nav-icon">sentiment_satisfied</span><span><?= __('nav_mood', 'Jurnal Mood') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/health/medicine.php"><span class="material-symbols-outlined nav-icon">medication</span><span><?= __('nav_medicine', 'Peringatan Ubat') ?></span></a></li>
 
-    <a href="<?php echo $pagesBase; ?>patient/dashboard.php" class="nav-link <?php echo navActiveUsr('dashboard.php', $current); ?>">
-        <span class="material-symbols-outlined">dashboard</span><span>Utama (Home)</span>
-    </a>
+    <li class="nav-title"><?= __('nav_settings', 'Akaun') ?></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/patient/settings.php"><span class="material-symbols-outlined nav-icon">settings</span><span><?= __('nav_settings', 'Tetapan') ?></span></a></li>
+    <li class="nav-item"><a class="nav-link text-danger" href="/sedap/sedap2.0/pages/auth/logout.php" onclick="return confirm('<?= __('settings_confirm_logout', 'Log keluar?') ?>')"><span class="material-symbols-outlined nav-icon text-danger">logout</span><span><?= __('nav_logout', 'Log Keluar') ?></span></a></li>
+  </ul>
 
-    <span class="nav-section-label">Perkhidmatan</span>
-    <a href="<?php echo $pagesBase; ?>patient/screening.php" class="nav-link <?php echo navActiveUsr('screening.php', $current); ?>">
-        <span class="material-symbols-outlined">quiz</span><span>Saringan Kesihatan</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/family_register.php" class="nav-link <?php echo navActiveUsr('family_register.php', $current); ?>">
-        <span class="material-symbols-outlined">family_restroom</span><span>Pendaftaran Isi Rumah</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/livechat.php" class="nav-link <?php echo navActiveUsr('livechat.php', $current); ?>">
-        <span class="material-symbols-outlined">forum</span><span>Bual Bersama Doktor</span>
-    </a>
-
-    <span class="nav-section-label">Modul Kesihatan</span>
-    <a href="<?php echo $pagesBase; ?>patient/health/bristol.php" class="nav-link <?php echo navActiveUsr('bristol.php', $current); ?>">
-        <span class="material-symbols-outlined">analytics</span><span>Skala Najis Bristol</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/health/water.php" class="nav-link <?php echo navActiveUsr('water.php', $current); ?>">
-        <span class="material-symbols-outlined">water_drop</span><span>Penjejak Air Minuman</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/health/mood.php" class="nav-link <?php echo navActiveUsr('mood.php', $current); ?>">
-        <span class="material-symbols-outlined">sentiment_satisfied</span><span>Jurnal Emosi &amp; Mood</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/health/medicine.php" class="nav-link <?php echo navActiveUsr('medicine.php', $current); ?>">
-        <span class="material-symbols-outlined">medication</span><span>Ubat &amp; Peringatan</span>
-    </a>
-
-    <span class="nav-section-label">Info &amp; Pengumuman</span>
-    <a href="<?php echo $pagesBase; ?>patient/announcements.php" class="nav-link <?php echo navActiveUsr('announcements.php', $current); ?>">
-        <span class="material-symbols-outlined">campaign</span><span>Pengumuman</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/posters.php" class="nav-link <?php echo navActiveUsr('posters.php', $current); ?>">
-        <span class="material-symbols-outlined">image</span><span>Poster Kesihatan</span>
-    </a>
-    <a href="<?php echo $pagesBase; ?>patient/settings.php" class="nav-link <?php echo navActiveUsr('settings.php', $current); ?>">
-        <span class="material-symbols-outlined">settings</span><span>Tetapan</span>
-    </a>
-
-    <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar"><?php echo $initials; ?></div>
-            <div>
-                <div class="user-name"><?php echo $userName; ?></div>
-                <div class="user-role">Pesakit / User</div>
-            </div>
-        </div>
-        <a href="<?php echo $pagesBase; ?>auth/logout.php" class="nav-link" style="margin-top:0.5rem;"
-           onclick="return confirm('Log keluar?')">
-            <span class="material-symbols-outlined">logout</span><span>Log Out</span>
-        </a>
-    </div>
-</nav>
-<script src="<?php echo $pagesBase; ?>shared/js/sedap-spa.js"></script>
+  <button class="sidebar-toggler" type="button" onclick="sedapToggleSidebar()"></button>
+</div>
