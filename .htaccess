@@ -1,0 +1,6 @@
+# SeDaP .htaccess — Custom Error Pages & URL Configuration
+
+# Custom Error Pages
+ErrorDocument 404 /sedap/sedap2.0/pages/404.php
+ErrorDocument 403 /sedap/sedap2.0/pages/404.php
+ErrorDocument 500 /sedap/sedap2.0/pages/500.php

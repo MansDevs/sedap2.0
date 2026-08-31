@@ -1,0 +1,4 @@
+body { font-family: 'Roboto Flex', sans-serif; }
+.role-btn { border-color: #e5e7eb; color: #5a5a5a; background: white; }
+.role-btn.active { background: #0058bd; color: white; border-color: #0058bd; }
+.role-btn:hover:not(.active) { background: #f7f9fb; border-color: #0058bd; }
