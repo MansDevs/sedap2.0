@@ -1,5 +1,5 @@
 <?php
-$_ROOT = '/sedap/sedap2.0';
+$_ROOT = '/sedap2.0';
 ?>
 <!DOCTYPE html>
 <html lang="<?= $_SESSION['lang'] ?? 'ms' ?>">

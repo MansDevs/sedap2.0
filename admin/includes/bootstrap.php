@@ -8,7 +8,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: " . $adminBase . "../auth/login.php");
+    header("Location: /sedap2.0/pages/auth/login.php");
     exit();
 }
 
@@ -23,7 +23,7 @@ $currentUser = $stmt->fetch();
 if (!$currentUser) {
     // Session points to a user that no longer exists
     session_destroy();
-    header("Location: " . $adminBase . "../auth/login.php");
+    header("Location: /sedap2.0/pages/auth/login.php");
     exit();
 }
 

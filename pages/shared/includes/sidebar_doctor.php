@@ -33,37 +33,37 @@ if (!empty($_SESSION['user_id'])) {
   <ul class="sidebar-nav">
     <li class="nav-title">Portal Doktor</li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/doctor/cdashboard.php">
+      <a class="nav-link" href="/sedap2.0/pages/doctor/cdashboard.php">
         <span class="material-symbols-outlined nav-icon">dashboard</span>Dashboard
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/doctor/triage_list.php">
+      <a class="nav-link" href="/sedap2.0/pages/doctor/triage_list.php">
         <span class="material-symbols-outlined nav-icon">format_list_bulleted</span>Senarai Triaj
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/doctor/triage_counter.php">
+      <a class="nav-link" href="/sedap2.0/pages/doctor/triage_counter.php">
         <span class="material-symbols-outlined nav-icon">add_circle</span>Kaunter Triaj
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/doctor/announcements.php">
+      <a class="nav-link" href="/sedap2.0/pages/doctor/announcements.php">
         <span class="material-symbols-outlined nav-icon">campaign</span>Pengumuman
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/doctor/posters.php">
+      <a class="nav-link" href="/sedap2.0/pages/doctor/posters.php">
         <span class="material-symbols-outlined nav-icon">image</span>Poster
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/doctor/patientfamily.php">
+      <a class="nav-link" href="/sedap2.0/pages/doctor/patientfamily.php">
         <span class="material-symbols-outlined nav-icon">groups</span>Pesakit &amp; Keluarga
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link d-flex align-items-center justify-content-between" href="/sedap/sedap2.0/pages/doctor/livechat.php">
+      <a class="nav-link d-flex align-items-center justify-content-between" href="/sedap2.0/pages/doctor/livechat.php">
         <div class="d-flex align-items-center">
           <span class="material-symbols-outlined nav-icon">chat</span>Live Chat (BETA)
         </div>
@@ -78,15 +78,15 @@ if (!empty($_SESSION['user_id'])) {
         <span class="material-symbols-outlined nav-icon">favorite</span>Modul Kesihatan
       </a>
       <ul class="nav-group-items">
-        <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/doctor/health/water.php"><span class="nav-icon material-symbols-outlined">water_drop</span>Air</a></li>
-        <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/doctor/health/bristol.php"><span class="nav-icon material-symbols-outlined">bar_chart</span>Bristol</a></li>
-        <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/doctor/health/mood.php"><span class="nav-icon material-symbols-outlined">sentiment_satisfied</span>Mood</a></li>
-        <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/doctor/health/medicine.php"><span class="nav-icon material-symbols-outlined">medication</span>Ubat</a></li>
+        <li class="nav-item"><a class="nav-link" href="/sedap2.0/pages/doctor/health/water.php"><span class="nav-icon material-symbols-outlined">water_drop</span>Air</a></li>
+        <li class="nav-item"><a class="nav-link" href="/sedap2.0/pages/doctor/health/bristol.php"><span class="nav-icon material-symbols-outlined">bar_chart</span>Bristol</a></li>
+        <li class="nav-item"><a class="nav-link" href="/sedap2.0/pages/doctor/health/mood.php"><span class="nav-icon material-symbols-outlined">sentiment_satisfied</span>Mood</a></li>
+        <li class="nav-item"><a class="nav-link" href="/sedap2.0/pages/doctor/health/medicine.php"><span class="nav-icon material-symbols-outlined">medication</span>Ubat</a></li>
       </ul>
     </li>
     <li class="nav-title">Akaun</li>
-    <li class="nav-item"><a class="nav-link" href="/sedap/sedap2.0/pages/doctor/settings.php"><span class="material-symbols-outlined nav-icon">settings</span>Tetapan</a></li>
-    <li class="nav-item"><a class="nav-link text-danger" href="/sedap/sedap2.0/pages/auth/logout.php"><span class="material-symbols-outlined nav-icon text-danger">logout</span>Log Keluar</a></li>
+    <li class="nav-item"><a class="nav-link" href="/sedap2.0/pages/doctor/settings.php"><span class="material-symbols-outlined nav-icon">settings</span>Tetapan</a></li>
+    <li class="nav-item"><a class="nav-link text-danger" href="/sedap2.0/pages/auth/logout.php"><span class="material-symbols-outlined nav-icon text-danger">logout</span>Log Keluar</a></li>
   </ul>
   
 </div>

@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 $triages = $pdo->query("SELECT tr.*, p.full_name AS patient_name, p.ic_number FROM triage_records tr LEFT JOIN patients p ON tr.patient_id=p.id ORDER BY tr.triaged_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
 ?>

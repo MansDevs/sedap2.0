@@ -12,6 +12,7 @@ $navItems = [
     [
         'key' => 'dashboard',
         'label' => 'Dashboard',
+        'short_label' => 'Dashboard',
         'icon' => 'space_dashboard',
         'path' => 'dashboard.php',
         'description' => 'Overview of all modules.',
@@ -19,6 +20,7 @@ $navItems = [
     [
         'key' => 'personnel',
         'label' => 'Staff & Volunteers',
+        'short_label' => 'Personnel',
         'icon' => 'groups',
         'path' => 'personnel/index.php',
         'description' => 'Register staff and volunteers, export roster to CSV.',
@@ -26,6 +28,7 @@ $navItems = [
     [
         'key' => 'announcements',
         'label' => 'Announcements',
+        'short_label' => 'Announce',
         'icon' => 'campaign',
         'path' => 'announcements/index.php',
         'description' => 'Post and edit text announcements over time.',
@@ -33,6 +36,7 @@ $navItems = [
     [
         'key' => 'posters',
         'label' => 'Poster Editor',
+        'short_label' => 'Posters',
         'icon' => 'imagesmode',
         'path' => 'posters/index.php',
         'description' => 'Design and publish posters.',
@@ -40,6 +44,7 @@ $navItems = [
     [
         'key' => 'triage',
         'label' => 'Triage List',
+        'short_label' => 'Triage',
         'icon' => 'emergency',
         'path' => 'triage/index.php',
         'description' => 'Live triage board with vitals, sorted by severity.',
@@ -47,6 +52,7 @@ $navItems = [
     [
         'key' => 'screening',
         'label' => 'Health Screening',
+        'short_label' => 'Screening',
         'icon' => 'assignment',
         'path' => 'screening/index.php',
         'description' => 'Build online screening forms, review responses.',
@@ -54,6 +60,7 @@ $navItems = [
     [
         'key' => 'chat',
         'label' => 'Live Chat',
+        'short_label' => 'Chat',
         'icon' => 'chat',
         'path' => 'chat/index.php',
         'description' => 'Message staff, volunteers, and patients.',
@@ -61,6 +68,7 @@ $navItems = [
     [
         'key' => 'patients',
         'label' => 'Patient Registration',
+        'short_label' => 'Patients',
         'icon' => 'person_add',
         'path' => 'patients/index.php',
         'description' => 'Register and manage patient records.',
@@ -68,6 +76,7 @@ $navItems = [
     [
         'key' => 'family',
         'label' => 'Family Information',
+        'short_label' => 'Family',
         'icon' => 'family_restroom',
         'path' => 'family/index.php',
         'description' => 'Manage family and emergency contacts per patient.',
@@ -75,6 +84,7 @@ $navItems = [
     [
         'key' => 'health',
         'label' => 'Health Module',
+        'short_label' => 'Health',
         'icon' => 'favorite',
         'path' => 'health/index.php',
         'description' => 'Bristol scale, water tracker, mood journal, medicine reminders.',
@@ -82,6 +92,7 @@ $navItems = [
     [
         'key' => 'settings',
         'label' => 'Settings',
+        'short_label' => 'Settings',
         'icon' => 'settings',
         'path' => 'settings/index.php',
         'description' => 'Account, password, and dark mode.',

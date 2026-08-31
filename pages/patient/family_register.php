@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
 $userId    = $_SESSION['user_id'];
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
 $userId    = (int)$_SESSION['user_id'];
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 // Find or create conversation for this patient
 $convStmt = $pdo->prepare("SELECT c.id FROM conversations c 
@@ -176,7 +176,7 @@ try {
 <script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
 <script>
 var CONV_ID = <?= (int)$convId ?>;
-var API_URL = '/sedap/sedap2.0/pages/shared/actions/chat_api.php';
+var API_URL = '/sedap2.0/pages/shared/actions/chat_api.php';
 var patientStagedPhoto = null;
 
 var currentZoom = 1.0;

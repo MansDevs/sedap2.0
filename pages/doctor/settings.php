@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor',
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
 $userEmail = htmlspecialchars($_SESSION['user_email'] ?? '');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 $pwMsg = ''; $pwError = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reset_password') {

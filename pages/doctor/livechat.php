@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor',
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Dr. Sarah');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 // Fetch any active FAQ templates from DB
 $faqTemplates = [];

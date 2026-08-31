@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
 $userId    = $_SESSION['user_id'];
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Pesakit');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 // Fetch patient's own triage records
 $myTriages = [];
@@ -93,10 +93,10 @@ try {
               <a href="settings.php" class="btn btn-outline-primary w-100 d-flex align-items-center gap-2">
                 <span class="material-symbols-outlined" style="font-size:18px;">settings</span>Tetapan Akaun
               </a>
-              <a href="/sedap/sedap2.0/pages/tos.php" class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2">
+              <a href="/sedap2.0/pages/tos.php" class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2">
                 <span class="material-symbols-outlined" style="font-size:18px;">gavel</span>Terma Penggunaan
               </a>
-              <a href="/sedap/sedap2.0/pages/privacy.php" class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2">
+              <a href="/sedap2.0/pages/privacy.php" class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2">
                 <span class="material-symbols-outlined" style="font-size:18px;">privacy_tip</span>Dasar Privasi
               </a>
               <a href="../auth/logout.php" class="btn btn-outline-danger w-100 d-flex align-items-center gap-2 mt-2">

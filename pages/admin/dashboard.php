@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 // Stat counts
 $patientCount = 0; $triageToday = 0; $annCount = 0; $staffCount = 0;

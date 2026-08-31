@@ -9,6 +9,6 @@ if (isset($_SESSION['user_id'])) {
         case 'user': $redirect = 'pages/patient/dashboard.php'; break;
         default: $redirect = 'pages/auth/login.php'; break;
     }
-    header("Location: /sedap/sedap2.0/$redirect"); exit;
+    header("Location: /sedap2.0/$redirect"); exit;
 }
-header('Location: /sedap/sedap2.0/pages/auth/login.php'); exit;
+header('Location: /sedap2.0/pages/auth/login.php'); exit;

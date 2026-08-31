@@ -10,8 +10,8 @@
       &mdash; Sistem e-Data Awam Perubatan
     </span>
     <span class="d-flex gap-3 text-muted">
-      <a href="/sedap/sedap2.0/pages/tos.php" class="text-muted text-decoration-none">Terma Penggunaan</a>
-      <a href="/sedap/sedap2.0/pages/privacy.php" class="text-muted text-decoration-none">Privasi</a>
+      <a href="/sedap2.0/pages/tos.php" class="text-muted text-decoration-none">Terma Penggunaan</a>
+      <a href="/sedap2.0/pages/privacy.php" class="text-muted text-decoration-none">Privasi</a>
       <span>v2.0</span>
     </span>
   </div>

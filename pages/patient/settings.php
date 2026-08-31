@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'user') {
 }
 $userId = $_SESSION['user_id'];
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 $msg = '';
 $err = '';

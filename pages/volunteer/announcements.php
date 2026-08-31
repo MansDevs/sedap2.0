@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 $announcements = $pdo->query("SELECT * FROM announcements WHERE status='published' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>

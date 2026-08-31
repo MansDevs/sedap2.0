@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor',
 $userName = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
 $userRole = $_SESSION['user_role'] ?? 'doctor';
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 // Live Triage Queue Counts
 $waitCounts = ['red' => 0, 'yellow' => 0, 'green' => 0];

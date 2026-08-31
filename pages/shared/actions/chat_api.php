@@ -296,7 +296,7 @@ if ($action === 'upload_photo' || (isset($_FILES['photo']) && $_FILES['photo']['
         exit;
     }
 
-    $photoUrl = '/sedap/sedap2.0/uploads/chat/' . $newFileName;
+    $photoUrl = '/sedap2.0/uploads/chat/' . $newFileName;
     $content = '[img]' . $photoUrl . '[/img]';
     if (!empty($caption)) {
         $content = $caption . "\n" . $content;
@@ -363,7 +363,7 @@ if ($action === 'upload_voice' || (isset($_FILES['voice_note']) && $_FILES['voic
         exit;
     }
 
-    $audioUrl = '/sedap/sedap2.0/uploads/chat_audio/' . $newFileName;
+    $audioUrl = '/sedap2.0/uploads/chat_audio/' . $newFileName;
     $content = '[audio]' . $audioUrl . '[/audio]';
 
     $stmt = $pdo->prepare("INSERT INTO messages (conversation_id, sender_id, content, created_at) VALUES (?, ?, ?, NOW())");

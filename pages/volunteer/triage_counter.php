@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['patient_name'] ?? '');

@@ -3,7 +3,7 @@ session_start();
 require_once '../config/db.php';
 require_once '../shared/includes/lang.php';
 
-$_ROOT = '/sedap/sedap2.0';
+$_ROOT = '/sedap2.0';
 $error = '';
 $success = '';
 

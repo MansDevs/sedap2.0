@@ -9,7 +9,7 @@ $_userName  = htmlspecialchars($userName  ?? $_SESSION['user_name'] ?? 'Pengguna
 $_userRole  = $_SESSION['user_role'] ?? 'user';
 $_darkMode  = !empty($_SESSION['dark_mode']);
 $_currentLang = $_SESSION['lang'] ?? 'ms';
-$_ROOT      = '/sedap/sedap2.0';
+$_ROOT      = '/sedap2.0';
 
 $_roleMap = [
   'admin'     => __('role_admin', 'Pentadbir Sistem'),

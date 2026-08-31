@@ -2,7 +2,7 @@
  * SeDaP Doctor Clinical Live Chat Engine — Real-time DB Integration with Photo Support
  */
 
-var API_URL = '/sedap/sedap2.0/pages/shared/actions/chat_api.php';
+var API_URL = '/sedap2.0/pages/shared/actions/chat_api.php';
 var queueData = window.sedapInitialQueue || [];
 var activeQueueItem = window.sedapFirstPatient || null;
 var currentConvId = window.sedapFirstPatient ? window.sedapFirstPatient.conversation_id : null;

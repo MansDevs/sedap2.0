@@ -6,7 +6,7 @@ require_once __DIR__ . '/lang.php';
 ?>
 <div class="sidebar sidebar-fixed sidebar-dark" id="sidebar">
   <div class="sidebar-brand d-flex align-items-center justify-content-between px-3 py-3 border-bottom" style="border-color:rgba(255,255,255,0.1)!important;min-height:56px;">
-    <a href="/sedap/sedap2.0/pages/admin/dashboard.php" class="sidebar-brand-full d-flex align-items-center gap-2 text-decoration-none text-white">
+    <a href="/sedap2.0/pages/admin/dashboard.php" class="sidebar-brand-full d-flex align-items-center gap-2 text-decoration-none text-white">
       <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">admin_panel_settings</span>
       <span class="fw-bold fs-5 text-white">SeDaP Admin</span>
     </a>
@@ -21,55 +21,55 @@ require_once __DIR__ . '/lang.php';
   <ul class="sidebar-nav">
     <li class="nav-title"><?= __('nav_admin_portal', 'Admin Portal') ?></li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/dashboard.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/dashboard.php">
         <span class="material-symbols-outlined nav-icon">dashboard</span><span><?= __('nav_dashboard', 'Dashboard') ?></span>
       </a>
     </li>
     <li class="nav-title"><?= __('nav_personnel', 'Pengurusan') ?></li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/triage/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/triage/index.php">
         <span class="material-symbols-outlined nav-icon">monitor_heart</span><span><?= __('nav_triage', 'Triaj') ?></span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/patients/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/patients/index.php">
         <span class="material-symbols-outlined nav-icon">person</span><span><?= __('nav_patients', 'Pesakit') ?></span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/family/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/family/index.php">
         <span class="material-symbols-outlined nav-icon">family_restroom</span><span><?= __('nav_family', 'Maklumat Keluarga') ?></span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/personnel/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/personnel/index.php">
         <span class="material-symbols-outlined nav-icon">badge</span><span><?= __('nav_personnel', 'Kakitangan & Sukarelawan') ?></span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/screening/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/screening/index.php">
         <span class="material-symbols-outlined nav-icon">fact_check</span><span><?= __('nav_screening', 'Saringan Kesihatan') ?></span>
       </a>
     </li>
     <li class="nav-title"><?= __('nav_announcements', 'Kandungan') ?></li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/announcements/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/announcements/index.php">
         <span class="material-symbols-outlined nav-icon">campaign</span><span><?= __('nav_announcements', 'Pengumuman') ?></span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/posters/index.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/posters/index.php">
         <span class="material-symbols-outlined nav-icon">image</span><span><?= __('nav_posters', 'Galeri Poster') ?></span>
       </a>
     </li>
     <li class="nav-title"><?= __('nav_settings', 'Sistem') ?></li>
     <li class="nav-item">
-      <a class="nav-link" href="/sedap/sedap2.0/pages/admin/settings.php">
+      <a class="nav-link" href="/sedap2.0/pages/admin/settings.php">
         <span class="material-symbols-outlined nav-icon">settings</span><span><?= __('nav_settings', 'Tetapan') ?></span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link text-danger" href="/sedap/sedap2.0/pages/auth/logout.php" onclick="return confirm('<?= __('settings_confirm_logout', 'Log keluar?') ?>')">
+      <a class="nav-link text-danger" href="/sedap2.0/pages/auth/logout.php" onclick="return confirm('<?= __('settings_confirm_logout', 'Log keluar?') ?>')">
         <span class="material-symbols-outlined nav-icon text-danger">logout</span><span><?= __('nav_logout', 'Log Keluar') ?></span>
       </a>
     </li>

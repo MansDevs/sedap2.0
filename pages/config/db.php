@@ -6,14 +6,10 @@
  * All PHP files include this to get a shared $pdo instance.
  */
 
-$host = '172.29.3.40';
+$host = 'localhost';
 $dbname = 'sedap';       // The database name created in phpMyAdmin
-<<<<<<< HEAD
-$username = 'root';        // Default XAMPP MySQL user
-=======
 $username = 'sedap';        // Default XAMPP MySQL user
->>>>>>> 160d28516ad599c05def0db7010c1005753892c8
-$password = 'sedapupnm';            // Default XAMPP MySQL password (empty)
+$password = 'sedapupnm';            // XAMPP MySQL password (empty)
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";

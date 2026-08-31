@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['doctor',
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Doktor');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap/sedap2.0';
+$_ROOT     = '/sedap2.0';
 
 $types_ms = [
   ['type'=>1, 'title'=>'Tipe 1: Berketul Keras', 'desc'=>'Ketulan keras berasingan seperti kacang, sukar dikeluarkan (Sembelit teruk)'],
