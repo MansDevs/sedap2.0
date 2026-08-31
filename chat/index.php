@@ -42,6 +42,7 @@ function initials(string $name): string
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/theme-config.js"></script>
+    <link rel="stylesheet" href="../assets/css/animations.css">
     <style>
         .mesh-bg {
             background-color: #f7f9fb;
@@ -71,52 +72,36 @@ function initials(string $name): string
         </a>
     </div>
 
-    <!-- Conversation list -->
-    <div class="bg-surface-container-lowest rounded-[32px] shadow-lg border border-outline-variant/30 flex-1 overflow-hidden">
-        <?php if (empty($conversations)): ?>
-            <div class="flex flex-col items-center justify-center text-center py-20 px-8">
-                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-[32px] text-primary">chat_bubble</span>
-                </div>
-                <p class="text-on-surface-variant mb-6">No conversations yet.</p>
-                <a href="new.php" class="bg-primary hover:bg-primary-container text-on-primary font-semibold py-3 px-6 rounded-full transition-colors flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px]">add_comment</span>
-                    Start a chat
-                </a>
+    <!-- Coming Soon Card -->
+    <div class="interactive-card bg-surface-container-lowest rounded-[32px] p-8 sm:p-12 text-center border border-outline-variant/40 shadow-sm flex-1 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[36px]">chat</span>
+        </div>
+
+        <h2 class="font-headline text-2xl font-bold text-on-surface mb-2">Live Chat</h2>
+        <p class="text-on-surface-variant text-sm max-w-md mb-6 leading-relaxed">
+            Real-time messaging between healthcare providers, volunteers, staff, and patients is currently under development.
+        </p>
+
+        <div class="w-full max-w-sm text-left bg-surface-container-low rounded-2xl p-5 space-y-2.5 mb-6 border border-outline-variant/30">
+            <p class="text-xs font-semibold uppercase tracking-wide text-secondary mb-1">Planned features</p>
+            <div class="flex items-center gap-2.5 text-xs text-on-surface">
+                <span class="material-symbols-outlined text-[18px] text-primary/60">radio_button_unchecked</span>
+                <span>Direct 1-on-1 messaging</span>
             </div>
-        <?php else: ?>
-            <div class="divide-y divide-outline-variant/30">
-                <?php foreach ($conversations as $c): ?>
-                    <?php
-                        $title = $c['type'] === 'group' ? ($c['group_name'] ?: 'Group') : ($c['other_user_name'] ?? 'Unknown user');
-                        $preview = $c['last_message'] ? mb_strimwidth($c['last_message'], 0, 50, '…') : 'Say hello 👋';
-                        $unread = (int) $c['unread_count'];
-                    ?>
-                    <a href="conversation.php?id=<?php echo (int) $c['conversation_id']; ?>"
-                       class="flex items-center gap-4 p-4 hover:bg-surface-container transition-colors">
-                        <div class="w-12 h-12 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center shrink-0 font-headline">
-                            <?php echo htmlspecialchars(initials($title)); ?>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold text-on-surface truncate"><?php echo htmlspecialchars($title); ?></span>
-                                <span class="text-xs text-on-surface-variant shrink-0 ml-2"><?php echo timeAgoShort($c['last_message_at']); ?></span>
-                            </div>
-                            <div class="flex items-center justify-between mt-0.5">
-                                <span class="text-sm text-on-surface-variant truncate <?php echo $unread ? 'font-semibold text-on-surface' : ''; ?>">
-                                    <?php echo htmlspecialchars($preview); ?>
-                                </span>
-                                <?php if ($unread > 0): ?>
-                                    <span class="bg-primary text-on-primary text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center shrink-0 ml-2">
-                                        <?php echo $unread > 99 ? '99+' : $unread; ?>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </a>
-                <?php endforeach; ?>
+            <div class="flex items-center gap-2.5 text-xs text-on-surface">
+                <span class="material-symbols-outlined text-[18px] text-primary/60">radio_button_unchecked</span>
+                <span>Care team group channels</span>
             </div>
-        <?php endif; ?>
+            <div class="flex items-center gap-2.5 text-xs text-on-surface">
+                <span class="material-symbols-outlined text-[18px] text-primary/60">radio_button_unchecked</span>
+                <span>Instant sound and badge alerts</span>
+            </div>
+        </div>
+
+        <span class="inline-block text-xs font-semibold bg-secondary/10 text-secondary px-4 py-1.5 rounded-full uppercase tracking-wider">
+            Coming soon
+        </span>
     </div>
 </div>
 

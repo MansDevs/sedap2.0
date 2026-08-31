@@ -1,0 +1,95 @@
+/**
+ * SeDaP UI Motion & Animation System
+ * Smooth transitions and micro-interactions
+ */
+
+@keyframes pageFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+}
+
+/* Page Entrance Transition */
+main, .page-transition {
+    animation: pageFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered Element Fade-Ins */
+.stagger-1 { animation: pageFadeIn 0.35s 0.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger-2 { animation: pageFadeIn 0.35s 0.10s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger-3 { animation: pageFadeIn 0.35s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger-4 { animation: pageFadeIn 0.35s 0.20s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Interactive Cards */
+.interactive-card {
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), 
+                box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), 
+                border-color 0.25s ease;
+}
+
+.interactive-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px -8px rgba(0, 88, 189, 0.12), 0 4px 12px -2px rgba(25, 28, 30, 0.06);
+}
+
+/* Interactive Buttons */
+button, .btn-action, a[class*="bg-primary"], a[class*="bg-error"] {
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), 
+                background-color 0.2s ease, 
+                box-shadow 0.2s ease, 
+                color 0.2s ease;
+}
+
+button:active, .btn-action:active, a[class*="bg-primary"]:active, a[class*="bg-error"]:active {
+    transform: scale(0.97);
+}
+
+/* Navigation Links & Sidebar Hover */
+nav a {
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+nav a:hover {
+    transform: translateX(3px);
+}
+
+nav a.bg-primary:hover {
+    transform: translateX(0);
+}
+
+/* Input Fields Smooth Focus */
+input, select, textarea {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+/* Smooth Accordions & Collapsible */
+.smooth-collapse {
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}

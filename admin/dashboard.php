@@ -18,8 +18,8 @@ require_once __DIR__ . '/includes/header.php';
         <?php if ($item['key'] === 'dashboard') continue; ?>
         <?php if (!navItemAllowed($item, $currentUser['role'])) continue; ?>
         <a href="<?php echo $adminBase . $item['path']; ?>"
-           class="bg-surface-container-lowest border border-outline-variant/40 rounded-[28px] p-6 hover:shadow-md hover:border-primary/40 transition-all group">
-            <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-on-primary transition-colors text-primary">
+           class="interactive-card bg-surface-container-lowest border border-outline-variant/40 rounded-[28px] p-6 hover:border-primary/40 group">
+            <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 text-primary group-hover:scale-110">
                 <span class="material-symbols-outlined text-[24px]"><?php echo $item['icon']; ?></span>
             </div>
             <h3 class="font-headline font-bold text-lg text-on-surface mb-1"><?php echo htmlspecialchars($item['label']); ?></h3>

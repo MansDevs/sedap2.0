@@ -38,6 +38,7 @@ if ($userRole === 'admin') {
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/theme-config.js"></script>
+    <link rel="stylesheet" href="../assets/css/animations.css">
     <style>
         .mesh-bg {
             background-color: #f7f9fb;
