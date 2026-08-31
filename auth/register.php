@@ -18,8 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and grab input data
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $contact = trim($_POST['contact'] ?? '');
-    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? $_POST['confirm-password'] ?? '';
     $role = trim($_POST['role'] ?? 'user');
@@ -43,20 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 // Hash the password for security
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-                // Insert the new user into the database using PDO (with fallback if schema differs)
-                try {
-                    $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, contact, username) VALUES (?, ?, ?, ?, ?, ?)");
-                    $inserted = $insert_stmt->execute([$name, $email, $hashed_password, $role, $contact, $username]);
-                } catch (\PDOException $pe1) {
-                    try {
-                        $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-                        $inserted = $insert_stmt->execute([$name, $email, $hashed_password, $role]);
-                    } catch (\PDOException $pe2) {
-                        $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-                        $inserted = $insert_stmt->execute([$name, $email, $hashed_password]);
-                    }
+                $username = trim($_POST['username'] ?? '');
+                if (empty($username)) {
+                    $username = strtolower(explode('@', $email)[0]);
                 }
+
+                // Insert the new user into the database matching sedap_latest.sql
+                $insert_stmt = $pdo->prepare("INSERT INTO users (name, username, email, password, role, status) VALUES (?, ?, ?, ?, ?, 'active')");
+                $inserted = $insert_stmt->execute([$name, $username, $email, $hashed_password, $role]);
                 
                 if ($inserted) {
                     $success = "Registration successful! You can now log in.";
@@ -70,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -86,17 +79,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         rel="stylesheet">
     <script src="js/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .step-section {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .step-hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body
     class="bg-background h-screen w-screen overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container font-sans">
     <!-- Responsive Material 3 12-Column Grid Layout Container -->
-    <div class="w-full h-full grid grid-cols-1 md:grid-cols-12 relative overflow-hidden bg-background">
+    <div class="w-full h-full grid grid-cols-1 md:grid-cols-12 relative bg-background overflow-hidden">
         <!-- Left Split Area (6 of 12 Columns - 50%) -->
-        <div class="hidden md:flex md:col-span-6 h-full relative overflow-hidden items-center justify-center bg-gradient-to-br from-primary-fixed/60 via-secondary-fixed/30 to-tertiary-fixed/40">
+        <div
+            class="hidden md:flex md:col-span-6 h-full relative overflow-hidden bg-gradient-to-br from-primary-fixed/60 via-secondary-fixed/30 to-tertiary-fixed/40 items-center justify-center">
             <div class="absolute inset-0 flex items-center justify-center">
-                <img alt="Modern healthcare illustration"
-                    class="w-full h-full object-cover"
+                <img alt="Community Health Connect Illustration" class="w-full h-full object-cover"
                     src="screen.png">
             </div>
             <!-- Ambient Glow Overlays -->
@@ -104,10 +107,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 class="absolute -top-32 -left-32 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70">
             </div>
             <div
-                class="absolute bottom-10 right-20 w-[600px] h-[600px] bg-secondary/15 rounded-full blur-[100px] mix-blend-multiply opacity-60">
+                class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-secondary/15 rounded-full blur-[100px] mix-blend-multiply opacity-60">
             </div>
             <div
-                class="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-tertiary/20 rounded-full blur-[90px] mix-blend-multiply opacity-50">
+                class="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-tertiary/20 rounded-full blur-[80px] mix-blend-multiply opacity-50">
             </div>
 
             <!-- Floating Brand Card Badge -->
@@ -116,15 +119,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="material-symbols-outlined filled !text-[22px]">health_and_safety</span>
                 </div>
                 <div>
-                    <h3 class="text-xs font-semibold text-on-surface">SeDaP Healthcare Community</h3>
-                    <p class="text-[11px] text-on-surface-variant">Join doctors, nurses, volunteers, and citizens improving care together.</p>
+                    <h3 class="text-xs font-semibold text-on-surface">Join SeDaP Healthcare</h3>
+                    <p class="text-[11px] text-on-surface-variant">Empowering patients, clinicians, and volunteers across communities.</p>
                 </div>
             </div>
         </div>
 
         <!-- Right Split Area (6 of 12 Columns - 50%) -->
         <div class="col-span-1 md:col-span-6 h-full flex items-center justify-center relative bg-surface p-4 sm:p-6 overflow-y-auto">
-            <!-- Elevated Expressive Card (Locked 420x580 M3 Container matching Login) -->
+            <!-- Elevated Expressive Card (Locked 420x580 M3 Container) -->
             <div
                 class="w-full max-w-[420px] min-h-[580px] sm:h-[580px] bg-surface-container-lowest rounded-3xl sm:rounded-tl-[72px] sm:rounded-br-[72px] shadow-[0_16px_48px_-12px_rgba(26,28,30,0.08)] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden border border-surface-variant/40 my-auto">
                 
@@ -137,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="flex flex-col items-center text-center gap-1 relative z-10">
                     <div
                         class="w-14 h-14 rounded-full flex items-center justify-center mb-0.5 shadow-sm overflow-hidden">
-                        <img src="logo.jpg" alt="SEDAP logo" class="w-full h-full object-cover">
+                        <img src="sedap.jpg" alt="SEDAP logo" class="w-full h-full object-cover">
                     </div>
                     <h1 class="text-on-surface text-xl sm:text-2xl font-bold tracking-tight">Create an account</h1>
                     <p id="stepSubtitle" class="text-on-surface-variant text-xs sm:text-sm">Personal Information</p>
@@ -150,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <!-- Content Viewport Slot (Fixed Height & Zero Vertical Shift) -->
+                <!-- Content Viewport Slot -->
                 <div class="flex flex-col relative z-10 w-full my-auto">
                     <!-- Feedback Messages from Server -->
                     <?php if (!empty($error)): ?>
@@ -174,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form id="registerForm" class="flex flex-col relative w-full" method="POST" action="" novalidate>
 
                         <!-- ================= STAGE 1: PERSONAL INFO & ROLE ================= -->
-                        <div id="step1" class="step-viewport flex flex-col">
+                        <div id="step1" class="step-section">
                             <!-- Full Name -->
                             <div class="flex flex-col">
                                 <div class="flex items-center justify-between px-1">
@@ -216,19 +219,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <p class="text-[11px] text-on-surface-variant">Select your healthcare role to access customized portal features.</p>
                             </div>
 
-                            <!-- Step 1 Button (Icon left, smaller) -->
+                            <!-- Step 1 Button -->
                             <div class="flex justify-end mt-2">
                                 <button id="btnStep1Next"
-                                    class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    class="w-auto px-5 h-10 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99] cursor-pointer"
                                     type="button">
-                                    <span class="material-symbols-outlined !text-[18px]">arrow_forward</span>
                                     <span>Continue</span>
+                                    <span class="material-symbols-outlined !text-[18px]">arrow_forward</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- ================= STAGE 2: ACCOUNT INFORMATION ================= -->
-                        <div id="step2" class="step-viewport hidden flex flex-col">
+                        <div id="step2" class="step-section step-hidden">
                             <!-- Email Address -->
                             <div class="flex flex-col">
                                 <div class="flex items-center justify-between px-1">
@@ -247,8 +250,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Username -->
                             <div class="flex flex-col mt-2">
                                 <div class="flex items-center justify-between px-1">
-                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="username">Username</label>
-                                    <span class="error-msg invisible text-[10.5px] font-medium text-error transition-all">Please choose username</span>
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="username">Username (Optional)</label>
+                                    <span class="invisible text-[10.5px]">&nbsp;</span>
                                 </div>
                                 <div class="relative">
                                     <span
@@ -260,30 +263,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
 
                             <!-- Spacing Balance Card -->
-                            <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-3 mb-1">
+                            <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-2 mb-1">
                                 <span class="material-symbols-outlined text-primary !text-[18px]">verified_user</span>
-                                <p class="text-[11px] text-on-surface-variant">Your credentials allow you to log in securely from any device.</p>
+                                <p class="text-[11px] text-on-surface-variant">Your email or username allows you to log in securely from any device.</p>
                             </div>
 
-                            <!-- Step 2 Dual Button Bar (Icon left, smaller, 8dp gap) -->
-                            <div class="flex items-center justify-end gap-2 mt-2">
+                            <!-- Step 2 Dual Button Bar -->
+                            <div class="flex items-center justify-end gap-2 mt-4">
                                 <button id="btnStep2Back"
-                                    class="w-auto px-3 h-9 bg-transparent text-primary border border-outline/70 hover:border-primary hover:bg-primary/5 active:bg-primary/10 text-sm font-semibold rounded-full transition-all inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    class="w-auto px-4 h-10 bg-transparent text-primary border border-outline/70 hover:border-primary hover:bg-primary/5 active:bg-primary/10 text-sm font-semibold rounded-full transition-all inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-primary/20 focus:outline-none active:scale-[0.99] cursor-pointer"
                                     type="button">
                                     <span class="material-symbols-outlined !text-[18px]">arrow_back</span>
                                     <span>Back</span>
                                 </button>
                                 <button id="btnStep2Next"
-                                    class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    class="w-auto px-5 h-10 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99] cursor-pointer"
                                     type="button">
-                                    <span class="material-symbols-outlined !text-[18px]">arrow_forward</span>
                                     <span>Continue</span>
+                                    <span class="material-symbols-outlined !text-[18px]">arrow_forward</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- ================= STAGE 3: PASSWORD SETUP ================= -->
-                        <div id="step3" class="step-viewport hidden flex flex-col">
+                        <div id="step3" class="step-section step-hidden">
                             <!-- Password -->
                             <div class="flex flex-col">
                                 <div class="flex items-center justify-between px-1">
@@ -323,19 +326,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Spacing Balance Card -->
                             <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-3 mb-1">
                                 <span class="material-symbols-outlined text-primary !text-[18px]">lock_clock</span>
-                                <p class="text-[11px] text-on-surface-variant">Use at least 6 characters with letters and numbers for safety.</p>
+                                <p class="text-[11px] text-on-surface-variant">Use at least 6 characters for a strong password.</p>
                             </div>
 
-                            <!-- Step 3 Dual Button Bar (Icon left, smaller, 8dp gap) -->
+                            <!-- Step 3 Dual Button Bar -->
                             <div class="flex items-center justify-end gap-2 mt-2">
                                 <button id="btnStep3Back"
-                                    class="w-auto px-3 h-9 bg-transparent text-primary border border-outline/70 hover:border-primary hover:bg-primary/5 active:bg-primary/10 text-sm font-semibold rounded-full transition-all inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    class="w-auto px-4 h-10 bg-transparent text-primary border border-outline/70 hover:border-primary hover:bg-primary/5 active:bg-primary/10 text-sm font-semibold rounded-full transition-all inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-primary/20 focus:outline-none active:scale-[0.99] cursor-pointer"
                                     type="button">
                                     <span class="material-symbols-outlined !text-[18px]">arrow_back</span>
                                     <span>Back</span>
                                 </button>
                                 <button id="btnSubmit"
-                                    class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    class="w-auto px-5 h-10 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99] cursor-pointer"
                                     type="submit">
                                     <span class="material-symbols-outlined !text-[18px]">how_to_reg</span>
                                     <span>Sign up</span>
@@ -345,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </form>
                 </div>
 
-                <!-- Pinned Footer Slot (8dp gap) -->
+                <!-- Pinned Footer Slot -->
                 <div class="flex flex-col items-center gap-2 relative z-10 text-xs">
                     <div class="w-16 h-px bg-outline-variant/50"></div>
                     <p class="text-on-surface-variant text-center">
@@ -360,7 +363,198 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <script src="js/register.js"></script>
+    <!-- Inline Step Navigation Script (Prevents Any Browser Cache Stalling) -->
+    <script>
+        (function() {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            const steps = [step1, step2, step3];
+
+            const bar1 = document.getElementById('bar1');
+            const bar2 = document.getElementById('bar2');
+            const bar3 = document.getElementById('bar3');
+            const bars = [bar1, bar2, bar3];
+
+            const subtitles = ['Personal Information', 'Account Information', 'Set Password'];
+            const stepSubtitle = document.getElementById('stepSubtitle');
+
+            function goToStep(index) {
+                steps.forEach((s, i) => {
+                    if (!s) return;
+                    if (i === index) {
+                        s.classList.remove('step-hidden');
+                    } else {
+                        s.classList.add('step-hidden');
+                    }
+                });
+
+                bars.forEach((b, i) => {
+                    if (!b) return;
+                    if (i <= index) {
+                        b.style.backgroundColor = '#0058bd';
+                        b.classList.remove('bg-surface-variant/80');
+                        b.classList.add('bg-primary');
+                    } else {
+                        b.style.backgroundColor = '#e0e3e5';
+                        b.classList.remove('bg-primary');
+                        b.classList.add('bg-surface-variant/80');
+                    }
+                });
+
+                if (stepSubtitle) {
+                    stepSubtitle.textContent = subtitles[index] || '';
+                }
+            }
+
+            function showFieldError(input, message) {
+                if (!input) return;
+                input.classList.add('border-error', 'ring-2', 'ring-error/20');
+                input.classList.remove('border-outline/70');
+                const container = input.closest('.flex.flex-col');
+                if (container) {
+                    const msg = container.querySelector('.error-msg');
+                    if (msg) {
+                        if (message) msg.textContent = message;
+                        msg.classList.remove('invisible');
+                    }
+                }
+                const icon = input.closest('.relative')?.querySelector('.field-icon');
+                if (icon) icon.classList.add('text-error');
+                input.focus();
+            }
+
+            function clearFieldError(input) {
+                if (!input) return;
+                input.classList.remove('border-error', 'ring-2', 'ring-error/20');
+                input.classList.add('border-outline/70');
+                const container = input.closest('.flex.flex-col');
+                if (container) {
+                    const msg = container.querySelector('.error-msg');
+                    if (msg) msg.classList.add('invisible');
+                }
+                const icon = input.closest('.relative')?.querySelector('.field-icon');
+                if (icon) icon.classList.remove('text-error');
+            }
+
+            ['name', 'email', 'password', 'confirm_password'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', () => clearFieldError(el));
+                }
+            });
+
+            function validateStep1() {
+                const name = document.getElementById('name');
+                if (!name || !name.value.trim()) {
+                    showFieldError(name, 'Please enter full name');
+                    return false;
+                }
+                clearFieldError(name);
+                return true;
+            }
+
+            function validateStep2() {
+                const email = document.getElementById('email');
+                if (!email || !email.value.trim() || !email.value.includes('@')) {
+                    showFieldError(email, 'Please enter valid email');
+                    return false;
+                }
+                clearFieldError(email);
+                return true;
+            }
+
+            function validateStep3() {
+                const pass = document.getElementById('password');
+                const confirmPass = document.getElementById('confirm_password');
+                let valid = true;
+
+                if (!pass || pass.value.length < 6) {
+                    showFieldError(pass, 'Min. 6 characters');
+                    valid = false;
+                } else {
+                    clearFieldError(pass);
+                }
+
+                if (!confirmPass || confirmPass.value !== (pass ? pass.value : '')) {
+                    showFieldError(confirmPass, 'Passwords must match');
+                    valid = false;
+                } else {
+                    clearFieldError(confirmPass);
+                }
+
+                return valid;
+            }
+
+            const btnStep1Next = document.getElementById('btnStep1Next');
+            if (btnStep1Next) {
+                btnStep1Next.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (validateStep1()) goToStep(1);
+                });
+            }
+
+            const btnStep2Back = document.getElementById('btnStep2Back');
+            if (btnStep2Back) {
+                btnStep2Back.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToStep(0);
+                });
+            }
+
+            const btnStep2Next = document.getElementById('btnStep2Next');
+            if (btnStep2Next) {
+                btnStep2Next.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (validateStep2()) goToStep(2);
+                });
+            }
+
+            const btnStep3Back = document.getElementById('btnStep3Back');
+            if (btnStep3Back) {
+                btnStep3Back.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToStep(1);
+                });
+            }
+
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    if (!validateStep1()) {
+                        e.preventDefault();
+                        goToStep(0);
+                        return;
+                    }
+                    if (!validateStep2()) {
+                        e.preventDefault();
+                        goToStep(1);
+                        return;
+                    }
+                    if (!validateStep3()) {
+                        e.preventDefault();
+                        goToStep(2);
+                        return;
+                    }
+                });
+            }
+
+            document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const input = btn.closest('.relative')?.querySelector('input');
+                    if (!input) return;
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    const icon = btn.querySelector('.material-symbols-outlined');
+                    if (icon) icon.textContent = isPassword ? 'visibility' : 'visibility_off';
+                });
+            });
+
+            // Initialize on step 1
+            goToStep(0);
+        })();
+    </script>
 </body>
 
 </html>

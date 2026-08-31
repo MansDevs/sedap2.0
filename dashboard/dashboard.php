@@ -34,6 +34,7 @@ if ($userRole === 'admin') {
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Dashboard - Sedap</title>
+    <link rel="icon" type="image/jpeg" href="../auth/logo.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,8 +64,8 @@ if ($userRole === 'admin') {
     <main class="w-full max-w-[440px]">
         <div class="bg-surface-container-lowest p-8 md:p-10 rounded-[32px] shadow-lg border border-outline-variant/30 text-center">
             
-            <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span class="material-symbols-outlined text-[40px] text-primary">waving_hand</span>
+            <div class="w-20 h-20 rounded-full overflow-hidden mx-auto mb-6 shadow-md border-2 border-outline-variant/30 p-0.5 bg-surface-container-lowest flex items-center justify-center">
+                <img src="../auth/logo.jpg" alt="SeDaP Logo" class="w-full h-full object-cover rounded-full">
             </div>
             
             <h1 class="font-headline text-3xl font-bold text-primary mb-2">Dashboard</h1>

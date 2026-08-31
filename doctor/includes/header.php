@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title><?php echo htmlspecialchars($pageTitle ?? 'Doctor'); ?> - SeDaP</title>
+    <link rel="icon" type="image/jpeg" href="<?php echo $doctorBase; ?>../auth/logo.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,8 +32,8 @@
     <!-- Sidebar -->
     <aside id="doctorSidebar" class="w-72 shrink-0 bg-surface-container-low border-r border-outline-variant/30 flex flex-col overflow-y-auto fixed inset-y-0 left-0 z-40 -translate-x-full transition-transform duration-300 ease-in-out md:static md:translate-x-0 md:z-auto">
         <div class="p-6 flex items-center gap-3 border-b border-outline-variant/20 shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-on-primary">stethoscope</span>
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm overflow-hidden p-0.5">
+                <img src="<?php echo $doctorBase; ?>../auth/logo.jpg" alt="SeDaP Logo" class="w-full h-full object-cover rounded-[10px]">
             </div>
             <div class="min-w-0 flex-1">
                 <p class="font-headline font-bold text-lg text-primary leading-tight">SeDaP</p>
@@ -76,6 +77,9 @@
             <button id="sidebarOpenBtn" type="button" class="md:hidden text-on-surface p-2 -ml-2 rounded-full hover:bg-surface-container transition-colors shrink-0">
                 <span class="material-symbols-outlined">menu</span>
             </button>
+            <div class="md:hidden w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm border border-outline-variant/30">
+                <img src="<?php echo $doctorBase; ?>../auth/logo.jpg" alt="SeDaP Logo" class="w-full h-full object-cover">
+            </div>
             <h1 class="font-headline text-xl md:text-2xl font-bold text-on-surface truncate"><?php echo htmlspecialchars($pageTitle ?? ''); ?></h1>
         </header>
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10">

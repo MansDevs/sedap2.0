@@ -23,11 +23,11 @@ if (!empty($_SESSION['user_id'])) {
 <div class="sidebar sidebar-fixed sidebar-dark" id="sidebar">
   <div class="sidebar-brand d-flex align-items-center gap-2 px-3 py-3">
     <div class="sidebar-brand-full d-flex align-items-center gap-2">
-      <span class="material-symbols-outlined" style="font-size:28px;color:#fff;">medical_services</span>
+      <img src="/sedap2.0/auth/logo.jpg" alt="SeDaP Logo" style="width:28px;height:28px;border-radius:8px;object-fit:cover;">
       <span class="fw-bold fs-5 text-white">SeDaP</span>
     </div>
     <div class="sidebar-brand-narrow">
-      <span class="material-symbols-outlined" style="font-size:28px;color:#fff;">medical_services</span>
+      <img src="/sedap2.0/auth/logo.jpg" alt="SeDaP Logo" style="width:28px;height:28px;border-radius:8px;object-fit:cover;">
     </div>
   </div>
   <ul class="sidebar-nav">

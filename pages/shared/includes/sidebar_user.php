@@ -25,7 +25,7 @@ if (!empty($_SESSION['user_id'])) {
 <div class="sidebar sidebar-fixed sidebar-dark" id="sidebar">
   <div class="sidebar-brand d-flex align-items-center justify-content-between px-3 py-3 border-bottom" style="border-color:rgba(255,255,255,0.1)!important;min-height:56px;">
     <a href="/sedap2.0/pages/patient/dashboard.php" class="sidebar-brand-full d-flex align-items-center gap-2 text-decoration-none text-white">
-      <span class="material-symbols-outlined" style="font-size:26px;color:#fff;">health_and_safety</span>
+      <img src="/sedap2.0/auth/logo.jpg" alt="SeDaP Logo" style="width:28px;height:28px;border-radius:8px;object-fit:cover;">
       <span class="fw-bold fs-5 text-white">SeDaP</span>
     </a>
     <a href="javascript:void(0)" onclick="sedapToggleSidebar()" class="sidebar-brand-narrow text-decoration-none text-white" title="Buka / Tutup Menu">

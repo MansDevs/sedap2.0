@@ -1,120 +1,235 @@
 <?php
 session_start();
-require_once '../config/db.php';
-require_once '../shared/includes/lang.php';
 
-$_ROOT  = '/sedap2.0';
-$error  = '';
+// Database connection
+require_once __DIR__ . '/../config/db.php';
+
+$error   = '';
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
-    $new_pw   = $_POST['new_password'] ?? '';
-    $confirm  = $_POST['confirm_password'] ?? '';
+// If the user is already logged in, redirect them
+if (isset($_SESSION['user_id'])) {
+    header("Location: ../dashboard/dashboard.php");
+    exit();
+}
 
-    if (empty($username) || empty($email) || empty($new_pw)) {
-        $error = 'Sila isi semua medan.';
-    } elseif ($new_pw !== $confirm) {
-        $error = 'Kata laluan baru tidak sepadan.';
-    } elseif (strlen($new_pw) < 8) {
-        $error = 'Kata laluan mestilah sekurang-kurangnya 8 aksara.';
+// Process password reset request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email            = trim($_POST['email'] ?? '');
+    $new_password     = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+
+    if (empty($email) || empty($new_password) || empty($confirm_password)) {
+        $error = "Please fill in all required fields.";
+    } elseif ($new_password !== $confirm_password) {
+        $error = "Passwords do not match.";
+    } elseif (strlen($new_password) < 6) {
+        $error = "Password must be at least 6 characters long.";
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username=? AND email=? AND status='active'");
-            $stmt->execute([$username, $email]);
-            $user = $stmt->fetch();
+            // Find user by email or username
+            $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE email = ? OR username = ?");
+            $stmt->execute([$email, $email]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
             if ($user) {
-                $hash = password_hash($new_pw, PASSWORD_DEFAULT);
-                $pdo->prepare("UPDATE users SET password=? WHERE id=?")->execute([$hash, $user['id']]);
-                $success = 'Kata laluan berjaya dikemas kini! Sila log masuk dengan kata laluan baharu.';
+                // Update password securely
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+                $update = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $update->execute([$hashed_password, $user['id']]);
+
+                $success = "Password reset successfully! You can now sign in with your new password.";
             } else {
-                $error = 'Nama pengguna dan e-mel tidak sepadan dalam sistem.';
+                $error = "No account found matching this email or username.";
             }
-        } catch (Exception $e) {
-            $error = 'Ralat sistem. Sila cuba lagi.';
+        } catch (\PDOException $e) {
+            $error = "System error: " . $e->getMessage();
         }
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>">
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lupa Kata Laluan — SeDaP</title>
-  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css">
-  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
-  <script src="<?= $_ROOT ?>/assets/js/sedap-app.js?v=<?= time() ?>"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-  <style>body { font-family:'Inter',sans-serif; }</style>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>SeDaP - Reset Password</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<div class="row g-0 min-vh-100">
-  <!-- Left Panel -->
-  <div class="col-md-5 auth-brand-panel d-none d-md-flex">
-    <div class="text-center">
-      <span class="material-symbols-outlined" style="font-size:72px;color:rgba(255,255,255,.9);">lock_reset</span>
-      <h1 class="display-5 fw-bold text-white mt-3 mb-2">Tetapkan Semula</h1>
-      <p class="text-white opacity-75 small px-4">Masukkan nama pengguna dan e-mel berdaftar untuk menetapkan semula kata laluan.</p>
+
+<body
+    class="bg-background h-screen w-screen overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container font-sans">
+    <!-- Responsive Material 3 12-Column Grid Layout Container -->
+    <div class="w-full h-full grid grid-cols-1 md:grid-cols-12 relative bg-background overflow-hidden">
+        <!-- Left Split Area (6 of 12 Columns - 50%) -->
+        <div
+            class="hidden md:flex md:col-span-6 h-full relative overflow-hidden bg-gradient-to-br from-primary-fixed/60 via-secondary-fixed/30 to-tertiary-fixed/40 items-center justify-center">
+            <div class="absolute inset-0 flex items-center justify-center">
+                <img alt="Community Health Connect Illustration" class="w-full h-full object-cover"
+                    src="screen.png">
+            </div>
+            <!-- Ambient Glow Overlays -->
+            <div
+                class="absolute -top-32 -left-32 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70">
+            </div>
+            <div
+                class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-secondary/15 rounded-full blur-[100px] mix-blend-multiply opacity-60">
+            </div>
+            <div
+                class="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-tertiary/20 rounded-full blur-[80px] mix-blend-multiply opacity-50">
+            </div>
+
+            <!-- Floating Brand Card Badge -->
+            <div class="absolute bottom-8 left-8 right-8 z-20 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-white/40 shadow-lg flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined filled !text-[22px]">lock_reset</span>
+                </div>
+                <div>
+                    <h3 class="text-xs font-semibold text-on-surface">Account Recovery</h3>
+                    <p class="text-[11px] text-on-surface-variant">Quickly and securely reset your healthcare portal credentials.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Split Area (6 of 12 Columns - 50%) -->
+        <div class="col-span-1 md:col-span-6 h-full flex items-center justify-center relative bg-surface p-4 sm:p-6 overflow-y-auto">
+            <!-- Elevated Expressive Card (Locked 420x580 M3 Container matching login/register) -->
+            <div
+                class="w-full max-w-[420px] min-h-[580px] sm:h-[580px] bg-surface-container-lowest rounded-3xl sm:rounded-tl-[72px] sm:rounded-br-[72px] shadow-[0_16px_48px_-12px_rgba(26,28,30,0.08)] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden border border-surface-variant/40 my-auto">
+                
+                <!-- Subtle Background Accent -->
+                <div
+                    class="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none">
+                </div>
+
+                <!-- Pinned Header Slot -->
+                <div class="flex flex-col items-center text-center gap-1 relative z-10">
+                    <div
+                        class="w-14 h-14 rounded-full flex items-center justify-center mb-0.5 shadow-sm overflow-hidden">
+                        <img src="sedap.jpg" alt="SEDAP logo" class="w-full h-full object-cover">
+                    </div>
+                    <h1 class="text-on-surface text-xl sm:text-2xl font-bold tracking-tight">Reset Password</h1>
+                    <p class="text-on-surface-variant text-xs sm:text-sm">Enter your registered email and choose a new password</p>
+                </div>
+
+                <!-- Form Viewport Slot -->
+                <div class="flex flex-col relative z-10 w-full my-auto">
+                    <!-- Error Message Display -->
+                    <?php if (!empty($error)): ?>
+                        <div class="p-2.5 mb-2 rounded-2xl bg-error-container text-error text-center text-xs font-medium border border-error/20 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined !text-[16px]">error</span>
+                            <span><?php echo htmlspecialchars($error); ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Success Message Display -->
+                    <?php if (!empty($success)): ?>
+                        <div class="p-3 mb-2 rounded-2xl bg-secondary-container text-on-secondary-container text-center text-xs font-medium border border-secondary/20 flex flex-col items-center justify-center gap-1.5">
+                            <div class="flex items-center gap-1.5 font-semibold">
+                                <span class="material-symbols-outlined !text-[18px]">check_circle</span>
+                                <span><?php echo htmlspecialchars($success); ?></span>
+                            </div>
+                            <a href="login.php" class="w-full py-2 bg-primary text-on-primary rounded-full font-semibold mt-1 flex items-center justify-center gap-1">
+                                <span>Proceed to Sign In</span>
+                                <span class="material-symbols-outlined !text-[16px]">arrow_forward</span>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (empty($success)): ?>
+                    <form action="" method="POST" class="flex flex-col gap-2 relative">
+                        <!-- Email / Username Field -->
+                        <div class="flex flex-col gap-0.5">
+                            <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider pl-1" for="email">Registered Email or Username</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px]">alternate_email</span>
+                                <input
+                                    class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-11 pr-4 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                    id="email" name="email" placeholder="name@example.com" required="" type="text" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                            </div>
+                        </div>
+
+                        <!-- New Password Field -->
+                        <div class="flex flex-col gap-0.5">
+                            <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider pl-1" for="new_password">New Password</label>
+                            <div class="relative">
+                                <input
+                                    class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-4 pr-11 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                    id="new_password" name="new_password" placeholder="At least 6 characters" required="" type="password">
+                                <button aria-label="Toggle password visibility"
+                                    class="toggle-pass absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none p-1 rounded-full hover:bg-surface-variant/50"
+                                    type="button" data-target="new_password">
+                                    <span class="material-symbols-outlined !text-[20px]">visibility_off</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="flex flex-col gap-0.5">
+                            <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider pl-1" for="confirm_password">Confirm New Password</label>
+                            <div class="relative">
+                                <input
+                                    class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-4 pr-11 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                    id="confirm_password" name="confirm_password" placeholder="Re-enter password" required="" type="password">
+                                <button aria-label="Toggle password visibility"
+                                    class="toggle-pass absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none p-1 rounded-full hover:bg-surface-variant/50"
+                                    type="button" data-target="confirm_password">
+                                    <span class="material-symbols-outlined !text-[20px]">visibility_off</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button
+                            class="w-full h-11 bg-primary hover:bg-primary/90 active:scale-[0.99] text-on-primary text-sm font-semibold rounded-[32px] shadow-sm transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer"
+                            type="submit">
+                            <span class="material-symbols-outlined !text-[18px]">lock_reset</span>
+                            <span>Update Password</span>
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Pinned Footer Slot -->
+                <div class="flex flex-col items-center gap-2 relative z-10 text-xs">
+                    <div class="w-16 h-px bg-outline-variant/50"></div>
+                    <p class="text-on-surface-variant text-center">
+                        Remember your password?
+                        <a class="text-primary font-semibold hover:underline underline-offset-4 ml-1"
+                            href="login.php">
+                            Back to Sign In
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Right Form -->
-  <div class="col-md-7 d-flex align-items-center justify-content-center bg-white px-4 py-5">
-    <div style="width:100%;max-width:400px;">
-      <h2 class="fw-bold mb-1">Lupa Kata Laluan?</h2>
-      <p class="text-muted small mb-4">Sahkan identiti anda dan tetapkan kata laluan baharu.</p>
-
-      <?php if ($error): ?>
-        <div class="alert alert-danger d-flex align-items-center gap-2 py-2">
-          <span class="material-symbols-outlined" style="font-size:18px;">error</span>
-          <?= htmlspecialchars($error) ?>
-        </div>
-      <?php endif; ?>
-      <?php if ($success): ?>
-        <div class="alert alert-success d-flex align-items-center gap-2 py-2">
-          <span class="material-symbols-outlined" style="font-size:18px;">check_circle</span>
-          <?= htmlspecialchars($success) ?>
-          <a href="login.php" class="ms-2 fw-semibold">Log Masuk &rarr;</a>
-        </div>
-      <?php endif; ?>
-
-      <?php if (!$success): ?>
-      <form method="POST">
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Nama Pengguna</label>
-          <input type="text" name="username" class="form-control" placeholder="Nama pengguna anda" required value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Alamat E-mel Berdaftar</label>
-          <input type="email" name="email" class="form-control" placeholder="E-mel yang didaftarkan" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Kata Laluan Baharu</label>
-          <input type="password" name="new_password" class="form-control" placeholder="Min. 8 aksara" required>
-        </div>
-        <div class="mb-4">
-          <label class="form-label fw-semibold small">Sahkan Kata Laluan Baharu</label>
-          <input type="password" name="confirm_password" class="form-control" placeholder="Ulang kata laluan" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-          <span class="material-symbols-outlined me-1" style="font-size:18px;">lock_reset</span>
-          Tetapkan Semula Kata Laluan
-        </button>
-      </form>
-      <?php endif; ?>
-
-      <p class="text-center text-muted small mt-4">
-        <a href="login.php" style="color:#087383;">
-          <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">arrow_back</span>
-          Kembali ke Log Masuk
-        </a>
-      </p>
-    </div>
-  </div>
-</div>
-<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js"></script>
+    <!-- Password Visibility Toggle Script -->
+    <script>
+        document.querySelectorAll('.toggle-pass').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                if (!input) return;
+                const isPass = input.type === 'password';
+                input.type = isPass ? 'text' : 'password';
+                const icon = this.querySelector('.material-symbols-outlined');
+                if (icon) icon.textContent = isPass ? 'visibility' : 'visibility_off';
+            });
+        });
+    </script>
 </body>
+
 </html>

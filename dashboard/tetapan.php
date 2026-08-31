@@ -33,6 +33,7 @@ function userInitials(string $name): string
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Settings - SeDaP</title>
+    <link rel="icon" type="image/jpeg" href="../auth/logo.jpg">
     
     <!-- Google Fonts & Material Symbols -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -68,8 +69,8 @@ function userInitials(string $name): string
                     <span class="material-symbols-outlined text-[24px]">arrow_back</span>
                 </a>
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
-                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                    <div class="w-9 h-9 rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 p-0.5 bg-surface-container-lowest flex items-center justify-center">
+                        <img src="../auth/logo.jpg" alt="SeDaP Logo" class="w-full h-full object-cover rounded-[8px]">
                     </div>
                     <div>
                         <h1 class="font-headline font-bold text-lg text-on-surface leading-tight">Settings & Preferences</h1>

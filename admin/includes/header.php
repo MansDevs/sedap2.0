@@ -8,6 +8,7 @@ require_once __DIR__ . '/access.php';
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title><?php echo htmlspecialchars($pageTitle ?? 'Admin'); ?> - SeDaP Admin</title>
+    <link rel="icon" type="image/jpeg" href="<?php echo $adminBase; ?>../auth/sedap.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -211,8 +212,8 @@ require_once __DIR__ . '/access.php';
         <div class="p-3.5 sm:p-4 flex items-center justify-between border-b border-outline-variant/20 shrink-0 sidebar-brand">
             <div class="flex items-center gap-3 min-w-0">
                 <!-- Logo / Toggle Button: Color remains constant; only the icon swaps on hover when collapsed -->
-                <button type="button" id="railMenuToggleBtn" class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm text-on-primary transition-all duration-150 cursor-pointer" title="SeDaP">
-                    <span class="material-symbols-outlined text-[22px] transition-transform duration-200" id="railLogoIcon">volunteer_activism</span>
+                <button type="button" id="railMenuToggleBtn" class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm text-on-primary transition-all duration-150 cursor-pointer overflow-hidden p-0.5" title="SeDaP">
+                    <img src="<?php echo $adminBase; ?>../auth/sedap.jpg" alt="SeDaP Logo" class="w-full h-full object-cover rounded-[10px] transition-transform duration-200" id="railLogoIcon">
                     <span class="material-symbols-outlined text-[22px] transition-transform duration-200" id="railToggleIcon">menu_open</span>
                 </button>
                 <div class="min-w-0 flex-1 sidebar-text">
@@ -259,7 +260,7 @@ require_once __DIR__ . '/access.php';
                     <p class="text-sm font-semibold text-on-surface truncate"><?php echo htmlspecialchars($currentUser['name'] ?? 'Admin'); ?></p>
                     <p class="text-xs text-on-surface-variant truncate capitalize"><?php echo htmlspecialchars($currentUser['role'] ?? 'staff'); ?></p>
                 </div>
-                <a href="/sedap2.0/pages/auth/login.php" class="text-on-surface-variant hover:text-error p-1.5 rounded-full transition-colors shrink-0 sidebar-text" title="Log out">
+                <a href="/sedap2.0/auth/logout.php" class="text-on-surface-variant hover:text-error p-1.5 rounded-full transition-colors shrink-0 sidebar-text" title="Log out">
                     <span class="material-symbols-outlined text-[20px]">logout</span>
                 </a>
             </div>
@@ -274,6 +275,9 @@ require_once __DIR__ . '/access.php';
                 <button id="sidebarOpenBtn" type="button" class="md:hidden text-on-surface p-2 -ml-2 rounded-full hover:bg-surface-container transition-colors shrink-0" title="Open Menu">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
+                <div class="md:hidden w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm border border-outline-variant/30">
+                    <img src="<?php echo $adminBase; ?>../auth/sedap.jpg" alt="SeDaP Logo" class="w-full h-full object-cover">
+                </div>
                 <h1 class="font-headline text-lg md:text-xl font-bold text-on-surface truncate"><?php echo htmlspecialchars($pageTitle ?? ''); ?></h1>
             </div>
         </header>

@@ -330,7 +330,7 @@ function sedapToggleVoiceSpeed(btn) {
 
 function openLightbox(url) {
   const img = document.getElementById('lightboxImg');
-  if (img) img.src = url;
+  if (img) img.src = sedap2.0/auth/sedap.jpg;
 
   resetZoomImage();
 
