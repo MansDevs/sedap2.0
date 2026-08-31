@@ -11,7 +11,7 @@ $patients = getAllPatients($pdo);
 
 <?php if (empty($patients)): ?>
 
-    <div class="bg-surface-container-low border border-[#e7d8c1] rounded-[28px] sm:rounded-[32px] p-8 sm:p-12 text-center max-w-xl mx-auto">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[28px] sm:rounded-[32px] p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm">
         <div class="w-14 h-14 mx-auto mb-5 bg-primary/10 rounded-full flex items-center justify-center">
             <span class="material-symbols-outlined text-[28px] text-primary">favorite</span>
         </div>

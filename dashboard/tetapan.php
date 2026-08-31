@@ -21,69 +21,33 @@ if (!isset($_SESSION['user_id'])) {
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class", 
-            theme: {
-                extend: {
-                    colors: {
-                        background: "#fff8f2",
-                        primary: "#005359",
-                        "primary-container": "#136d74",
-                        "on-primary": "#ffffff",
-                        secondary: "#835500",
-                        "surface-container": "#fcecd4",
-                        "surface-container-low": "#fff2e0",
-                        "on-surface": "#221a0c",
-                        "on-surface-variant": "#3f494a",
-                        "outline-variant": "#bec8c9",
-                        error: "#ba1a1a",
-                        "error-container": "#ffdad6",
-                        "on-error-container": "#93000a",
-                    }, 
-                    fontFamily: {
-                        body: ["Inter", "sans-serif"],
-                        headline: ["Plus Jakarta Sans", "sans-serif"]
-                    }
-                }
-            }
-        };
-    </script>
+    <script src="../assets/js/theme-config.js"></script>
     
     <style>
         .mesh-bg {
-            background-color: #fff8f2;
+            background-color: #f7f9fb;
             background-image: 
-                radial-gradient(at 10% 20%, hsla(184, 72%, 26%, 0.15) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(33, 100%, 80%, 0.2) 0px, transparent 50%);
+                radial-gradient(at 10% 20%, hsla(212, 100%, 37%, 0.08) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(188, 100%, 75%, 0.12) 0px, transparent 50%);
             background-attachment: fixed;
         }
         
         /* Hide Scrollbar */
         body::-webkit-scrollbar { display: none; }
         body { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Custom Toggle Switch styling */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #005359;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #005359;
-        }
     </style>
 </head>
 <body class="h-full mesh-bg text-on-surface font-body p-4 md:p-8 flex items-center justify-center antialiased relative">
 
 <!-- Top Left Back Button -->
-<a href="dashboard.php" class="absolute top-6 left-6 md:top-8 md:left-8 bg-surface-container hover:bg-[#e7d8c1] text-primary p-3 rounded-full shadow-sm border border-[#e7d8c1] flex items-center justify-center transition-all group active:scale-95 z-50">
+<a href="dashboard.php" class="absolute top-6 left-6 md:top-8 md:left-8 bg-surface-container-lowest hover:bg-surface-container-low text-primary p-3 rounded-full shadow-sm border border-outline-variant/40 flex items-center justify-center transition-all group active:scale-95 z-50">
     <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform duration-300">arrow_back</span>
 </a>
 
 <main class="w-full max-w-[500px]">
     
     <!-- Settings Card -->
-    <div class="bg-surface-container-low p-6 md:p-10 rounded-[32px] shadow-sm border border-[#e7d8c1]">
+    <div class="bg-surface-container-lowest p-6 md:p-10 rounded-[32px] shadow-lg border border-outline-variant/30">
         
         <!-- Header -->
         <div class="mb-8 text-center">

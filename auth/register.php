@@ -7,22 +7,30 @@ require_once __DIR__ . '/../config/db.php';
 $error = '';
 $success = '';
 
+// If the user is already logged in, redirect them to the dashboard
+if (isset($_SESSION['user_id'])) {
+    header("Location: ../dashboard/dashboard.php");
+    exit();
+}
+
 // Process the form when it is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and grab input data
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $contact = trim($_POST['contact'] ?? '');
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm-password'] ?? '';
-    $terms = isset($_POST['terms']) ? true : false;
+    $confirm_password = $_POST['confirm_password'] ?? $_POST['confirm-password'] ?? '';
+    $role = trim($_POST['role'] ?? 'user');
 
     // Basic Validation
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
-        $error = "All fields are required.";
-    } elseif (!$terms) {
-        $error = "You must agree to the Terms of Service.";
+        $error = "All required fields must be filled.";
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
+    } elseif (strlen($password) < 6) {
+        $error = "Password must be at least 6 characters long.";
     } else {
         try {
             // Check if the email is already registered using PDO
@@ -36,14 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Hash the password for security
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                // Insert the new user into the database using PDO
-                $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+                // Insert the new user into the database using PDO (with fallback if schema differs)
+                try {
+                    $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, contact, username) VALUES (?, ?, ?, ?, ?, ?)");
+                    $inserted = $insert_stmt->execute([$name, $email, $hashed_password, $role, $contact, $username]);
+                } catch (\PDOException $pe1) {
+                    try {
+                        $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+                        $inserted = $insert_stmt->execute([$name, $email, $hashed_password, $role]);
+                    } catch (\PDOException $pe2) {
+                        $insert_stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+                        $inserted = $insert_stmt->execute([$name, $email, $hashed_password]);
+                    }
+                }
                 
-                if ($insert_stmt->execute([$name, $email, $hashed_password])) {
+                if ($inserted) {
                     $success = "Registration successful! You can now log in.";
-                    // Optional: redirect to login page
-                    // header("Location: login.php");
-                    // exit();
                 } else {
                     $error = "Error during registration. Please try again.";
                 }
@@ -54,168 +70,297 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html class="light" lang="en" style="">
+<html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Sign Up - Sedap</title>
-    <!-- Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
+    <title>SeDaP - Create Account</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Tailwind Config -->
-    <script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"surface-container-low": "#fff2e0", "on-background": "#221a0c", "on-tertiary-container": "#ffd5cf", "secondary-fixed": "#ffddb4", "on-secondary-container": "#6b4500", "primary-fixed": "#a3eff7", "surface-variant": "#f0e0c9", "on-secondary": "#ffffff", "surface-dim": "#e7d8c1", "outline-variant": "#bec8c9", "inverse-on-surface": "#ffefd6", "on-secondary-fixed": "#291800", "secondary-fixed-dim": "#ffb955", "secondary-container": "#feae2c", background: "#fff8f2", "on-tertiary-fixed": "#410001", "on-primary-fixed": "#002022", "surface-container-lowest": "#ffffff", "on-primary": "#ffffff", error: "#ba1a1a", "error-container": "#ffdad6", surface: "#fff8f2", "on-primary-container": "#a0ecf4", secondary: "#835500", "on-tertiary-fixed-variant": "#83251c", "surface-container-highest": "#f0e0c9", "primary-fixed-dim": "#87d3da", "surface-container": "#fcecd4", "on-primary-fixed-variant": "#004f55", "tertiary-fixed": "#ffdad5", "on-tertiary": "#ffffff", "surface-tint": "#096970", "inverse-surface": "#382f1f", "inverse-primary": "#87d3da", "tertiary-container": "#a84035", "on-error": "#ffffff", "surface-container-high": "#f6e6ce", "tertiary-fixed-dim": "#ffb4a9", tertiary: "#882920", "on-error-container": "#93000a", primary: "#005359", "on-surface-variant": "#3f494a", "on-surface": "#221a0c", "primary-container": "#136d74", "on-secondary-fixed-variant": "#633f00", outline: "#6f797a", "surface-bright": "#fff8f2"}, borderRadius: {DEFAULT: "0.5rem", lg: "1rem", xl: "1.5rem", full: "9999px"}, spacing: {"max-width": "1280px", base: "8px", "margin-mobile": "16px", gutter: "24px", "margin-desktop": "64px"}, fontFamily: {"display-lg": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-lg": ["Inter"], "body-md": ["Inter"], "headline-lg-mobile": ["Plus Jakarta Sans"], "label-lg": ["Inter"], "label-md": ["Inter"], "title-lg": ["Plus Jakarta Sans"], headline: ["Plus Jakarta Sans"], display: ["Plus Jakarta Sans"], body: ["Inter"], label: ["Inter"]}}}};</script>
-    <style>
-        .mesh-gradient {
-            background-color: #fff8f2;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(184,72%,27%,0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, hsla(33,100%,94%,1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, hsla(184,72%,27%,0.1) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(33,100%,94%,1) 0px, transparent 50%);
-        }
-        
-        .floating-input:focus-within label,
-        .floating-input input:not(:placeholder-shown) + label {
-            transform: translateY(-50%) scale(0.85);
-            top: 0;
-            background-color: var(--tw-colors-surface-container);
-            padding: 0 4px;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="mesh-gradient h-[100dvh] w-screen flex flex-col items-center justify-center p-4 md:p-8 font-body-md text-on-background overflow-hidden relative">
-    
-    <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary-fixed opacity-20 blur-[100px] pointer-events-none"></div>
-    <div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-secondary-fixed opacity-30 blur-[120px] pointer-events-none"></div>
-    
-    <main class="w-full max-w-md z-10 max-h-full overflow-y-auto no-scrollbar py-2">
-        
-        <div class="flex justify-center mb-4 md:mb-6">
-            <div class="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shadow-elevation-1 border-4 border-surface-container-lowest">
-                <img alt="Sedap Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH9RP8tN4Kiblb2qvZRD6fI6s37DHC_07vkjqXtZ4xBsh3XRdVyNgT4r1PDi_XwEDUpQRxX2yW8z1dshF9WelBf6JL3NC7YFFrHArxJXZCx8vRZQrmZ33b3JvmeCvs10_9VxS_QQ7wkgYxpQmBhA63PVdnUuzkLPePNhzploXsrTcGFoAkiipLSYT5gBWioimpzVnQySgLB2Q2lI-aUU0nTZ1U4JN1KO2ZTLxxyyn9c3n2fF_EnIl4xo_QSl-FNnkNc30">
+
+<body
+    class="bg-background h-screen w-screen overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container font-sans">
+    <!-- Responsive Material 3 12-Column Grid Layout Container -->
+    <div class="w-full h-full grid grid-cols-1 md:grid-cols-12 relative overflow-hidden bg-background">
+        <!-- Left Split Area (6 of 12 Columns - 50%) -->
+        <div class="hidden md:flex md:col-span-6 h-full relative overflow-hidden items-center justify-center bg-gradient-to-br from-primary-fixed/60 via-secondary-fixed/30 to-tertiary-fixed/40">
+            <div class="absolute inset-0 flex items-center justify-center">
+                <img alt="Modern healthcare illustration"
+                    class="w-full h-full object-cover"
+                    src="screen.png">
+            </div>
+            <!-- Ambient Glow Overlays -->
+            <div
+                class="absolute -top-32 -left-32 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70">
+            </div>
+            <div
+                class="absolute bottom-10 right-20 w-[600px] h-[600px] bg-secondary/15 rounded-full blur-[100px] mix-blend-multiply opacity-60">
+            </div>
+            <div
+                class="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-tertiary/20 rounded-full blur-[90px] mix-blend-multiply opacity-50">
+            </div>
+
+            <!-- Floating Brand Card Badge -->
+            <div class="absolute bottom-8 left-8 right-8 z-20 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-white/40 shadow-lg flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined filled !text-[22px]">health_and_safety</span>
+                </div>
+                <div>
+                    <h3 class="text-xs font-semibold text-on-surface">SeDaP Healthcare Community</h3>
+                    <p class="text-[11px] text-on-surface-variant">Join doctors, nurses, volunteers, and citizens improving care together.</p>
+                </div>
             </div>
         </div>
 
-        <div class="bg-surface-container shadow-elevation-1 p-6 md:p-8 border border-surface-dim transition-all duration-300 hover:shadow-elevation-2 relative overflow-hidden group rounded-[32px]">
-            <div class="absolute inset-0 border border-surface-container-lowest opacity-50 pointer-events-none rounded-[32px]"></div>
-            
-            <div class="text-center mb-6 relative z-10">
-                <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-1">Create Account</h1>
-                <p class="font-body-md text-body-md text-on-surface-variant">Join Sedap to experience culinary excellence.</p>
-            </div>
-
-            <!-- Dynamic Feedback Messages -->
-            <?php if (!empty($error)): ?>
-                <div class="mb-4 p-3 rounded-lg bg-error-container text-error text-center font-body-md relative z-10 border border-error/20">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!empty($success)): ?>
-                <div class="mb-4 p-3 rounded-lg bg-primary-container text-on-primary-container text-center font-body-md relative z-10 border border-primary/20">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
-            
-            <form action="" class="space-y-4 md:space-y-5 relative z-10" method="POST">
-                <div class="relative floating-input group/input">
-                    <input class="w-full h-12 px-4 bg-transparent border border-outline-variant rounded-lg text-on-surface font-body-lg text-body-lg focus:outline-none focus:border-2 focus:border-primary focus:ring-0 transition-colors peer placeholder-transparent" id="name" name="name" placeholder=" " required="" type="text" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
-                    <label class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-body-md transition-all duration-200 pointer-events-none peer-focus:text-primary" for="name">Name</label>
+        <!-- Right Split Area (6 of 12 Columns - 50%) -->
+        <div class="col-span-1 md:col-span-6 h-full flex items-center justify-center relative bg-surface p-4 sm:p-6 overflow-y-auto">
+            <!-- Elevated Expressive Card (Locked 420x580 M3 Container matching Login) -->
+            <div
+                class="w-full max-w-[420px] min-h-[580px] sm:h-[580px] bg-surface-container-lowest rounded-3xl sm:rounded-tl-[72px] sm:rounded-br-[72px] shadow-[0_16px_48px_-12px_rgba(26,28,30,0.08)] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden border border-surface-variant/40 my-auto">
+                
+                <!-- Subtle Background Accent -->
+                <div
+                    class="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none">
                 </div>
 
-                <div class="relative floating-input group/input">
-                    <input class="w-full h-12 px-4 bg-transparent border border-outline-variant rounded-lg text-on-surface font-body-lg text-body-lg focus:outline-none focus:border-2 focus:border-primary focus:ring-0 transition-colors peer placeholder-transparent" id="email" name="email" placeholder=" " required="" type="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
-                    <label class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-body-md transition-all duration-200 pointer-events-none peer-focus:text-primary" for="email">Registered Email</label>
-                </div>
-
-                <div class="relative floating-input group/input">
-                    <input class="w-full h-12 px-4 bg-transparent border border-outline-variant rounded-lg text-on-surface font-body-lg text-body-lg focus:outline-none focus:border-2 focus:border-primary focus:ring-0 transition-colors peer placeholder-transparent pr-12" id="password" name="password" placeholder=" " required="" type="password">
-                    <label class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-body-md transition-all duration-200 pointer-events-none peer-focus:text-primary" for="password">Password</label>
-                    <button aria-label="Toggle password visibility" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none" type="button">
-                        <span class="material-symbols-outlined text-[20px]">visibility_off</span>
-                    </button>
-                </div>
-
-                <div class="relative floating-input group/input">
-                    <input class="w-full h-12 px-4 bg-transparent border border-outline-variant rounded-lg text-on-surface font-body-lg text-body-lg focus:outline-none focus:border-2 focus:border-primary focus:ring-0 transition-colors peer placeholder-transparent pr-12" id="confirm-password" name="confirm-password" placeholder=" " required="" type="password">
-                    <label class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-body-md transition-all duration-200 pointer-events-none peer-focus:text-primary" for="confirm-password">Confirm Password</label>
-                    <button aria-label="Toggle password visibility" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none" type="button">
-                        <span class="material-symbols-outlined text-[20px]">visibility_off</span>
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="relative flex items-center">
-                        <input class="peer appearance-none w-5 h-5 border-2 border-outline rounded-[4px] checked:bg-primary checked:border-primary focus:outline-none focus:ring-2 focus:ring-primary-fixed focus:ring-offset-1 focus:ring-offset-surface-container transition-all cursor-pointer" id="terms" name="terms" required="" type="checkbox" <?php echo isset($_POST['terms']) ? 'checked' : ''; ?>>
-                        <span class="material-symbols-outlined text-[16px] text-on-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">check</span>
+                <!-- Pinned Header Slot -->
+                <div class="flex flex-col items-center text-center gap-1 relative z-10">
+                    <div
+                        class="w-14 h-14 rounded-full flex items-center justify-center mb-0.5 shadow-sm overflow-hidden">
+                        <img src="logo.jpg" alt="SEDAP logo" class="w-full h-full object-cover">
                     </div>
-                    <label class="font-body-md text-body-md text-on-surface-variant cursor-pointer select-none" for="terms">
-                        I agree to the <a class="text-primary hover:underline font-medium" href="#">Terms of Service</a> &amp; <a class="text-primary hover:underline font-medium" href="#">Privacy Policy</a>
-                    </label>
+                    <h1 class="text-on-surface text-xl sm:text-2xl font-bold tracking-tight">Create an account</h1>
+                    <p id="stepSubtitle" class="text-on-surface-variant text-xs sm:text-sm">Personal Information</p>
+
+                    <!-- Step Progress Indicators (3 Progress Bars) -->
+                    <div class="w-full grid grid-cols-3 gap-2 mt-1.5">
+                        <div id="bar1" class="h-1.5 rounded-full bg-primary transition-all duration-300"></div>
+                        <div id="bar2" class="h-1.5 rounded-full bg-surface-variant/80 transition-all duration-300"></div>
+                        <div id="bar3" class="h-1.5 rounded-full bg-surface-variant/80 transition-all duration-300"></div>
+                    </div>
                 </div>
 
-                <button class="w-full h-12 bg-primary text-on-primary font-label-lg text-label-lg font-bold shadow-elevation-1 hover:shadow-elevation-2 hover:bg-on-primary-fixed-variant transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 mt-2 overflow-hidden relative rounded-[32px]" type="submit">
-                    <span class="relative z-10">Get Started</span>
-                    <span class="material-symbols-outlined relative z-10 text-[20px]">arrow_forward</span>
-                    <div class="absolute inset-0 bg-white opacity-0 hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
-                </button>
-            </form>
-            
-            <div class="mt-6 text-center relative z-10">
-                <p class="font-body-md text-body-md text-on-surface-variant">
-                    Already have an account? 
-                    <a class="text-secondary font-label-lg text-label-lg hover:underline hover:text-secondary-fixed-dim transition-colors ml-1" href="login.php">Sign In</a>
-                </p>
+                <!-- Content Viewport Slot (Fixed Height & Zero Vertical Shift) -->
+                <div class="flex flex-col relative z-10 w-full my-auto">
+                    <!-- Feedback Messages from Server -->
+                    <?php if (!empty($error)): ?>
+                        <div class="p-2 mb-2 rounded-2xl bg-error-container text-error text-center text-xs font-medium border border-error/20 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined !text-[16px]">error</span>
+                            <span><?php echo htmlspecialchars($error); ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($success)): ?>
+                        <div class="p-2 mb-2 rounded-2xl bg-secondary-container text-on-secondary-container text-center text-xs font-medium border border-secondary/20 flex flex-col items-center justify-center gap-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined !text-[16px]">check_circle</span>
+                                <span><?php echo htmlspecialchars($success); ?></span>
+                            </div>
+                            <a href="login.php" class="text-[11px] text-primary font-semibold underline underline-offset-4 hover:text-primary/80">Sign in now</a>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Multi-Step Registration Form -->
+                    <form id="registerForm" class="flex flex-col relative w-full" method="POST" action="" novalidate>
+
+                        <!-- ================= STAGE 1: PERSONAL INFO & ROLE ================= -->
+                        <div id="step1" class="step-viewport flex flex-col">
+                            <!-- Full Name -->
+                            <div class="flex flex-col">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="name">Full Name</label>
+                                    <span class="error-msg invisible text-[10.5px] font-medium text-error transition-all">Please enter full name</span>
+                                </div>
+                                <div class="relative">
+                                    <span
+                                        class="material-symbols-outlined field-icon absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px] transition-colors">person</span>
+                                    <input
+                                        class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-11 pr-4 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                        id="name" name="name" placeholder="Enter your full name" type="text" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
+                                </div>
+                            </div>
+
+                            <!-- Role Selector Dropdown -->
+                            <div class="flex flex-col mt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="role">Select Role</label>
+                                    <span class="invisible text-[10.5px]">&nbsp;</span>
+                                </div>
+                                <div class="relative">
+                                    <select
+                                        class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-4 pr-10 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all appearance-none cursor-pointer"
+                                        id="role" name="role">
+                                        <option value="doctor" <?php echo (($_POST['role'] ?? 'doctor') === 'doctor') ? 'selected' : ''; ?>>Doctor / Medical Assistant</option>
+                                        <option value="admin" <?php echo (($_POST['role'] ?? '') === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                                        <option value="volunteer" <?php echo (($_POST['role'] ?? '') === 'volunteer') ? 'selected' : ''; ?>>Volunteer</option>
+                                        <option value="user" <?php echo (($_POST['role'] ?? '') === 'user') ? 'selected' : ''; ?>>User / Patient</option>
+                                    </select>
+                                    <span
+                                        class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px]">arrow_drop_down</span>
+                                </div>
+                            </div>
+
+                            <!-- Spacing Balance Card -->
+                            <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-3 mb-1">
+                                <span class="material-symbols-outlined text-primary !text-[18px]">verified</span>
+                                <p class="text-[11px] text-on-surface-variant">Select your healthcare role to access customized portal features.</p>
+                            </div>
+
+                            <!-- Step 1 Button (Icon left, smaller) -->
+                            <div class="flex justify-end mt-2">
+                                <button id="btnStep1Next"
+                                    class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    type="button">
+                                    <span class="material-symbols-outlined !text-[18px]">arrow_forward</span>
+                                    <span>Continue</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ================= STAGE 2: ACCOUNT INFORMATION ================= -->
+                        <div id="step2" class="step-viewport hidden flex flex-col">
+                            <!-- Email Address -->
+                            <div class="flex flex-col">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="email">Email Address</label>
+                                    <span class="error-msg invisible text-[10.5px] font-medium text-error transition-all">Please enter valid email</span>
+                                </div>
+                                <div class="relative">
+                                    <span
+                                        class="material-symbols-outlined field-icon absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px] transition-colors">alternate_email</span>
+                                    <input
+                                        class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-11 pr-4 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                        id="email" name="email" placeholder="name@example.com" type="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                                </div>
+                            </div>
+
+                            <!-- Username -->
+                            <div class="flex flex-col mt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="username">Username</label>
+                                    <span class="error-msg invisible text-[10.5px] font-medium text-error transition-all">Please choose username</span>
+                                </div>
+                                <div class="relative">
+                                    <span
+                                        class="material-symbols-outlined field-icon absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px] transition-colors">account_circle</span>
+                                    <input
+                                        class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-11 pr-4 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                        id="username" name="username" placeholder="Choose a username" type="text" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                                </div>
+                            </div>
+
+                            <!-- Spacing Balance Card -->
+                            <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-3 mb-1">
+                                <span class="material-symbols-outlined text-primary !text-[18px]">verified_user</span>
+                                <p class="text-[11px] text-on-surface-variant">Your credentials allow you to log in securely from any device.</p>
+                            </div>
+
+                            <!-- Step 2 Dual Button Bar (Icon left, smaller, 8dp gap) -->
+                            <div class="flex items-center justify-end gap-2 mt-2">
+                                <button id="btnStep2Back"
+                                    class="w-auto px-3 h-9 bg-transparent text-primary border border-outline/70 hover:border-primary hover:bg-primary/5 active:bg-primary/10 text-sm font-semibold rounded-full transition-all inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    type="button">
+                                    <span class="material-symbols-outlined !text-[18px]">arrow_back</span>
+                                    <span>Back</span>
+                                </button>
+                                <button id="btnStep2Next"
+                                    class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    type="button">
+                                    <span class="material-symbols-outlined !text-[18px]">arrow_forward</span>
+                                    <span>Continue</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ================= STAGE 3: PASSWORD SETUP ================= -->
+                        <div id="step3" class="step-viewport hidden flex flex-col">
+                            <!-- Password -->
+                            <div class="flex flex-col">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="password">Create Password</label>
+                                    <span class="error-msg invisible text-[10.5px] font-medium text-error transition-all">Min. 6 characters</span>
+                                </div>
+                                <div class="relative">
+                                    <input
+                                        class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-4 pr-11 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                        id="password" name="password" placeholder="At least 6 characters" type="password">
+                                    <button aria-label="Toggle password visibility"
+                                        class="toggle-password-btn absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none p-1 rounded-full hover:bg-surface-variant/50"
+                                        type="button">
+                                        <span class="material-symbols-outlined !text-[20px]">visibility_off</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="flex flex-col mt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="confirm_password">Confirm Password</label>
+                                    <span class="error-msg invisible text-[10.5px] font-medium text-error transition-all">Passwords must match</span>
+                                </div>
+                                <div class="relative">
+                                    <input
+                                        class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-4 pr-11 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                        id="confirm_password" name="confirm_password" placeholder="Re-type password" type="password">
+                                    <button aria-label="Toggle password visibility"
+                                        class="toggle-password-btn absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none p-1 rounded-full hover:bg-surface-variant/50"
+                                        type="button">
+                                        <span class="material-symbols-outlined !text-[20px]">visibility_off</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Spacing Balance Card -->
+                            <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-3 mb-1">
+                                <span class="material-symbols-outlined text-primary !text-[18px]">lock_clock</span>
+                                <p class="text-[11px] text-on-surface-variant">Use at least 6 characters with letters and numbers for safety.</p>
+                            </div>
+
+                            <!-- Step 3 Dual Button Bar (Icon left, smaller, 8dp gap) -->
+                            <div class="flex items-center justify-end gap-2 mt-2">
+                                <button id="btnStep3Back"
+                                    class="w-auto px-3 h-9 bg-transparent text-primary border border-outline/70 hover:border-primary hover:bg-primary/5 active:bg-primary/10 text-sm font-semibold rounded-full transition-all inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    type="button">
+                                    <span class="material-symbols-outlined !text-[18px]">arrow_back</span>
+                                    <span>Back</span>
+                                </button>
+                                <button id="btnSubmit"
+                                    class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                    type="submit">
+                                    <span class="material-symbols-outlined !text-[18px]">how_to_reg</span>
+                                    <span>Sign up</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Pinned Footer Slot (8dp gap) -->
+                <div class="flex flex-col items-center gap-2 relative z-10 text-xs">
+                    <div class="w-16 h-px bg-outline-variant/50"></div>
+                    <p class="text-on-surface-variant text-center">
+                        Already have an account? 
+                        <a class="text-primary font-semibold hover:underline underline-offset-4 ml-1"
+                            href="login.php">
+                            Sign in
+                        </a>
+                    </p>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="text-center mt-4 md:mt-6 text-on-surface-variant font-label-md text-label-md opacity-70">
-            © 2024 Sedap Food-Tech
-        </div>
-    </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const passwordInputs = document.querySelectorAll('input[type="password"]');
-            
-            passwordInputs.forEach(input => {
-                const toggleBtn = input.parentElement.querySelector('button');
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('click', () => {
-                        const icon = toggleBtn.querySelector('.material-symbols-outlined');
-                        if (input.type === 'password') {
-                            input.type = 'text';
-                            icon.textContent = 'visibility';
-                        } else {
-                            input.type = 'password';
-                            icon.textContent = 'visibility_off';
-                        }
-                    });
-                }
-            });
-        });
-    </script>
-    
-    <?php
-    // Console log if the database is connected successfully
-    if (isset($pdo)) {
-        echo "<script>console.log('connected');</script>";
-    }
-    ?>
+    <script src="js/register.js"></script>
 </body>
+
 </html>

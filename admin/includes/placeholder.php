@@ -7,7 +7,7 @@
  *   $moduleFeatures    array   list of short feature strings
  */
 ?>
-<div class="bg-surface-container-low border border-[#e7d8c1] rounded-[28px] sm:rounded-[32px] p-6 sm:p-10 md:p-16 text-center max-w-2xl mx-auto">
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[28px] sm:rounded-[32px] p-6 sm:p-10 md:p-16 text-center max-w-2xl mx-auto shadow-sm">
     <div class="w-16 h-16 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
         <span class="material-symbols-outlined text-[32px] text-primary"><?php echo htmlspecialchars($moduleIcon); ?></span>
     </div>
@@ -16,7 +16,7 @@
     <p class="text-on-surface-variant mb-6"><?php echo htmlspecialchars($moduleDescription); ?></p>
 
     <?php if (!empty($moduleFeatures)): ?>
-        <div class="text-left bg-surface-container rounded-2xl p-5 space-y-2.5">
+        <div class="text-left bg-surface-container-low rounded-2xl p-5 space-y-2.5">
             <p class="text-xs font-semibold uppercase tracking-wide text-secondary mb-1">Planned features</p>
             <?php foreach ($moduleFeatures as $feature): ?>
                 <div class="flex items-center gap-2.5 text-sm text-on-surface">

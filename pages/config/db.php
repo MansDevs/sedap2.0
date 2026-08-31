@@ -9,7 +9,7 @@
 $host = 'localhost';
 $dbname = 'sedap';       // The database name created in phpMyAdmin
 $username = 'root';        // Default XAMPP MySQL user
-$password = '';            // Default XAMPP MySQL password (empty)
+$password = 'sedapupnm';            // Default XAMPP MySQL password (empty)
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";

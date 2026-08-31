@@ -41,37 +41,13 @@ function initials(string $name): string
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: "#fff8f2",
-                        primary: "#005359",
-                        "primary-container": "#136d74",
-                        "on-primary": "#ffffff",
-                        secondary: "#835500",
-                        "surface-container": "#fcecd4",
-                        "surface-container-low": "#fff2e0",
-                        "on-surface": "#221a0c",
-                        "on-surface-variant": "#3f494a",
-                        "outline-variant": "#bec8c9",
-                        error: "#ba1a1a",
-                    },
-                    fontFamily: {
-                        body: ["Inter", "sans-serif"],
-                        headline: ["Plus Jakarta Sans", "sans-serif"]
-                    }
-                }
-            }
-        };
-    </script>
+    <script src="../assets/js/theme-config.js"></script>
     <style>
         .mesh-bg {
-            background-color: #fff8f2;
+            background-color: #f7f9fb;
             background-image:
-                radial-gradient(at 10% 20%, hsla(184, 72%, 26%, 0.15) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(33, 100%, 80%, 0.2) 0px, transparent 50%);
+                radial-gradient(at 10% 20%, hsla(212, 100%, 37%, 0.08) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(188, 100%, 75%, 0.12) 0px, transparent 50%);
             background-attachment: fixed;
         }
         body::-webkit-scrollbar { display: none; }
@@ -85,7 +61,7 @@ function initials(string $name): string
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-            <a href="../dashboard/dashboard.php" class="bg-surface-container hover:bg-[#e7d8c1] text-primary p-3 rounded-full shadow-sm border border-[#e7d8c1] flex items-center justify-center transition-all active:scale-95">
+            <a href="../dashboard/dashboard.php" class="bg-surface-container-lowest hover:bg-surface-container-low text-primary p-3 rounded-full shadow-sm border border-outline-variant/40 flex items-center justify-center transition-all active:scale-95">
                 <span class="material-symbols-outlined">arrow_back</span>
             </a>
             <h1 class="font-headline text-3xl font-bold text-primary">Chats</h1>
@@ -96,7 +72,7 @@ function initials(string $name): string
     </div>
 
     <!-- Conversation list -->
-    <div class="bg-surface-container-low rounded-[32px] shadow-sm border border-[#e7d8c1] flex-1 overflow-hidden">
+    <div class="bg-surface-container-lowest rounded-[32px] shadow-lg border border-outline-variant/30 flex-1 overflow-hidden">
         <?php if (empty($conversations)): ?>
             <div class="flex flex-col items-center justify-center text-center py-20 px-8">
                 <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">

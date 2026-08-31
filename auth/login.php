@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Find the user by their email
-            $stmt = $pdo->prepare("SELECT id, name, password FROM users WHERE email = ?");
+            $stmt = $pdo->prepare("SELECT id, name, password, role FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
 
@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Login successful! Set session variables
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
+                if (!empty($user['role'])) {
+                    $_SESSION['role'] = $user['role'];
+                }
                 
                 // Redirect to the main app dashboard (adjust this path if your main page is named differently)
                 header("Location: ../dashboard/dashboard.php");
@@ -46,124 +49,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html class="h-full" lang="en" style="">
+<html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Sign In - Sedap</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <title>SeDaP - Sign In</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"surface-container-low": "#fff2e0", "on-background": "#221a0c", "on-tertiary-container": "#ffd5cf", "secondary-fixed": "#ffddb4", "on-secondary-container": "#6b4500", "primary-fixed": "#a3eff7", "surface-variant": "#f0e0c9", "on-secondary": "#ffffff", "surface-dim": "#e7d8c1", "outline-variant": "#bec8c9", "inverse-on-surface": "#ffefd6", "on-secondary-fixed": "#291800", "secondary-fixed-dim": "#ffb955", "secondary-container": "#feae2c", background: "#fff8f2", "on-tertiary-fixed": "#410001", "on-primary-fixed": "#002022", "surface-container-lowest": "#ffffff", "on-primary": "#ffffff", error: "#ba1a1a", "error-container": "#ffdad6", surface: "#fff8f2", "on-primary-container": "#a0ecf4", secondary: "#835500", "on-tertiary-fixed-variant": "#83251c", "surface-container-highest": "#f0e0c9", "primary-fixed-dim": "#87d3da", "surface-container": "#fcecd4", "on-primary-fixed-variant": "#004f55", "tertiary-fixed": "#ffdad5", "on-tertiary": "#ffffff", "surface-tint": "#096970", "inverse-surface": "#382f1f", "inverse-primary": "#87d3da", "tertiary-container": "#a84035", "on-error": "#ffffff", "surface-container-high": "#f6e6ce", "tertiary-fixed-dim": "#ffb4a9", tertiary: "#882920", "on-error-container": "#93000a", primary: "#005359", "on-surface-variant": "#3f494a", "on-surface": "#221a0c", "primary-container": "#136d74", "on-secondary-fixed-variant": "#633f00", outline: "#6f797a", "surface-bright": "#fff8f2"}, borderRadius: {DEFAULT: "0.5rem", lg: "1rem", xl: "1.5rem", full: "9999px"}, spacing: {"max-width": "1280px", base: "8px", "margin-mobile": "16px", gutter: "24px", "margin-desktop": "64px"}, fontFamily: {"display-lg": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-lg": ["Inter"], "body-md": ["Inter"], "headline-lg-mobile": ["Plus Jakarta Sans"], "label-lg": ["Inter"], "label-md": ["Inter"], "title-lg": ["Plus Jakarta Sans"], headline: ["Plus Jakarta Sans"], display: ["Plus Jakarta Sans"], body: ["Inter"], label: ["Inter"]}, fontSize: {"display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "headline-lg": ["32px", {lineHeight: "40px", fontWeight: "400"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "600"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}]}}}};</script>
-    <style>
-        .mesh-bg {
-            background-color: #fff8f2;
-            background-image: 
-                radial-gradient(at 10% 20%, hsla(184, 72%, 26%, 0.15) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(33, 100%, 80%, 0.2) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(184, 72%, 26%, 0.1) 0px, transparent 50%);
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-
-        /* --- Hide the scrollbar --- */
-        body::-webkit-scrollbar {
-            display: none;
-        }
-        body {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="h-full bg-background text-on-background mesh-bg flex items-center justify-center p-margin-mobile md:p-margin-desktop antialiased">
 
-<main class="w-full max-w-[440px]">
-    <!-- Elevation Level 1 Card -->
-    <div class="bg-surface-container-low p-8 md:p-10 relative rounded-[32px]" style="box-shadow: rgba(0, 83, 89, 0.08) 0px 4px 12px;">
-        <div class="flex flex-col items-center mb-8">
-            <img alt="Sedap Logo" class="w-20 h-20 rounded-xl object-cover mb-6 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlDgcuLOaDbJVc0JJKA6RPm08oSE9NVsd75txzvSJLLmBDfrMH-IRON9FBba0sxs-hyBClJLXxp3Do4K8nViXelq93eTLByRf0Ink0Jq1tR8XNrCBPDHwomQN8RiaZpwqfQO0xLCkYup0XtVcxcYUJ1F7ZoSzYWLBhvlAN3roSeotlbDKzz9f4kPIqZMzIm4gudZyKFbJ0JMztRKbIUsZ_kokRcO0amSllgLKkwAxqeidhgxh2IldV8642-W9T2iFx12Q">
-            <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary text-center">Welcome Back</h1>
-            <p class="font-body-lg text-body-lg text-on-surface-variant mt-2 text-center">Sign in to continue to Sedap</p>
+<body
+    class="bg-background h-screen w-screen overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container font-sans">
+    <!-- Responsive Material 3 12-Column Grid Layout Container -->
+    <div class="w-full h-full grid grid-cols-1 md:grid-cols-12 relative bg-background overflow-hidden">
+        <!-- Left Split Area (6 of 12 Columns - 50%) -->
+        <div
+            class="hidden md:flex md:col-span-6 h-full relative overflow-hidden bg-gradient-to-br from-primary-fixed/60 via-secondary-fixed/30 to-tertiary-fixed/40 items-center justify-center">
+            <div class="absolute inset-0 flex items-center justify-center">
+                <img alt="Community Health Connect Illustration" class="w-full h-full object-cover"
+                    src="screen.png">
+            </div>
+            <!-- Ambient Glow Overlays -->
+            <div
+                class="absolute -top-32 -left-32 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70">
+            </div>
+            <div
+                class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-secondary/15 rounded-full blur-[100px] mix-blend-multiply opacity-60">
+            </div>
+            <div
+                class="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-tertiary/20 rounded-full blur-[80px] mix-blend-multiply opacity-50">
+            </div>
+
+            <!-- Floating Brand Card Badge -->
+            <div class="absolute bottom-8 left-8 right-8 z-20 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-white/40 shadow-lg flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined filled !text-[22px]">health_and_safety</span>
+                </div>
+                <div>
+                    <h3 class="text-xs font-semibold text-on-surface">SeDaP Healthcare Portal</h3>
+                    <p class="text-[11px] text-on-surface-variant">Connecting providers, volunteers, and communities effortlessly.</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Error Message Display -->
-        <?php if (!empty($error)): ?>
-            <div class="mb-6 p-3 rounded-lg bg-error-container text-error text-center font-body-md border border-error/20">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-        <?php endif; ?>
-
-        <form action="" class="flex flex-col gap-gutter" method="POST">
-            <!-- Email Field (Changed from Username) -->
-            <div class="relative">
-                <label class="sr-only" for="email">Email</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">mail</span>
-                    <input class="w-full pl-12 pr-4 py-4 bg-transparent border border-outline-variant/40 rounded-[12px] text-on-background placeholder:text-on-surface-variant font-body-lg text-body-lg focus:border-2 focus:border-primary focus:ring-0 transition-all outline-none" id="email" name="email" placeholder="Registered Email" required="" type="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+        <!-- Right Split Area (6 of 12 Columns - 50%) -->
+        <div class="col-span-1 md:col-span-6 h-full flex items-center justify-center relative bg-surface p-4 sm:p-6 overflow-y-auto">
+            <!-- Elevated Expressive Card (Locked 420x580 M3 Container) -->
+            <div
+                class="w-full max-w-[420px] min-h-[580px] sm:h-[580px] bg-surface-container-lowest rounded-3xl sm:rounded-tl-[72px] sm:rounded-br-[72px] shadow-[0_16px_48px_-12px_rgba(26,28,30,0.08)] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden border border-surface-variant/40 my-auto">
+                
+                <!-- Subtle Background Accent -->
+                <div
+                    class="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none">
                 </div>
-            </div>
 
-            <!-- Password Field -->
-            <div class="relative">
-                <label class="sr-only" for="password">Password</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">lock</span>
-                    <input class="w-full pl-12 pr-12 py-4 bg-transparent border border-outline-variant/40 rounded-[12px] text-on-background placeholder:text-on-surface-variant font-body-lg text-body-lg focus:border-2 focus:border-primary focus:ring-0 transition-all outline-none" id="password" name="password" placeholder="Password" required="" type="password">
-                    <button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors focus:outline-none" type="button" id="togglePassword">
-                        <span class="material-symbols-outlined text-[20px]">visibility_off</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between mt-[-8px]">
-                <div class="flex items-center gap-2 cursor-pointer group">
-                    <div class="relative flex items-center">
-                        <input class="peer sr-only" id="remember" type="checkbox" name="remember">
-                        <div class="w-5 h-5 rounded-[4px] border-2 border-outline peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
-                            <span class="material-symbols-outlined text-[16px] text-on-primary opacity-0 peer-checked:opacity-100 transition-opacity" style="font-variation-settings: &quot;FILL&quot; 1;">check</span>
-                        </div>
+                <!-- Pinned Header Slot -->
+                <div class="flex flex-col items-center text-center gap-1.5 relative z-10">
+                    <div
+                        class="w-14 h-14 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
+                        <img src="logo.jpg" alt="SEDAP logo" class="w-full h-full object-cover">
                     </div>
-                    <label class="font-body-md text-body-md text-on-surface-variant cursor-pointer group-hover:text-on-background transition-colors" for="remember">Remember me</label>
+                    <h1 class="text-on-surface text-xl sm:text-2xl font-bold tracking-tight">Welcome back</h1>
+                    <p class="text-on-surface-variant text-xs sm:text-sm">Sign in to continue to your dashboard</p>
                 </div>
-                <a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
+
+                <!-- Form Viewport Slot -->
+                <div class="flex flex-col relative z-10 w-full my-auto">
+                    <!-- Error Message Display -->
+                    <?php if (!empty($error)): ?>
+                        <div class="p-2.5 mb-2 rounded-2xl bg-error-container text-error text-center text-xs font-medium border border-error/20 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined !text-[16px]">error</span>
+                            <span><?php echo htmlspecialchars($error); ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="" method="POST" class="flex flex-col gap-2 relative">
+                        <!-- Email / Username Field -->
+                        <div class="flex flex-col gap-0.5">
+                            <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider pl-1" for="email">Username or Email</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px]">alternate_email</span>
+                                <input
+                                    class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-11 pr-4 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                    id="email" name="email" placeholder="Enter your email or username" required="" type="text" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                            </div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="flex flex-col gap-0.5">
+                            <div class="flex items-center px-1">
+                                <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="password">Password</label>
+                            </div>
+                            <div class="relative">
+                                <input
+                                    class="w-full h-11 bg-surface-container-lowest border border-outline/70 text-on-surface text-sm rounded-[32px] pl-4 pr-11 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant/50"
+                                    id="password" name="password" placeholder="Enter your password" required="" type="password">
+                                <button aria-label="Toggle password visibility"
+                                    class="absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none p-1 rounded-full hover:bg-surface-variant/50"
+                                    type="button" id="togglePassword">
+                                    <span class="material-symbols-outlined !text-[20px]">visibility_off</span>
+                                </button>
+                            </div>
+                            <div class="flex justify-end px-1 mt-0.5">
+                                <a class="text-xs text-primary hover:text-primary/80 transition-colors font-medium hover:underline underline-offset-4"
+                                    href="forgotpass.php">Forgot password?</a>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button (Icon left, smaller, clear icon) -->
+                        <div class="flex justify-end mt-2">
+                            <button
+                                class="w-auto px-4 h-9 bg-primary text-on-primary text-sm font-semibold rounded-full hover:bg-primary/90 transition-all shadow-sm hover:shadow-md inline-flex flex-row items-center justify-center gap-1.5 whitespace-nowrap focus:ring-4 focus:ring-primary/20 focus:outline-none active:scale-[0.99]"
+                                type="submit">
+                                <span class="material-symbols-outlined !text-[18px]">login</span>
+                                <span>Sign in</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Pinned Footer Slot (8dp internal gap) -->
+                <div class="flex flex-col items-center gap-2 relative z-10 text-xs">
+                    <div class="w-16 h-px bg-outline-variant/50"></div>
+                    <p class="text-on-surface-variant text-center">
+                        Don't have an account? 
+                        <a class="text-primary font-semibold hover:underline underline-offset-4 ml-1"
+                            href="register.php">
+                            Sign up
+                        </a>
+                    </p>
+                </div>
             </div>
-
-            <button class="w-full bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg py-4 rounded-[32px] mt-4 transition-colors shadow-sm flex justify-center items-center gap-2 group" type="submit">
-                <span class="">Sign In</span>
-                <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </button>
-        </form>
-
-        <div class="mt-8 text-center font-body-md text-body-md text-on-surface-variant flex items-center justify-center gap-2">
-            <span class="">Don't have an account?</span>
-            <!-- Link updated to point to register.php -->
-            <a class="font-label-lg text-label-lg text-secondary hover:text-secondary-container transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-secondary after:transition-all hover:after:w-full" href="register.php">Sign Up</a>
         </div>
     </div>
-</main>
-
-<!-- Script to handle password visibility toggle -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const toggleBtn = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('password');
-        
-        if (toggleBtn && passwordInput) {
-            toggleBtn.addEventListener('click', () => {
-                const icon = toggleBtn.querySelector('.material-symbols-outlined');
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    icon.textContent = 'visibility';
-                } else {
-                    passwordInput.type = 'password';
-                    icon.textContent = 'visibility_off';
-                }
-            });
-        }
-    });
-</script>
-
+    <script src="js/login.js"></script>
 </body>
+
 </html>

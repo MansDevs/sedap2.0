@@ -39,49 +39,25 @@ function initials(string $name): string
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: "#fff8f2",
-                        primary: "#005359",
-                        "primary-container": "#136d74",
-                        "on-primary": "#ffffff",
-                        secondary: "#835500",
-                        "surface-container": "#fcecd4",
-                        "surface-container-low": "#fff2e0",
-                        "on-surface": "#221a0c",
-                        "on-surface-variant": "#3f494a",
-                        "outline-variant": "#bec8c9",
-                        error: "#ba1a1a",
-                    },
-                    fontFamily: {
-                        body: ["Inter", "sans-serif"],
-                        headline: ["Plus Jakarta Sans", "sans-serif"]
-                    }
-                }
-            }
-        };
-    </script>
+    <script src="../assets/js/theme-config.js"></script>
     <style>
         .mesh-bg {
-            background-color: #fff8f2;
+            background-color: #f7f9fb;
             background-image:
-                radial-gradient(at 10% 20%, hsla(184, 72%, 26%, 0.15) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(33, 100%, 80%, 0.2) 0px, transparent 50%);
+                radial-gradient(at 10% 20%, hsla(212, 100%, 37%, 0.08) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(188, 100%, 75%, 0.12) 0px, transparent 50%);
             background-attachment: fixed;
         }
         #messages::-webkit-scrollbar { width: 6px; }
-        #messages::-webkit-scrollbar-thumb { background: #bec8c9; border-radius: 10px; }
+        #messages::-webkit-scrollbar-thumb { background: #c2c6d5; border-radius: 10px; }
         .bubble-mine {
-            background-color: #005359;
+            background-color: #0058bd;
             color: #ffffff;
             border-radius: 18px 18px 4px 18px;
         }
         .bubble-theirs {
-            background-color: #fcecd4;
-            color: #221a0c;
+            background-color: #eceef0;
+            color: #191c1e;
             border-radius: 18px 18px 18px 4px;
         }
     </style>
