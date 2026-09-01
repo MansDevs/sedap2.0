@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
 
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap2.0';
+$_ROOT = $_ROOT ?? sedap_root();
 
 $msg = '';
 $err = '';
@@ -196,7 +196,7 @@ $patients = $pdo->query("SELECT * FROM patients ORDER BY created_at DESC LIMIT 5
   </style>
 </head>
 <body class="layout-fixed">
-  <?php include '../shared/includes/sidebar_volunteer.php'; ?>
+  <?php include '../shared/includes/sidebar.php'; ?>
   <div class="wrapper d-flex flex-column min-vh-100">
     <?php include '../shared/includes/header.php'; ?>
     <div class="body flex-grow-1">

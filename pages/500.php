@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>500 — Ralat Pelayan | SeDaP</title>
-  <link rel="stylesheet" href="/sedap2.0/assets/css/coreui.min.css">
-  <link rel="stylesheet" href="/sedap2.0/assets/css/sedap.css?v=2.5">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <style>
@@ -25,7 +25,7 @@
     <button onclick="location.reload()" class="btn btn-outline-danger d-flex align-items-center gap-1">
       <span class="material-symbols-outlined" style="font-size:18px;">refresh</span> Cuba Lagi
     </button>
-    <a href="/sedap2.0/pages/auth/login.php" class="btn btn-primary d-flex align-items-center gap-1">
+    <a href="<?= $_ROOT ?>/pages/auth/login.php" class="btn btn-primary d-flex align-items-center gap-1">
       <span class="material-symbols-outlined" style="font-size:18px;">home</span> Halaman Utama
     </a>
   </div>
@@ -34,6 +34,6 @@
     <a href="mailto:support@sedap.gov.my" style="color:#087383;">support@sedap.gov.my</a>
   </p>
 </div>
-<script src="/sedap2.0/assets/js/coreui.bundle.min.js"></script>
+<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js"></script>
 </body>
 </html>

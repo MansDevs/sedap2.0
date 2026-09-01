@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'admin' => '../admin/dashboard.php',
             'doctor' => '../doctor/cdashboard.php',
             'volunteer' => '../volunteer/dashboard.php',
-            'user' => '../patient/dashboard.php',
+            'user' => '../dashboard/dashboard.php',
             default => 'login.php'
         };
         header("Location: $redirect"); 
@@ -312,7 +312,7 @@ $userName = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
 </head>
 <body class="bg-[#F6E5D1] text-[#1a1a1a]">
 <div class="flex h-screen overflow-hidden">
-  <?php include '{{depth}}shared/includes/sidebar_admin.php'; ?>
+  <?php include '{{depth}}shared/includes/sidebar.php'; ?>
   <div class="flex-1 flex flex-col h-screen overflow-hidden">
     <?php include '{{depth}}shared/includes/header.php'; ?>
     <main class="flex-1 overflow-y-auto p-6">

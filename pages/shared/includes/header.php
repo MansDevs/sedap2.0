@@ -9,7 +9,7 @@ $_userName  = htmlspecialchars($userName  ?? $_SESSION['user_name'] ?? 'Pengguna
 $_userRole  = $_SESSION['user_role'] ?? 'user';
 $_darkMode  = !empty($_SESSION['dark_mode']);
 $_currentLang = $_SESSION['lang'] ?? 'ms';
-$_ROOT      = '/sedap2.0';
+$_ROOT      = $_ROOT ?? sedap_root();
 
 $_roleMap = [
   'admin'     => __('role_admin', 'Pentadbir Sistem'),
@@ -27,6 +27,7 @@ $_settingsMap = [
 ];
 $_settingsUrl = $_settingsMap[$_userRole] ?? "$_ROOT/pages/patient/settings.php";
 ?>
+<script>window._SEDAP_ROOT = "<?= $_ROOT ?>";</script>
 <div class="header header-sticky p-0" id="header">
   <div class="container-fluid border-bottom px-3 px-md-4 d-flex align-items-center" style="height:56px;">
 

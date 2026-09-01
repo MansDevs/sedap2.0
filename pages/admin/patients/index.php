@@ -1,15 +1,10 @@
 <?php
-session_start();
-require_once '../../config/db.php';
-require_once '../../shared/includes/lang.php';
-
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../../auth/login.php'); exit;
-}
-
-$userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Admin');
-$_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap2.0';
+$adminBase = '../';
+$activeNav = 'patients';
+$pageTitle = 'Patient Registration';
+require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/access.php';
+requireRole($currentUser, [], $adminBase);
 
 $msg = '';
 $err = '';
@@ -48,10 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
     $familyHistory   = trim($_POST['clinical_family_history'] ?? '');
 
     if (empty($fullName)) {
-        $err = 'Sila masukkan Nama Penuh pesakit.';
+        $err = 'Please provide the patient\'s full legal name.';
     } else {
         try {
-            // Auto generate registration number if needed
             $maxId = (int)$pdo->query("SELECT MAX(id) FROM patients")->fetchColumn();
             $regNumber = 'PT-' . str_pad((string)($maxId + 1), 6, '0', STR_PAD_LEFT);
 
@@ -74,753 +68,656 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
                 $emName, $emRelationship, $emPhone, $emAltPhone,
                 $insPayer, $insPolicyId, $insGroupNum, $insSubscriber, $insCoverageType, $billingAddress,
                 $reasonForVisit, $activeMeds, $allergies, $surgicalHistory, $familyHistory,
-                $_SESSION['user_id']
+                $currentUser['id']
             ]);
 
-            $msg = "Pesakit <strong>" . htmlspecialchars($fullName) . "</strong> ($regNumber) berjaya didaftarkan dengan maklumat lengkap.";
+            $msg = "Patient <strong>" . htmlspecialchars($fullName) . "</strong> ($regNumber) has been registered successfully.";
         } catch (PDOException $e) {
-            $err = 'Ralat pendaftaran: ' . $e->getMessage();
+            $err = 'Registration error: ' . $e->getMessage();
         }
     }
 }
 
 $patients = $pdo->query("SELECT * FROM patients ORDER BY created_at DESC LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
+
+require_once __DIR__ . '/../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pendaftaran & Pengurusan Pesakit — SeDaP</title>
-  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
-  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-  <style>
-    /* 24px rounded corners for all input text fields, selects, and textareas */
-    .form-control-24,
-    .wizard-step-pane input.form-control,
-    .wizard-step-pane select.form-select,
-    .custom-modal-24 input.form-control,
-    .custom-modal-24 select.form-select {
-      border-radius: 24px !important;
-      padding: 0.65rem 1.25rem;
-      border: 1.5px solid #d1d5db;
-      font-size: 0.92rem;
-      transition: all 0.2s ease;
-    }
-    .wizard-step-pane textarea.form-control,
-    .custom-modal-24 textarea.form-control {
-      border-radius: 20px !important;
-      padding: 0.85rem 1.25rem;
-      border: 1.5px solid #d1d5db;
-      font-size: 0.92rem;
-    }
-    .wizard-step-pane input.form-control:focus,
-    .wizard-step-pane select.form-select:focus,
-    .wizard-step-pane textarea.form-control:focus {
-      border-color: #087383 !important;
-      box-shadow: 0 0 0 4px rgba(8, 115, 131, 0.15) !important;
-    }
-    
-    /* Stepper UI */
-    .category-step-nav {
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      margin-bottom: 2rem;
-    }
-    .category-step-btn {
-      flex: 1;
-      background: none;
-      border: none;
-      text-align: center;
-      position: relative;
-      z-index: 2;
-      cursor: pointer;
-      padding: 0.5rem 0.25rem;
-    }
-    .category-badge-num {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: #e2e8f0;
-      color: #64748b;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      transition: all 0.25s ease;
-    }
-    .category-step-btn.active .category-badge-num {
-      background: #087383;
-      color: #ffffff;
-      box-shadow: 0 0 0 5px rgba(8, 115, 131, 0.2);
-    }
-    .category-step-btn.completed .category-badge-num {
-      background: #10b981;
-      color: #ffffff;
-    }
-    .category-label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #64748b;
-      line-height: 1.2;
-    }
-    .category-step-btn.active .category-label {
-      color: #087383;
-      font-weight: 700;
-    }
-    .stepper-line {
-      position: absolute;
-      top: 25px;
-      left: 8%;
-      right: 8%;
-      height: 3px;
-      background: #e2e8f0;
-      z-index: 1;
-    }
-    .stepper-progress {
-      height: 100%;
-      background: #087383;
-      transition: width 0.35s ease;
-      width: 0%;
-    }
-    .category-purpose-card {
-      background: rgba(8, 115, 131, 0.07);
-      border-left: 4px solid #087383;
-      border-radius: 16px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-    [data-coreui-theme="dark"] .category-purpose-card {
-      background: rgba(8, 115, 131, 0.22);
-      border-left-color: #20c997;
-    }
-    [data-coreui-theme="dark"] .category-badge-num {
-      background: #2e3235;
-      color: #94a3b8;
-    }
-    [data-coreui-theme="dark"] .stepper-line {
-      background: #2e3235;
-    }
-  </style>
-</head>
-<body class="layout-fixed">
-  <?php include '../../shared/includes/sidebar_admin.php'; ?>
-  <div class="wrapper d-flex flex-column min-vh-100">
-    <?php include '../../shared/includes/header.php'; ?>
-    <div class="body flex-grow-1">
-    <main class="container-fluid px-4 py-4">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-        <div>
-          <h1 class="page-title d-flex align-items-center gap-2">
-            <span class="material-symbols-outlined text-primary" style="font-size:32px;">how_to_reg</span>
-            <span>Pendaftaran & Pengurusan Pesakit</span>
-          </h1>
-          <p class="page-subtitle">Sistem pendaftaran pesakit kategori demi kategori dengan rekod komprehensif</p>
-        </div>
-        <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2" style="border-radius:24px;" data-coreui-toggle="modal" data-coreui-target="#patientWizardModal">
-          <span class="material-symbols-outlined" style="font-size:20px;">person_add</span>
-          <span class="fw-semibold">Daftar Pesakit Baharu (Multi-Category)</span>
-        </button>
-      </div>
 
-      <?php if ($msg): ?>
-        <div class="alert alert-success d-flex align-items-center gap-2 py-3 mb-4 rounded-4 shadow-sm">
-          <span class="material-symbols-outlined text-success" style="font-size:24px;">check_circle</span>
-          <div><?= $msg ?></div>
-        </div>
-      <?php endif; ?>
-
-      <?php if ($err): ?>
-        <div class="alert alert-danger d-flex align-items-center gap-2 py-3 mb-4 rounded-4 shadow-sm">
-          <span class="material-symbols-outlined text-danger" style="font-size:24px;">error</span>
-          <div><?= htmlspecialchars($err) ?></div>
-        </div>
-      <?php endif; ?>
-
-      <!-- Patient Table Card -->
-      <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
-        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
-          <div class="fw-bold d-flex align-items-center gap-2 text-dark">
-            <span class="material-symbols-outlined text-primary">patient_list</span>
-            Senarai Rekod Pesakit Terkini (<?= count($patients) ?>)
-          </div>
-          <div style="width:280px;">
-            <input type="text" id="tableSearch" class="form-control form-control-24" placeholder="Cari nama, IC, no. telefon...">
-          </div>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="patientsTable">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4">No. Pendaftaran</th>
-                  <th>Nama Penuh</th>
-                  <th>No. IC / Pengenalan</th>
-                  <th>Jantina</th>
-                  <th>No. Telefon</th>
-                  <th>Kontak Kecemasan</th>
-                  <th>Insurans</th>
-                  <th>Tarikh Daftar</th>
-                  <th class="text-center pe-4">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if (empty($patients)): ?>
-                  <tr><td colspan="9" class="text-center text-muted py-5">Tiada rekod pesakit buat masa ini. Sila daftar pesakit baharu.</td></tr>
-                <?php else: ?>
-                  <?php foreach ($patients as $p): ?>
-                    <tr class="patient-row">
-                      <td class="ps-4 fw-semibold text-primary"><?= htmlspecialchars($p['registration_number'] ?? 'PT-' . $p['id']) ?></td>
-                      <td class="fw-semibold">
-                        <?= htmlspecialchars($p['full_name']) ?>
-                        <?php if (!empty($p['clinical_reason_for_visit'])): ?>
-                          <div class="small text-muted text-truncate" style="max-width:200px;"><?= htmlspecialchars($p['clinical_reason_for_visit']) ?></div>
-                        <?php endif; ?>
-                      </td>
-                      <td class="small text-muted"><?= htmlspecialchars($p['ic_number'] ?? '—') ?></td>
-                      <td>
-                        <span class="badge rounded-pill bg-light text-dark border">
-                          <?= ucfirst(htmlspecialchars($p['gender'] ?? '—')) ?>
-                          <?= !empty($p['gender_identity']) ? ' (' . htmlspecialchars($p['gender_identity']) . ')' : '' ?>
-                        </span>
-                      </td>
-                      <td class="small"><?= htmlspecialchars($p['phone'] ?? '—') ?></td>
-                      <td class="small">
-                        <?= !empty($p['emergency_contact_name']) ? htmlspecialchars($p['emergency_contact_name']) . ' (' . htmlspecialchars($p['emergency_contact_phone'] ?? '') . ')' : '<span class="text-muted">—</span>' ?>
-                      </td>
-                      <td class="small">
-                        <?= !empty($p['insurance_payer']) ? '<span class="badge bg-info-subtle text-info-emphasis border">' . htmlspecialchars($p['insurance_payer']) . '</span>' : '<span class="text-muted">—</span>' ?>
-                      </td>
-                      <td class="small text-muted"><?= !empty($p['created_at']) ? date('d/m/Y H:i', strtotime($p['created_at'])) : '—' ?></td>
-                      <td class="text-center pe-4">
-                        <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-pill px-3 view-patient-btn"
-                                data-patient='<?= htmlspecialchars(json_encode($p), ENT_QUOTES, 'UTF-8') ?>'
-                                data-coreui-toggle="modal" data-coreui-target="#viewPatientModal">
-                          <span class="material-symbols-outlined" style="font-size:16px;">visibility</span>
-                          <span>Lihat Profil</span>
-                        </button>
-                      </td>
-                    </tr>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-  <?php include '../../shared/includes/footer.php'; ?>
-</div>
-
-<!-- ======================================================= -->
-<!-- MULTI-CATEGORY PATIENT REGISTRATION MODAL WIZARD -->
-<!-- ======================================================= -->
-<div class="modal fade custom-modal-24" id="patientWizardModal" tabindex="-1" aria-labelledby="patientWizardLabel" aria-hidden="true" data-coreui-backdrop="static">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-      <form method="POST" id="patientWizardForm" class="wizard-form">
-        <input type="hidden" name="action" value="add">
-
-        <div class="modal-header bg-light py-3 px-4 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <span class="material-symbols-outlined text-primary" style="font-size:28px;">person_add</span>
-            <div>
-              <h5 class="modal-title fw-bold mb-0" id="patientWizardLabel">Borang Pendaftaran Pesakit Baharu</h5>
-              <small class="text-muted">Lengkapkan maklumat mengikut kategori berturutan</small>
-            </div>
-          </div>
-          <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Tutup"></button>
-        </div>
-
-        <div class="modal-body p-4">
-          <!-- Stepper Header Navigation -->
-          <div class="category-step-nav">
-            <div class="stepper-line"><div class="stepper-progress" id="stepperProgress"></div></div>
-            
-            <button type="button" class="category-step-btn active" data-step="1" onclick="goToStep(1)">
-              <div class="category-badge-num">1</div>
-              <span class="category-label">1. Demographics & Identification</span>
-            </button>
-            <button type="button" class="category-step-btn" data-step="2" onclick="goToStep(2)">
-              <div class="category-badge-num">2</div>
-              <span class="category-label">2. Emergency Contacts</span>
-            </button>
-            <button type="button" class="category-step-btn" data-step="3" onclick="goToStep(3)">
-              <div class="category-badge-num">3</div>
-              <span class="category-label">3. Insurance & Billing</span>
-            </button>
-            <button type="button" class="category-step-btn" data-step="4" onclick="goToStep(4)">
-              <div class="category-badge-num">4</div>
-              <span class="category-label">4. Initial Clinical Screening</span>
-            </button>
-          </div>
-
-          <!-- ============================================== -->
-          <!-- CATEGORY 1: Demographics & Identification -->
-          <!-- ============================================== -->
-          <div class="wizard-step-pane" id="stepPane1">
-            <div class="category-purpose-card">
-              <div class="d-flex align-items-start gap-2">
-                <span class="material-symbols-outlined text-primary mt-1">verified_user</span>
-                <div>
-                  <strong class="d-block text-primary">Kategori 1: Demographics & Identification</strong>
-                  <span class="small text-secondary">
-                    <strong>Tujuan Utama:</strong> Prevents duplicate records, ensures accurate patient verification, and enables direct communication.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-md-8">
-                <label class="form-label fw-semibold small text-dark">Nama Penuh Mengikut Dokumen Rasmi (Full Legal Name) <span class="text-danger">*</span></label>
-                <input type="text" name="full_name" id="reg_full_name" class="form-control" placeholder="Contoh: Muhammad Ali bin Ahmad" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold small text-dark">No. Kad Pengenalan / SSN / Pasport <span class="text-danger">*</span></label>
-                <input type="text" name="ic_number" id="reg_ic_number" class="form-control" placeholder="Contoh: 901012-10-5432" required>
-              </div>
-
-              <div class="col-md-4">
-                <label class="form-label fw-semibold small text-dark">Tarikh Lahir (Date of Birth) <span class="text-danger">*</span></label>
-                <input type="date" name="date_of_birth" id="reg_dob" class="form-control" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold small text-dark">Jantina Biologikal (Biological Sex)</label>
-                <select name="gender" class="form-select">
-                  <option value="male">Lelaki (Male)</option>
-                  <option value="female">Perempuan (Female)</option>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold small text-dark">Identiti Jantina (Gender Identity)</label>
-                <input type="text" name="gender_identity" class="form-control" placeholder="Pilihan (cth: Cisgender, dll)">
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">No. Telefon Utama (Phone Number) <span class="text-danger">*</span></label>
-                <input type="tel" name="phone" id="reg_phone" class="form-control" placeholder="Contoh: 012-3456789" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Emel Utama (Primary Email)</label>
-                <input type="email" name="email" class="form-control" placeholder="nama@domain.com">
-              </div>
-
-              <div class="col-12">
-                <label class="form-label fw-semibold small text-dark">Alamat Kediaman (Residential Address)</label>
-                <textarea name="address" rows="2" class="form-control" placeholder="No. Rumah, Jalan, Taman / Kampung, Poskod, Bandar, Negeri"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <!-- ============================================== -->
-          <!-- CATEGORY 2: Emergency Contacts -->
-          <!-- ============================================== -->
-          <div class="wizard-step-pane d-none" id="stepPane2">
-            <div class="category-purpose-card">
-              <div class="d-flex align-items-start gap-2">
-                <span class="material-symbols-outlined text-primary mt-1">emergency</span>
-                <div>
-                  <strong class="d-block text-primary">Kategori 2: Emergency Contacts</strong>
-                  <span class="small text-secondary">
-                    <strong>Tujuan Utama:</strong> Crucial for urgent medical situations or clinical updates when the patient is unable to communicate.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Nama Kontak Kecemasan (Contact Name) <span class="text-danger">*</span></label>
-                <input type="text" name="emergency_contact_name" id="reg_em_name" class="form-control" placeholder="Nama waris / pasangan / penjaga">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Hubungan Dengan Pesakit (Relationship)</label>
-                <select name="emergency_contact_relationship" class="form-select">
-                  <option value="Spouse">Pasangan (Spouse)</option>
-                  <option value="Parent">Ibu / Bapa (Parent)</option>
-                  <option value="Child">Anak (Child)</option>
-                  <option value="Sibling">Adik-beradik (Sibling)</option>
-                  <option value="Legal Guardian">Penjaga Sah (Legal Guardian)</option>
-                  <option value="Friend/Neighbor">Rakan / Jiran (Friend/Neighbor)</option>
-                  <option value="Other">Lain-lain (Other)</option>
-                </select>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">No. Telefon Kecemasan (Phone Number) <span class="text-danger">*</span></label>
-                <input type="tel" name="emergency_contact_phone" id="reg_em_phone" class="form-control" placeholder="Contoh: 013-9876543">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">No. Telefon Alternatif (Alternate Phone)</label>
-                <input type="tel" name="emergency_contact_alt_phone" class="form-control" placeholder="Telefon rumah / pejabat (pilihan)">
-              </div>
-            </div>
-          </div>
-
-          <!-- ============================================== -->
-          <!-- CATEGORY 3: Insurance & Billing -->
-          <!-- ============================================== -->
-          <div class="wizard-step-pane d-none" id="stepPane3">
-            <div class="category-purpose-card">
-              <div class="d-flex align-items-start gap-2">
-                <span class="material-symbols-outlined text-primary mt-1">receipt_long</span>
-                <div>
-                  <strong class="d-block text-primary">Kategori 3: Insurance & Billing</strong>
-                  <span class="small text-secondary">
-                    <strong>Tujuan Utama:</strong> Validates coverage active status, facilitates claim submission, and clarifies financial responsibility.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Nama Syarikat Penanggung / Pembayar (Payer / Carrier Name)</label>
-                <input type="text" name="insurance_payer" class="form-control" placeholder="Contoh: MySalam / AIA / Great Eastern / Kerajaan (KKM) / Self-Pay">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Jenis Perlindungan (Coverage Type)</label>
-                <select name="insurance_coverage_type" class="form-select">
-                  <option value="Primary">Perlindungan Utama (Primary)</option>
-                  <option value="Secondary">Perlindungan Sekunder (Secondary)</option>
-                  <option value="Self-Pay">Bayaran Sendiri (Self-Pay / Cash)</option>
-                  <option value="Government Subsidy">Subsidi Kerajaan / Kebajikan</option>
-                </select>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">No. Polisi / ID Ahli (Policy / Member ID)</label>
-                <input type="text" name="insurance_policy_id" class="form-control" placeholder="Contoh: POL-889912">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">No. Kumpulan (Group Number)</label>
-                <input type="text" name="insurance_group_number" class="form-control" placeholder="Contoh: GRP-004">
-              </div>
-
-              <div class="col-12">
-                <label class="form-label fw-semibold small text-dark">Maklumat Pemegang Polisi (Subscriber / Policyholder Details)</label>
-                <input type="text" name="insurance_subscriber_details" class="form-control" placeholder="Nama penuh pemegang polisi & hubungan (jika berbeza dari pesakit)">
-              </div>
-
-              <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <label class="form-label fw-semibold small text-dark mb-0">Alamat Pengebilan (Billing Address)</label>
-                  <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" onclick="copyAddressToBilling()">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">content_copy</span>
-                    Sama seperti alamat kediaman
-                  </button>
-                </div>
-                <textarea name="billing_address" id="reg_billing_address" rows="2" class="form-control" placeholder="Alamat tuntutan invois / resit rasmi"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <!-- ============================================== -->
-          <!-- CATEGORY 4: Initial Clinical Screening -->
-          <!-- ============================================== -->
-          <div class="wizard-step-pane d-none" id="stepPane4">
-            <div class="category-purpose-card">
-              <div class="d-flex align-items-start gap-2">
-                <span class="material-symbols-outlined text-primary mt-1">medical_services</span>
-                <div>
-                  <strong class="d-block text-primary">Kategori 4: Initial Clinical Screening</strong>
-                  <span class="small text-secondary">
-                    <strong>Tujuan Utama:</strong> Ensures basic patient safety prior to consultation (e.g., preventing adverse drug interactions).
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-semibold small text-dark">Sebab Utama Lawatan / Aduan Utama (Primary Reason for Visit) <span class="text-danger">*</span></label>
-                <textarea name="clinical_reason_for_visit" id="reg_clinical_reason" rows="2" class="form-control" placeholder="Gejala yang dialami, tempoh masa sakit (cth: Demam panas sejak 3 hari, cirit-birit berterusan)" required></textarea>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Ubat-ubatan Semasa (Active Medications)</label>
-                <textarea name="clinical_active_medications" rows="2" class="form-control" placeholder="Senarai ubat yang sedang diambil (cth: Metformin 500mg, Amlodipine 5mg, suplemen)"></textarea>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Alahan Ubat / Makanan (Known Drug / Food Allergies)</label>
-                <textarea name="clinical_allergies" rows="2" class="form-control" placeholder="Cth: Penicillin, Makanan Laut, Kacang, Tiada"></textarea>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Sejarah Pembedahan / Rawatan Lalu (Past Surgical History)</label>
-                <textarea name="clinical_surgical_history" rows="2" class="form-control" placeholder="Pembedahan lampau, kemasukan wad sebelum ini"></textarea>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small text-dark">Sejarah Perubatan Keluarga (Family Medical History)</label>
-                <textarea name="clinical_family_history" rows="2" class="form-control" placeholder="Kencing manis, darah tinggi, penyakit jantung, kanser, dll"></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Wizard Navigation Footer -->
-        <div class="modal-footer bg-light py-3 px-4 d-flex justify-content-between">
-          <button type="button" class="btn btn-outline-secondary px-4 d-flex align-items-center gap-1" id="btnPrevStep" style="border-radius:24px;display:none;" onclick="prevStep()">
-            <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-            <span>Kategori Sebelumnya</span>
-          </button>
-          
-          <button type="button" class="btn btn-secondary px-4" style="border-radius:24px;" data-coreui-dismiss="modal" id="btnCancelModal">Batal</button>
-
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary px-4 d-flex align-items-center gap-1" id="btnNextStep" style="border-radius:24px;" onclick="nextStep()">
-              <span>Seterusnya: Kategori 2</span>
-              <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-            </button>
-            <button type="submit" class="btn btn-success px-4 d-flex align-items-center gap-1 text-white" id="btnSubmitForm" style="border-radius:24px;display:none;">
-              <span class="material-symbols-outlined" style="font-size:18px;">save</span>
-              <span>Daftar Pesakit Lengkap</span>
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ======================================================= -->
-<!-- VIEW PATIENT FULL DETAILS MODAL -->
-<!-- ======================================================= -->
-<div class="modal fade" id="viewPatientModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-      <div class="modal-header bg-primary text-white py-3 px-4">
-        <div class="d-flex align-items-center gap-2">
-          <span class="material-symbols-outlined" style="font-size:28px;">badge</span>
-          <div>
-            <h5 class="modal-title fw-bold mb-0" id="viewPatientName">Profil Pesakit</h5>
-            <small id="viewPatientRegNo" class="opacity-75"></small>
-          </div>
-        </div>
-        <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-4" id="viewPatientBody">
-        <!-- Dynamic Patient Content Loaded via JS -->
-      </div>
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-secondary rounded-pill px-4" data-coreui-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="<?= $_ROOT ?>/assets/js/coreui.bundle.min.js?v=2.2"></script>
-<script>
-  let currentStep = 1;
-  const totalSteps = 4;
-  const stepTitles = [
-    "Seterusnya: Kategori 2 (Emergency Contacts)",
-    "Seterusnya: Kategori 3 (Insurance & Billing)",
-    "Seterusnya: Kategori 4 (Initial Clinical Screening)",
-    "Daftar Pesakit Lengkap"
-  ];
-
-  function updateWizardUI() {
-    // Hide all step panes
-    for (let i = 1; i <= totalSteps; i++) {
-      const pane = document.getElementById('stepPane' + i);
-      if (pane) {
-        if (i === currentStep) {
-          pane.classList.remove('d-none');
-        } else {
-          pane.classList.add('d-none');
-        }
-      }
-      
-      const btn = document.querySelector(`.category-step-btn[data-step="${i}"]`);
-      if (btn) {
-        btn.classList.remove('active');
-        if (i === currentStep) {
-          btn.classList.add('active');
-        } else if (i < currentStep) {
-          btn.classList.add('completed');
-        } else {
-          btn.classList.remove('completed');
-        }
-      }
-    }
-
-    // Update progress bar
-    const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
-    const bar = document.getElementById('stepperProgress');
-    if (bar) bar.style.width = progressPercent + '%';
-
-    // Update buttons
-    const btnPrev = document.getElementById('btnPrevStep');
-    const btnNext = document.getElementById('btnNextStep');
-    const btnSubmit = document.getElementById('btnSubmitForm');
-    const btnCancel = document.getElementById('btnCancelModal');
-
-    if (currentStep > 1) {
-      btnPrev.style.display = 'inline-flex';
-      btnCancel.style.display = 'none';
-    } else {
-      btnPrev.style.display = 'none';
-      btnCancel.style.display = 'inline-block';
-    }
-
-    if (currentStep === totalSteps) {
-      btnNext.style.display = 'none';
-      btnSubmit.style.display = 'inline-flex';
-    } else {
-      btnNext.style.display = 'inline-flex';
-      btnNext.querySelector('span:first-child').innerText = stepTitles[currentStep - 1];
-      btnSubmit.style.display = 'none';
-    }
+<style>
+  /* 24px rounded corners for inputs */
+  .rounded-24 {
+    border-radius: 24px !important;
   }
+  .input-24 {
+    border-radius: 24px !important;
+    padding: 0.65rem 1.25rem !important;
+  }
+  .textarea-24 {
+    border-radius: 20px !important;
+    padding: 0.75rem 1.25rem !important;
+  }
+</style>
 
-  function validateStep(step) {
-    if (step === 1) {
-      const name = document.getElementById('reg_full_name').value.trim();
-      const ic = document.getElementById('reg_ic_number').value.trim();
-      const phone = document.getElementById('reg_phone').value.trim();
-      const dob = document.getElementById('reg_dob').value;
-      if (!name || !ic || !phone || !dob) {
-        alert('Sila lengkapkan maklumat wajib dalam Kategori 1 (Nama, No. IC, Tarikh Lahir & No Telefon).');
-        return false;
-      }
-    }
-    if (step === 2) {
-      const emName = document.getElementById('reg_em_name').value.trim();
-      const emPhone = document.getElementById('reg_em_phone').value.trim();
-      if (!emName || !emPhone) {
-        if (!confirm('Maklumat kontak kecemasan belum lengkap. Adakah anda ingin teruskan?')) {
-          return false;
+<div class="space-y-6 pb-12">
+    <!-- Header banner -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface flex items-center gap-3">
+                <span class="material-symbols-outlined text-[32px] text-primary">person_add</span>
+                <span>Patient Registration</span>
+            </h1>
+            <p class="text-on-surface-variant text-sm mt-1">Multi-category structured patient registration & clinical intake</p>
+        </div>
+        <button onclick="openRegistrationModal()" class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-on-primary font-semibold px-5 py-2.5 rounded-[24px] shadow-sm transition-all duration-200 hover:shadow">
+            <span class="material-symbols-outlined text-[20px]">add_circle</span>
+            <span>New Patient Registration</span>
+        </button>
+    </div>
+
+    <?php if ($msg): ?>
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-[20px] flex items-center gap-3 shadow-sm">
+            <span class="material-symbols-outlined text-emerald-600">check_circle</span>
+            <div><?php echo $msg; ?></div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($err): ?>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-[20px] flex items-center gap-3 shadow-sm">
+            <span class="material-symbols-outlined text-rose-600">error</span>
+            <div><?php echo htmlspecialchars($err); ?></div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Patients Directory Card -->
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[28px] overflow-hidden shadow-sm">
+        <div class="p-5 sm:p-6 border-b border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">groups</span>
+                <h2 class="font-headline font-bold text-lg text-on-surface">Registered Patients (<?php echo count($patients); ?>)</h2>
+            </div>
+            <div class="w-full sm:w-72">
+                <input type="text" id="patientSearchInput" placeholder="Search name, IC, phone..."
+                       class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm px-4 py-2 input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm" id="patientsTable">
+                <thead class="bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3.5 px-6">Reg #</th>
+                        <th class="py-3.5 px-4">Patient Name</th>
+                        <th class="py-3.5 px-4">IC / ID</th>
+                        <th class="py-3.5 px-4">Sex / Gender</th>
+                        <th class="py-3.5 px-4">Phone</th>
+                        <th class="py-3.5 px-4">Emergency Contact</th>
+                        <th class="py-3.5 px-4">Insurance</th>
+                        <th class="py-3.5 px-4">Date Registered</th>
+                        <th class="py-3.5 px-6 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/20 text-on-surface">
+                    <?php if (empty($patients)): ?>
+                        <tr>
+                            <td colspan="9" class="py-10 text-center text-on-surface-variant">
+                                No registered patients found. Click "New Patient Registration" above to add one.
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($patients as $p): ?>
+                            <tr class="hover:bg-surface-container/50 transition-colors patient-table-row">
+                                <td class="py-4 px-6 font-semibold text-primary"><?php echo htmlspecialchars($p['registration_number'] ?? 'PT-' . $p['id']); ?></td>
+                                <td class="py-4 px-4 font-medium">
+                                    <?php echo htmlspecialchars($p['full_name']); ?>
+                                    <?php if (!empty($p['clinical_reason_for_visit'])): ?>
+                                        <div class="text-xs text-on-surface-variant truncate max-w-xs"><?php echo htmlspecialchars($p['clinical_reason_for_visit']); ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-4 px-4 text-on-surface-variant"><?php echo htmlspecialchars($p['ic_number'] ?? '—'); ?></td>
+                                <td class="py-4 px-4">
+                                    <span class="inline-block bg-surface-container px-2.5 py-1 rounded-full text-xs font-semibold">
+                                        <?php echo ucfirst(htmlspecialchars($p['gender'] ?? '—')); ?>
+                                    </span>
+                                </td>
+                                <td class="py-4 px-4"><?php echo htmlspecialchars($p['phone'] ?? '—'); ?></td>
+                                <td class="py-4 px-4 text-xs">
+                                    <?php echo !empty($p['emergency_contact_name']) ? htmlspecialchars($p['emergency_contact_name']) . ' (' . htmlspecialchars($p['emergency_contact_phone'] ?? '') . ')' : '<span class="text-on-surface-variant/60">—</span>'; ?>
+                                </td>
+                                <td class="py-4 px-4 text-xs">
+                                    <?php if (!empty($p['insurance_payer'])): ?>
+                                        <span class="bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium"><?php echo htmlspecialchars($p['insurance_payer']); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-on-surface-variant/60">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-4 px-4 text-xs text-on-surface-variant"><?php echo !empty($p['created_at']) ? date('d M Y, H:i', strtotime($p['created_at'])) : '—'; ?></td>
+                                <td class="py-4 px-6 text-center">
+                                    <button type="button" onclick='viewPatientDetails(<?php echo htmlspecialchars(json_encode($p), ENT_QUOTES, 'UTF-8'); ?>)'
+                                            class="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-semibold text-xs bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors">
+                                        <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                        <span>View</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODAL: MULTI-STEP CATEGORY PATIENT REGISTRATION -->
+<!-- ============================================================= -->
+<div id="registrationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+        <!-- Modal Header -->
+        <div class="px-6 py-5 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[24px]">person_add</span>
+                </div>
+                <div>
+                    <h3 class="font-headline font-bold text-lg text-on-surface">Patient Registration Form</h3>
+                    <p class="text-xs text-on-surface-variant">Step-by-step category data collection</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeRegistrationModal()" class="text-on-surface-variant hover:text-on-surface p-1.5 rounded-full hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+        </div>
+
+        <!-- Stepper Navigation -->
+        <div class="px-6 pt-5 pb-3 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
+            <div class="grid grid-cols-4 gap-2 text-center relative">
+                <!-- Step 1 Button -->
+                <button type="button" id="stepBtn1" onclick="jumpToStep(1)" class="group flex flex-col items-center p-2 rounded-2xl transition-all">
+                    <div id="stepCircle1" class="w-10 h-10 rounded-full bg-primary text-on-primary font-bold flex items-center justify-center text-sm shadow-md transition-all">1</div>
+                    <span id="stepLabel1" class="text-xs font-bold text-primary mt-1.5 line-clamp-1">1. Demographics</span>
+                </button>
+                <!-- Step 2 Button -->
+                <button type="button" id="stepBtn2" onclick="jumpToStep(2)" class="group flex flex-col items-center p-2 rounded-2xl transition-all">
+                    <div id="stepCircle2" class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant font-bold flex items-center justify-center text-sm transition-all">2</div>
+                    <span id="stepLabel2" class="text-xs font-medium text-on-surface-variant mt-1.5 line-clamp-1">2. Emergency Contacts</span>
+                </button>
+                <!-- Step 3 Button -->
+                <button type="button" id="stepBtn3" onclick="jumpToStep(3)" class="group flex flex-col items-center p-2 rounded-2xl transition-all">
+                    <div id="stepCircle3" class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant font-bold flex items-center justify-center text-sm transition-all">3</div>
+                    <span id="stepLabel3" class="text-xs font-medium text-on-surface-variant mt-1.5 line-clamp-1">3. Insurance & Billing</span>
+                </button>
+                <!-- Step 4 Button -->
+                <button type="button" id="stepBtn4" onclick="jumpToStep(4)" class="group flex flex-col items-center p-2 rounded-2xl transition-all">
+                    <div id="stepCircle4" class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant font-bold flex items-center justify-center text-sm transition-all">4</div>
+                    <span id="stepLabel4" class="text-xs font-medium text-on-surface-variant mt-1.5 line-clamp-1">4. Clinical Screening</span>
+                </button>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-surface-container h-1.5 rounded-full mt-3 overflow-hidden">
+                <div id="stepProgressBar" class="bg-primary h-full transition-all duration-300" style="width: 25%;"></div>
+            </div>
+        </div>
+
+        <!-- Form Body -->
+        <form method="POST" id="patientMultiStepForm" class="overflow-y-auto p-6 space-y-6 flex-1">
+            <input type="hidden" name="action" value="add">
+
+            <!-- ============================================== -->
+            <!-- CATEGORY 1: Demographics & Identification -->
+            <!-- ============================================== -->
+            <div id="categoryStep1" class="space-y-4">
+                <div class="bg-primary/5 border-l-4 border-primary p-4 rounded-2xl">
+                    <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">badge</span>
+                        <span>Category 1: Demographics & Identification</span>
+                    </h4>
+                    <p class="text-xs text-on-surface-variant mt-1">
+                        <strong>Primary Purpose:</strong> Prevents duplicate records, ensures accurate patient verification, and enables direct communication.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Full Legal Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="full_name" id="c1_full_name" required placeholder="e.g. Johnathan Alexander Doe"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">National ID / SSN / Passport <span class="text-rose-500">*</span></label>
+                        <input type="text" name="ic_number" id="c1_ic" required placeholder="e.g. 920514-10-5544"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Date of Birth <span class="text-rose-500">*</span></label>
+                        <input type="date" name="date_of_birth" id="c1_dob" required
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Biological Sex</label>
+                        <select name="gender" class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Gender Identity</label>
+                        <input type="text" name="gender_identity" placeholder="Optional (e.g. Cisgender, Non-binary)"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Phone Number <span class="text-rose-500">*</span></label>
+                        <input type="tel" name="phone" id="c1_phone" required placeholder="e.g. +60 12-345 6789"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Primary Email</label>
+                        <input type="email" name="email" placeholder="patient@example.com"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Residential Address</label>
+                        <textarea name="address" id="c1_address" rows="2" placeholder="Street address, unit/apt, city, state, postal code"
+                                  class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- CATEGORY 2: Emergency Contacts -->
+            <!-- ============================================== -->
+            <div id="categoryStep2" class="space-y-4 hidden">
+                <div class="bg-primary/5 border-l-4 border-primary p-4 rounded-2xl">
+                    <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">emergency</span>
+                        <span>Category 2: Emergency Contacts</span>
+                    </h4>
+                    <p class="text-xs text-on-surface-variant mt-1">
+                        <strong>Primary Purpose:</strong> Crucial for urgent medical situations or clinical updates when the patient is unable to communicate.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Contact Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="emergency_contact_name" id="c2_name" placeholder="Full name of emergency contact"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Relationship to Patient</label>
+                        <select name="emergency_contact_relationship" class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="Spouse">Spouse</option>
+                            <option value="Parent">Parent</option>
+                            <option value="Child">Child</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Legal Guardian">Legal Guardian</option>
+                            <option value="Other">Other Relative / Friend</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Primary Phone Number <span class="text-rose-500">*</span></label>
+                        <input type="tel" name="emergency_contact_phone" id="c2_phone" placeholder="e.g. +60 13-987 6543"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Alternate Phone</label>
+                        <input type="tel" name="emergency_contact_alt_phone" placeholder="Home / Work / Secondary Phone"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- CATEGORY 3: Insurance & Billing -->
+            <!-- ============================================== -->
+            <div id="categoryStep3" class="space-y-4 hidden">
+                <div class="bg-primary/5 border-l-4 border-primary p-4 rounded-2xl">
+                    <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                        <span>Category 3: Insurance & Billing</span>
+                    </h4>
+                    <p class="text-xs text-on-surface-variant mt-1">
+                        <strong>Primary Purpose:</strong> Validates coverage active status, facilitates claim submission, and clarifies financial responsibility.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Payer / Carrier Name</label>
+                        <input type="text" name="insurance_payer" placeholder="e.g. MySalam, AIA, Great Eastern, MOH, Self-Pay"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Primary vs. Secondary Coverage</label>
+                        <select name="insurance_coverage_type" class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="Primary">Primary Coverage</option>
+                            <option value="Secondary">Secondary Coverage</option>
+                            <option value="Self-Pay">Self-Pay / Cash</option>
+                            <option value="Government Subsidy">Government Subsidy</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Policy / Member ID</label>
+                        <input type="text" name="insurance_policy_id" placeholder="e.g. POL-1029384"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Group Number</label>
+                        <input type="text" name="insurance_group_number" placeholder="e.g. GRP-99201"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Subscriber / Policyholder Details</label>
+                        <input type="text" name="insurance_subscriber_details" placeholder="Policyholder name, employer, date of birth (if not patient)"
+                               class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm input-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div class="md:col-span-2">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-on-surface">Billing Address</label>
+                            <button type="button" onclick="copyAddress()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                <span>Same as residential address</span>
+                            </button>
+                        </div>
+                        <textarea name="billing_address" id="c3_billing_address" rows="2" placeholder="Billing address for claims and invoices"
+                                  class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- CATEGORY 4: Initial Clinical Screening -->
+            <!-- ============================================== -->
+            <div id="categoryStep4" class="space-y-4 hidden">
+                <div class="bg-primary/5 border-l-4 border-primary p-4 rounded-2xl">
+                    <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">medical_services</span>
+                        <span>Category 4: Initial Clinical Screening</span>
+                    </h4>
+                    <p class="text-xs text-on-surface-variant mt-1">
+                        <strong>Primary Purpose:</strong> Ensures basic patient safety prior to consultation (e.g., preventing adverse drug interactions).
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-on-surface mb-1.5">Primary Reason for Visit / Chief Complaint <span class="text-rose-500">*</span></label>
+                        <textarea name="clinical_reason_for_visit" id="c4_reason" rows="2" required placeholder="Primary symptoms, duration, acute complaints"
+                                  class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-on-surface mb-1.5">Active Medications</label>
+                            <textarea name="clinical_active_medications" rows="2" placeholder="Current prescription drugs, over-the-counter meds, supplements"
+                                      class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-on-surface mb-1.5">Known Drug / Food Allergies</label>
+                            <textarea name="clinical_allergies" rows="2" placeholder="e.g. Penicillin, NSAIDs, Shellfish, Peanuts, Latex, None"
+                                      class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-on-surface mb-1.5">Past Surgical History</label>
+                            <textarea name="clinical_surgical_history" rows="2" placeholder="Previous surgeries, hospitalizations, approximate years"
+                                      class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-on-surface mb-1.5">Family Medical History</label>
+                            <textarea name="clinical_family_history" rows="2" placeholder="Cardiovascular disease, diabetes, hypertension, asthma, cancer"
+                                      class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm textarea-24 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Modal Footer Navigation -->
+        <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex items-center justify-between shrink-0">
+            <button type="button" id="prevBtn" onclick="prevStep()" class="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface font-semibold text-sm px-5 py-2.5 rounded-[24px] border border-outline-variant/40 hover:bg-surface-container transition-all hidden">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                <span>Previous Category</span>
+            </button>
+            <button type="button" id="cancelBtn" onclick="closeRegistrationModal()" class="text-on-surface-variant hover:text-on-surface font-semibold text-sm px-5 py-2.5 rounded-[24px] hover:bg-surface-container transition-all">
+                Cancel
+            </button>
+
+            <div class="flex items-center gap-3">
+                <button type="button" id="nextBtn" onclick="nextStep()" class="inline-flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-on-primary font-semibold text-sm px-6 py-2.5 rounded-[24px] shadow-sm transition-all hover:shadow">
+                    <span>Next: Emergency Contacts</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+                <button type="submit" form="patientMultiStepForm" id="submitBtn" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-[24px] shadow-sm transition-all hover:shadow hidden">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    <span>Submit & Register Patient</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODAL: VIEW PATIENT DETAILS -->
+<!-- ============================================================= -->
+<div id="patientDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+        <div class="px-6 py-5 bg-primary text-on-primary flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[28px]">badge</span>
+                <div>
+                    <h3 class="font-headline font-bold text-lg" id="detailPatientName">Patient Profile</h3>
+                    <p class="text-xs text-on-primary/80" id="detailPatientReg"></p>
+                </div>
+            </div>
+            <button type="button" onclick="closeDetailsModal()" class="text-on-primary/80 hover:text-on-primary p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto space-y-5" id="detailModalContent"></div>
+        <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex justify-end shrink-0">
+            <button type="button" onclick="closeDetailsModal()" class="bg-surface-container text-on-surface hover:bg-surface-container-high font-semibold text-sm px-6 py-2.5 rounded-[24px] transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentCategoryStep = 1;
+const totalCategorySteps = 4;
+const stepNames = [
+    "Next: Emergency Contacts",
+    "Next: Insurance & Billing",
+    "Next: Clinical Screening",
+    "Submit & Register Patient"
+];
+
+function updateStepUI() {
+    for (let i = 1; i <= totalCategorySteps; i++) {
+        const pane = document.getElementById('categoryStep' + i);
+        const circle = document.getElementById('stepCircle' + i);
+        const label = document.getElementById('stepLabel' + i);
+
+        if (i === currentCategoryStep) {
+            pane.classList.remove('hidden');
+            circle.className = "w-10 h-10 rounded-full bg-primary text-on-primary font-bold flex items-center justify-center text-sm shadow-md transition-all";
+            label.className = "text-xs font-bold text-primary mt-1.5 line-clamp-1";
+        } else {
+            pane.classList.add('hidden');
+            if (i < currentCategoryStep) {
+                circle.className = "w-10 h-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-sm transition-all";
+                circle.innerHTML = `<span class="material-symbols-outlined text-[18px]">check</span>`;
+                label.className = "text-xs font-medium text-emerald-700 mt-1.5 line-clamp-1";
+            } else {
+                circle.className = "w-10 h-10 rounded-full bg-surface-container text-on-surface-variant font-bold flex items-center justify-center text-sm transition-all";
+                circle.innerHTML = i;
+                label.className = "text-xs font-medium text-on-surface-variant mt-1.5 line-clamp-1";
+            }
         }
-      }
+    }
+
+    const progressPercent = (currentCategoryStep / totalCategorySteps) * 100;
+    document.getElementById('stepProgressBar').style.width = progressPercent + '%';
+
+    const prevBtn = document.getElementById('prevBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (currentCategoryStep > 1) {
+        prevBtn.classList.remove('hidden');
+        cancelBtn.classList.add('hidden');
+    } else {
+        prevBtn.classList.add('hidden');
+        cancelBtn.classList.remove('hidden');
+    }
+
+    if (currentCategoryStep === totalCategorySteps) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+    } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+        nextBtn.querySelector('span:first-child').innerText = stepNames[currentCategoryStep - 1];
+    }
+}
+
+function validateCategory(step) {
+    if (step === 1) {
+        const name = document.getElementById('c1_full_name').value.trim();
+        const ic = document.getElementById('c1_ic').value.trim();
+        const dob = document.getElementById('c1_dob').value;
+        const phone = document.getElementById('c1_phone').value.trim();
+        if (!name || !ic || !dob || !phone) {
+            alert('Please complete the required fields in Demographics (Full Name, ID/SSN, Date of Birth, and Phone Number).');
+            return false;
+        }
     }
     return true;
-  }
+}
 
-  function nextStep() {
-    if (!validateStep(currentStep)) return;
-    if (currentStep < totalSteps) {
-      currentStep++;
-      updateWizardUI();
+function nextStep() {
+    if (!validateCategory(currentCategoryStep)) return;
+    if (currentCategoryStep < totalCategorySteps) {
+        currentCategoryStep++;
+        updateStepUI();
     }
-  }
+}
 
-  function prevStep() {
-    if (currentStep > 1) {
-      currentStep--;
-      updateWizardUI();
+function prevStep() {
+    if (currentCategoryStep > 1) {
+        currentCategoryStep--;
+        updateStepUI();
     }
-  }
+}
 
-  function goToStep(targetStep) {
-    if (targetStep > currentStep) {
-      if (!validateStep(currentStep)) return;
-    }
-    currentStep = targetStep;
-    updateWizardUI();
-  }
+function jumpToStep(step) {
+    if (step > currentCategoryStep && !validateCategory(currentCategoryStep)) return;
+    currentCategoryStep = step;
+    updateStepUI();
+}
 
-  function copyAddressToBilling() {
-    const addr = document.querySelector('textarea[name="address"]').value;
-    document.getElementById('reg_billing_address').value = addr;
-  }
+function openRegistrationModal() {
+    document.getElementById('registrationModal').classList.remove('hidden');
+    currentCategoryStep = 1;
+    updateStepUI();
+}
 
-  // Filter Table
-  document.getElementById('tableSearch')?.addEventListener('keyup', function(e) {
-    const val = e.target.value.toLowerCase();
-    document.querySelectorAll('#patientsTable tbody tr.patient-row').forEach(row => {
-      row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+function closeRegistrationModal() {
+    document.getElementById('registrationModal').classList.add('hidden');
+}
+
+function copyAddress() {
+    const addr = document.getElementById('c1_address').value;
+    document.getElementById('c3_billing_address').value = addr;
+}
+
+// Search Filter
+document.getElementById('patientSearchInput')?.addEventListener('keyup', function(e) {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.patient-table-row').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
     });
-  });
+});
 
-  // View Patient Details Modal Population
-  document.querySelectorAll('.view-patient-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const p = JSON.parse(this.getAttribute('data-patient'));
-      document.getElementById('viewPatientName').innerText = p.full_name || 'Profil Pesakit';
-      document.getElementById('viewPatientRegNo').innerText = (p.registration_number || 'PT-' + p.id) + ' • Didaftarkan: ' + (p.created_at || '—');
+// View Patient Profile Details
+function viewPatientDetails(p) {
+    document.getElementById('detailPatientName').innerText = p.full_name || 'Patient Profile';
+    document.getElementById('detailPatientReg').innerText = (p.registration_number || 'PT-' + p.id) + ' • Registered: ' + (p.created_at || '—');
 
-      const body = document.getElementById('viewPatientBody');
-      body.innerHTML = `
-        <div class="row g-4">
-          <!-- 1. Demographics -->
-          <div class="col-12">
-            <div class="p-3 rounded-4 bg-light">
-              <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-                <span class="material-symbols-outlined">badge</span> 1. Demographics & Identification
-              </h6>
-              <div class="row g-2 small">
-                <div class="col-sm-6"><strong>Nama Penuh:</strong> ${p.full_name || '—'}</div>
-                <div class="col-sm-6"><strong>No. IC / ID:</strong> ${p.ic_number || '—'}</div>
-                <div class="col-sm-6"><strong>Tarikh Lahir:</strong> ${p.date_of_birth || '—'}</div>
-                <div class="col-sm-6"><strong>Jantina:</strong> ${p.gender ? p.gender.toUpperCase() : '—'} ${p.gender_identity ? '(' + p.gender_identity + ')' : ''}</div>
-                <div class="col-sm-6"><strong>Telefon:</strong> ${p.phone || '—'}</div>
-                <div class="col-sm-6"><strong>Emel:</strong> ${p.email || '—'}</div>
-                <div class="col-12 mt-2"><strong>Alamat Kediaman:</strong> ${p.address || '—'}</div>
-              </div>
+    const html = `
+        <div class="space-y-4">
+            <!-- 1. Demographics -->
+            <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20">
+                <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-[18px]">badge</span>
+                    <span>1. Demographics & Identification</span>
+                </h4>
+                <div class="grid grid-cols-2 gap-2 text-xs text-on-surface">
+                    <div><span class="text-on-surface-variant font-medium">Full Name:</span> <strong>${p.full_name || '—'}</strong></div>
+                    <div><span class="text-on-surface-variant font-medium">National ID / SSN:</span> <strong>${p.ic_number || '—'}</strong></div>
+                    <div><span class="text-on-surface-variant font-medium">Date of Birth:</span> ${p.date_of_birth || '—'}</div>
+                    <div><span class="text-on-surface-variant font-medium">Sex / Gender:</span> ${p.gender || '—'} ${p.gender_identity ? '(' + p.gender_identity + ')' : ''}</div>
+                    <div><span class="text-on-surface-variant font-medium">Phone:</span> ${p.phone || '—'}</div>
+                    <div><span class="text-on-surface-variant font-medium">Email:</span> ${p.email || '—'}</div>
+                    <div class="col-span-2 mt-1"><span class="text-on-surface-variant font-medium">Residential Address:</span> ${p.address || '—'}</div>
+                </div>
             </div>
-          </div>
 
-          <!-- 2. Emergency Contacts -->
-          <div class="col-12">
-            <div class="p-3 rounded-4 bg-light">
-              <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-                <span class="material-symbols-outlined">emergency</span> 2. Emergency Contacts
-              </h6>
-              <div class="row g-2 small">
-                <div class="col-sm-6"><strong>Nama Kontak:</strong> ${p.emergency_contact_name || '—'}</div>
-                <div class="col-sm-6"><strong>Hubungan:</strong> ${p.emergency_contact_relationship || '—'}</div>
-                <div class="col-sm-6"><strong>No. Telefon:</strong> ${p.emergency_contact_phone || '—'}</div>
-                <div class="col-sm-6"><strong>Telefon Alternatif:</strong> ${p.emergency_contact_alt_phone || '—'}</div>
-              </div>
+            <!-- 2. Emergency Contacts -->
+            <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20">
+                <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-[18px]">emergency</span>
+                    <span>2. Emergency Contacts</span>
+                </h4>
+                <div class="grid grid-cols-2 gap-2 text-xs text-on-surface">
+                    <div><span class="text-on-surface-variant font-medium">Contact Name:</span> <strong>${p.emergency_contact_name || '—'}</strong></div>
+                    <div><span class="text-on-surface-variant font-medium">Relationship:</span> ${p.emergency_contact_relationship || '—'}</div>
+                    <div><span class="text-on-surface-variant font-medium">Primary Phone:</span> ${p.emergency_contact_phone || '—'}</div>
+                    <div><span class="text-on-surface-variant font-medium">Alternate Phone:</span> ${p.emergency_contact_alt_phone || '—'}</div>
+                </div>
             </div>
-          </div>
 
-          <!-- 3. Insurance & Billing -->
-          <div class="col-12">
-            <div class="p-3 rounded-4 bg-light">
-              <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-                <span class="material-symbols-outlined">receipt_long</span> 3. Insurance & Billing
-              </h6>
-              <div class="row g-2 small">
-                <div class="col-sm-6"><strong>Penanggung / Syarikat:</strong> ${p.insurance_payer || '—'}</div>
-                <div class="col-sm-6"><strong>Jenis Liputan:</strong> ${p.insurance_coverage_type || '—'}</div>
-                <div class="col-sm-6"><strong>No. Polisi / ID Ahli:</strong> ${p.insurance_policy_id || '—'}</div>
-                <div class="col-sm-6"><strong>No. Kumpulan:</strong> ${p.insurance_group_number || '—'}</div>
-                <div class="col-12"><strong>Maklumat Pemegang:</strong> ${p.insurance_subscriber_details || '—'}</div>
-                <div class="col-12"><strong>Alamat Pengebilan:</strong> ${p.billing_address || '—'}</div>
-              </div>
+            <!-- 3. Insurance & Billing -->
+            <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20">
+                <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                    <span>3. Insurance & Billing</span>
+                </h4>
+                <div class="grid grid-cols-2 gap-2 text-xs text-on-surface">
+                    <div><span class="text-on-surface-variant font-medium">Payer / Carrier:</span> <strong>${p.insurance_payer || '—'}</strong></div>
+                    <div><span class="text-on-surface-variant font-medium">Coverage Type:</span> ${p.insurance_coverage_type || '—'}</div>
+                    <div><span class="text-on-surface-variant font-medium">Policy / Member ID:</span> ${p.insurance_policy_id || '—'}</div>
+                    <div><span class="text-on-surface-variant font-medium">Group Number:</span> ${p.insurance_group_number || '—'}</div>
+                    <div class="col-span-2"><span class="text-on-surface-variant font-medium">Subscriber Details:</span> ${p.insurance_subscriber_details || '—'}</div>
+                    <div class="col-span-2"><span class="text-on-surface-variant font-medium">Billing Address:</span> ${p.billing_address || '—'}</div>
+                </div>
             </div>
-          </div>
 
-          <!-- 4. Initial Clinical Screening -->
-          <div class="col-12">
-            <div class="p-3 rounded-4 bg-light">
-              <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-                <span class="material-symbols-outlined">medical_services</span> 4. Initial Clinical Screening
-              </h6>
-              <div class="row g-2 small">
-                <div class="col-12"><strong>Sebab Lawatan (Reason for Visit):</strong><br><span class="text-danger fw-semibold">${p.clinical_reason_for_visit || '—'}</span></div>
-                <div class="col-md-6 mt-2"><strong>Ubat-ubatan Aktif:</strong><br>${p.clinical_active_medications || 'Tiada'}</div>
-                <div class="col-md-6 mt-2"><strong>Alahan Diketahui:</strong><br>${p.clinical_allergies || 'Tiada'}</div>
-                <div class="col-md-6 mt-2"><strong>Sejarah Pembedahan:</strong><br>${p.clinical_surgical_history || 'Tiada'}</div>
-                <div class="col-md-6 mt-2"><strong>Sejarah Perubatan Keluarga:</strong><br>${p.clinical_family_history || 'Tiada'}</div>
-              </div>
+            <!-- 4. Initial Clinical Screening -->
+            <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20">
+                <h4 class="font-headline font-bold text-sm text-primary flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-[18px]">medical_services</span>
+                    <span>4. Initial Clinical Screening</span>
+                </h4>
+                <div class="space-y-2 text-xs text-on-surface">
+                    <div><span class="text-on-surface-variant font-medium">Primary Reason for Visit:</span> <strong class="text-rose-600">${p.clinical_reason_for_visit || '—'}</strong></div>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div><span class="text-on-surface-variant font-medium">Active Medications:</span><br>${p.clinical_active_medications || 'None'}</div>
+                        <div><span class="text-on-surface-variant font-medium">Known Allergies:</span><br>${p.clinical_allergies || 'None'}</div>
+                        <div><span class="text-on-surface-variant font-medium">Past Surgical History:</span><br>${p.clinical_surgical_history || 'None'}</div>
+                        <div><span class="text-on-surface-variant font-medium">Family Medical History:</span><br>${p.clinical_family_history || 'None'}</div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      `;
-    });
-  });
+    `;
+
+    document.getElementById('detailModalContent').innerHTML = html;
+    document.getElementById('patientDetailsModal').classList.remove('hidden');
+}
+
+function closeDetailsModal() {
+    document.getElementById('patientDetailsModal').classList.add('hidden');
+}
 </script>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

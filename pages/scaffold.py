@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'admin' => '../admin/dashboard.php',
             'doctor' => '../doctor/cdashboard.php',
             'volunteer' => '../volunteer/dashboard.php',
-            'user' => '../patient/dashboard.php',
+            'user' => '../dashboard/dashboard.php',
             default => '../auth/login.php'
         };
         header("Location: $redirect"); exit;
@@ -270,7 +270,7 @@ $userRole = $_SESSION['user_role'] ?? 'admin';
 </head>
 <body class="sedap-body bg-surface text-on-surface">
 <div class="sedap-layout flex min-h-screen">
-  <?php include '{depth}shared/includes/sidebar_admin.php'; ?>
+  <?php include '{depth}shared/includes/sidebar.php'; ?>
   <div class="sedap-main flex-1 flex flex-col">
     <?php include '{depth}shared/includes/header.php'; ?>
     <div class="sedap-content p-6">

@@ -7,6 +7,24 @@ if (!isset($_SESSION)) {
     session_start();
 }
 
+if (!function_exists('sedap_root')) {
+    function sedap_root(): string {
+        if (!empty($_SERVER['SCRIPT_NAME'])) {
+            $script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+            $pos = strpos($script, '/pages/');
+            if ($pos !== false) {
+                return substr($script, 0, $pos);
+            }
+            $dir = dirname($script);
+            return ($dir === '/' || $dir === '\\') ? '' : str_replace('\\', '/', $dir);
+        }
+        return '/sedap/sedap2.0';
+    }
+}
+if (!isset($_ROOT)) {
+    $_ROOT = sedap_root();
+}
+
 $_SESSION_LANG = $_SESSION['lang'] ?? 'ms';
 if (!in_array($_SESSION_LANG, ['ms', 'en'], true)) {
     $_SESSION_LANG = 'ms';

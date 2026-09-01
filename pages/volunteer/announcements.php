@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'volunteer') {
 }
 $userName  = htmlspecialchars($_SESSION['user_name'] ?? 'Sukarelawan');
 $_cuiTheme = !empty($_SESSION['dark_mode']) ? 'dark' : 'light';
-$_ROOT     = '/sedap2.0';
+$_ROOT = $_ROOT ?? sedap_root();
 $announcements = $pdo->query("SELECT * FROM announcements WHERE status='published' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -21,7 +21,7 @@ $announcements = $pdo->query("SELECT * FROM announcements WHERE status='publishe
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
 <body class="layout-fixed">
-  <?php include '../shared/includes/sidebar_volunteer.php'; ?>
+  <?php include '../shared/includes/sidebar.php'; ?>
   <div class="wrapper d-flex flex-column min-vh-100">
     <?php include '../shared/includes/header.php'; ?>
     <div class="body flex-grow-1">

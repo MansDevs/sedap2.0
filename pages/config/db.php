@@ -6,7 +6,25 @@
  * All PHP files include this to get a shared $pdo instance.
  */
 
-$host = 'localhost';
+if (!function_exists('sedap_root')) {
+    function sedap_root(): string {
+        if (!empty($_SERVER['SCRIPT_NAME'])) {
+            $script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+            $pos = strpos($script, '/pages/');
+            if ($pos !== false) {
+                return substr($script, 0, $pos);
+            }
+            $dir = dirname($script);
+            return ($dir === '/' || $dir === '\\') ? '' : str_replace('\\', '/', $dir);
+        }
+        return '/sedap/sedap2.0';
+    }
+}
+if (!isset($_ROOT)) {
+    $_ROOT = sedap_root();
+}
+
+$host = '10.108.203.40';
 $dbname = 'sedap';       // The database name created in phpMyAdmin
 $username = 'sedap';        // Default XAMPP MySQL user
 $password = 'sedapupnm';            // XAMPP MySQL password (empty)

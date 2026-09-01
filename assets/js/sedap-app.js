@@ -3,6 +3,8 @@
  * CoreUI Bootstrap 5 — Click-Only Sidebar Collapse (No Hover Expansion)
  */
 
+const SEDAP_ROOT = window._SEDAP_ROOT || (window.location.pathname.includes('/sedap/sedap2.0') ? '/sedap/sedap2.0' : '/sedap2.0');
+
 /* ── Universal Sidebar Toggle ───────────────────────────────────── */
 function sedapToggleSidebar() {
   const sidebarEl = document.getElementById('sidebar');
@@ -41,7 +43,7 @@ function sedapToggleDark() {
   if (icon) icon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
 
   // Persist to PHP session via AJAX
-  fetch('/sedap2.0/pages/shared/actions/set_dark_mode.php', {
+  fetch(`${SEDAP_ROOT}/pages/shared/actions/set_dark_mode.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ dark_mode: newTheme === 'dark' ? 1 : 0 })
@@ -52,7 +54,7 @@ function sedapToggleDark() {
 function sedapSetLanguage(lang) {
   if (!lang || !['ms', 'en'].includes(lang)) return;
 
-  fetch('/sedap2.0/pages/shared/actions/set_language.php', {
+  fetch(`${SEDAP_ROOT}/pages/shared/actions/set_language.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ lang: lang })
@@ -147,7 +149,7 @@ function sedapToggleSound() {
     sedapToast('Bunyi notifikasi dinyahaktifkan / Sound notifications muted', 'info');
   }
 
-  fetch('/sedap2.0/pages/shared/actions/set_sound_notification.php', {
+  fetch(`${SEDAP_ROOT}/pages/shared/actions/set_sound_notification.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sound_notification: isEnabled ? 1 : 0 })
@@ -176,7 +178,7 @@ function sedapUpdateSidebarBadges(count) {
 
 async function sedapPollGlobalUnread() {
   try {
-    const res = await fetch('/sedap2.0/pages/shared/actions/chat_api.php?action=get_unread_total');
+    const res = await fetch(`${SEDAP_ROOT}/pages/shared/actions/chat_api.php?action=get_unread_total`);
     if (!res.ok) return;
     const data = await res.json();
     if (!data.ok) return;

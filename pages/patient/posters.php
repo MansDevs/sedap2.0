@@ -21,7 +21,7 @@ $posters = $pdo->query("SELECT * FROM posters WHERE status='published' ORDER BY 
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
 <body class="layout-fixed">
-  <?php include '../shared/includes/sidebar_user.php'; ?>
+  <?php include '../shared/includes/sidebar.php'; ?>
   <div class="wrapper d-flex flex-column min-vh-100">
     <?php include '../shared/includes/header.php'; ?>
     <div class="body flex-grow-1">
