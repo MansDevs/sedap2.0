@@ -103,7 +103,7 @@ function initials(string $name): string
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="adminDarkModeToggle" class="sr-only peer">
+                            <input type="checkbox" id="adminDarkModeToggle" class="sr-only peer" <?php echo !empty($currentUser['dark_mode']) ? 'checked' : ''; ?>>
                             <div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
@@ -236,11 +236,34 @@ function initials(string $name): string
 <script>
     const adminDarkModeToggle = document.getElementById('adminDarkModeToggle');
     if (adminDarkModeToggle) {
-        adminDarkModeToggle.addEventListener('change', () => {
-            if (adminDarkModeToggle.checked) {
+        adminDarkModeToggle.addEventListener('change', async () => {
+            const isDark = adminDarkModeToggle.checked;
+            
+            // 1. Instantly update HTML class
+            if (isDark) {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
+            }
+
+            // 2. Save to localStorage for instant synchronous restoration
+            try {
+                localStorage.setItem('sedap_dark_mode', isDark ? 'true' : 'false');
+            } catch (e) {}
+
+            // 3. Save to users.dark_mode in MySQL Database & Session via AJAX
+            try {
+                const res = await fetch('<?php echo $adminBase; ?>../shared/actions/set_dark_mode.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dark_mode: isDark ? 1 : 0 })
+                });
+                const data = await res.json();
+                if (!data.ok) {
+                    console.error('Failed to save dark mode to DB:', data.error);
+                }
+            } catch (err) {
+                console.error('Network error saving dark mode:', err);
             }
         });
     }

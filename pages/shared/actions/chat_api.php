@@ -296,7 +296,8 @@ if ($action === 'upload_photo' || (isset($_FILES['photo']) && $_FILES['photo']['
         exit;
     }
 
-    $photoUrl = '<?= $_ROOT ?>/uploads/chat/' . $newFileName;
+    $rootPath = sedap_root();
+    $photoUrl = $rootPath . '/uploads/chat/' . $newFileName;
     $content = '[img]' . $photoUrl . '[/img]';
     if (!empty($caption)) {
         $content = $caption . "\n" . $content;
@@ -363,7 +364,8 @@ if ($action === 'upload_voice' || (isset($_FILES['voice_note']) && $_FILES['voic
         exit;
     }
 
-    $audioUrl = '<?= $_ROOT ?>/uploads/chat_audio/' . $newFileName;
+    $rootPath = sedap_root();
+    $audioUrl = $rootPath . '/uploads/chat_audio/' . $newFileName;
     $content = '[audio]' . $audioUrl . '[/audio]';
 
     $stmt = $pdo->prepare("INSERT INTO messages (conversation_id, sender_id, content, created_at) VALUES (?, ?, ?, NOW())");
@@ -426,6 +428,13 @@ if ($action === 'send_message') {
             'sender_role' => $currentUserRole
         ]
     ]);
+    exit;
+}
+
+if ($action === 'get_faq_templates') {
+    $stmt = $pdo->query("SELECT id, question, answer FROM faq_templates WHERE is_active = 1 ORDER BY id ASC");
+    $faqs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(['ok' => true, 'faqs' => $faqs]);
     exit;
 }
 

@@ -60,6 +60,7 @@ $navItems = [
     [
         'key' => 'chat',
         'label' => 'Live Chat',
+        'badge' => 'BETA',
         'short_label' => 'Chat',
         'icon' => 'chat',
         'path' => 'chat/index.php',

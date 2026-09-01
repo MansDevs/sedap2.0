@@ -46,6 +46,7 @@ $navItems = [
     [
         'key' => 'chat',
         'label' => 'Live Chat',
+        'badge' => 'BETA',
         'icon' => 'chat',
         'path' => 'chat/index.php',
         'description' => 'Message staff, volunteers, and patients.',

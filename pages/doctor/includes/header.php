@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/nav_items.php';
+$isDarkMode = !empty($currentUser['dark_mode']) || !empty($_SESSION['dark_mode']);
 ?>
 <!DOCTYPE html>
-<html class="h-full" lang="en">
+<html class="h-full <?php echo $isDarkMode ? 'dark' : ''; ?>" lang="en">
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -14,11 +15,16 @@ require_once __DIR__ . '/nav_items.php';
     <script src="<?php echo $doctorBase; ?>../../assets/js/theme-config.js"></script>
     <link rel="stylesheet" href="<?php echo $doctorBase; ?>../../assets/css/animations.css">
     
-    <!-- Instant synchronous state check to prevent layout shift on page navigation -->
+    <!-- Instant synchronous state check to prevent layout shift and theme flicker -->
     <script>
         try {
             if (localStorage.getItem('doctor_sidebar_collapsed') === 'true' && window.innerWidth >= 768) {
                 document.documentElement.classList.add('sidebar-collapsed');
+            }
+            if (localStorage.getItem('sedap_dark_mode') === 'true') {
+                document.documentElement.classList.add('dark');
+            } else if (localStorage.getItem('sedap_dark_mode') === 'false') {
+                document.documentElement.classList.remove('dark');
             }
         } catch(e) {}
     </script>
@@ -32,6 +38,98 @@ require_once __DIR__ . '/nav_items.php';
         }
         aside::-webkit-scrollbar, main::-webkit-scrollbar { width: 6px; }
         aside::-webkit-scrollbar-thumb, main::-webkit-scrollbar-thumb { background: #c2c6d5; border-radius: 10px; }
+
+        /* ============================================================ */
+        /* CLEAN SOLID DARK THEME (NO GRADIENTS)                        */
+        /* ============================================================ */
+        html.dark {
+            color-scheme: dark;
+        }
+        html.dark body {
+            background-color: #0b0f19 !important;
+            color: #f8fafc !important;
+        }
+        html.dark .mesh-bg {
+            background-color: #0b0f19 !important;
+            background-image: none !important;
+        }
+        html.dark aside,
+        html.dark #doctorSidebar {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+        }
+        html.dark header,
+        html.dark header.bg-surface-container-low\/60,
+        html.dark .bg-surface-container-low,
+        html.dark .bg-surface-container-low\/60 {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        html.dark .bg-surface-container-lowest {
+            background-color: #131d2e !important;
+            background-image: none !important;
+            border-color: #1e293b !important;
+        }
+        html.dark .bg-surface-container {
+            background-color: #172338 !important;
+            border-color: #1e293b !important;
+        }
+        html.dark .bg-surface-container-high {
+            background-color: #1e2d44 !important;
+        }
+        html.dark .bg-surface-container-highest {
+            background-color: #24354f !important;
+        }
+        html.dark .bg-surface-variant {
+            background-color: #172338 !important;
+        }
+        html.dark .bg-surface {
+            background-color: #0b0f19 !important;
+        }
+
+        html.dark .text-on-surface { color: #f8fafc !important; }
+        html.dark .text-on-surface-variant { color: #94a3b8 !important; }
+
+        html.dark .border-outline-variant,
+        html.dark .border-outline-variant\/40,
+        html.dark .border-outline-variant\/30,
+        html.dark .border-outline-variant\/25,
+        html.dark .border-outline-variant\/20 {
+            border-color: #1e293b !important;
+        }
+        html.dark .border-outline {
+            border-color: #334155 !important;
+        }
+
+        html.dark input, 
+        html.dark select, 
+        html.dark textarea {
+            background-color: #131d2e !important;
+            color: #f8fafc !important;
+            border-color: #1e293b !important;
+        }
+        html.dark input::placeholder,
+        html.dark textarea::placeholder {
+            color: #64748b !important;
+        }
+
+        html.dark .interactive-card {
+            background-color: #131d2e !important;
+            border-color: #1e293b !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+        }
+        html.dark .interactive-card:hover {
+            background-color: #18263c !important;
+            border-color: #334155 !important;
+            box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        html.dark aside::-webkit-scrollbar-thumb, 
+        html.dark main::-webkit-scrollbar-thumb { 
+            background: #1e293b !important; 
+        }
 
         /* Navigation Icons: Outlined by default, Filled when Active */
         .sidebar-nav-icon {
@@ -93,15 +191,16 @@ require_once __DIR__ . '/nav_items.php';
         /* Hover on inactive item */
         #doctorSidebar.collapsed .sidebar-nav-item:not(.active):hover .nav-icon-indicator,
         html.sidebar-collapsed #doctorSidebar .sidebar-nav-item:not(.active):hover .nav-icon-indicator {
-            background-color: rgba(8, 115, 131, 0.08) !important;
-            color: #087383 !important;
+            background-color: rgba(0, 88, 189, 0.12) !important;
+            color: #0058bd !important;
         }
 
-        /* Selected Active Indicator Pill */
+        /* Selected Active Indicator Pill in Blue */
         #doctorSidebar.collapsed .sidebar-nav-item.active .nav-icon-indicator,
         html.sidebar-collapsed #doctorSidebar .sidebar-nav-item.active .nav-icon-indicator {
-            background-color: #d1f0f4 !important;
-            color: #087383 !important;
+            background-color: #0058bd !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(0, 88, 189, 0.3) !important;
         }
 
         /* Selected Active Label Text */
@@ -122,8 +221,36 @@ require_once __DIR__ . '/nav_items.php';
         }
         #doctorSidebar.collapsed .sidebar-nav-item.active .sidebar-rail-label,
         html.sidebar-collapsed #doctorSidebar .sidebar-nav-item.active .sidebar-rail-label {
-            color: #087383 !important;
+            color: #0058bd !important;
             font-weight: 700 !important;
+        }
+        /* Rail Badge in Collapsed mode */
+        .sidebar-rail-badge {
+            display: none;
+        }
+        #doctorSidebar.collapsed .sidebar-rail-badge,
+        html.sidebar-collapsed #doctorSidebar .sidebar-rail-badge {
+            display: inline-block !important;
+            position: absolute !important;
+            top: -4px !important;
+            right: 2px !important;
+            font-size: 7.5px !important;
+            font-weight: 900 !important;
+            padding: 1.5px 3.5px !important;
+            border-radius: 4px !important;
+            line-height: 1 !important;
+            letter-spacing: -0.02em !important;
+            background-color: #0058bd !important;
+            color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+            border: 1px solid rgba(255,255,255,0.4) !important;
+            z-index: 10 !important;
+        }
+        #doctorSidebar.collapsed .sidebar-nav-item.active .sidebar-rail-badge,
+        html.sidebar-collapsed #doctorSidebar .sidebar-nav-item.active .sidebar-rail-badge {
+            background-color: #ffffff !important;
+            color: #0058bd !important;
+            border: 1px solid rgba(0,88,189,0.2) !important;
         }
 
         #doctorSidebar.collapsed .sidebar-brand,
@@ -245,10 +372,20 @@ require_once __DIR__ . '/nav_items.php';
                 <a href="<?php echo $doctorBase . $item['path']; ?>"
                    title="<?php echo htmlspecialchars($item['label']); ?>"
                    class="sidebar-nav-item flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-medium transition-all <?php echo $isActive ? 'active bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'; ?>">
-                    <div class="nav-icon-indicator shrink-0">
+                    <div class="nav-icon-indicator shrink-0 relative">
                         <span class="material-symbols-outlined sidebar-nav-icon text-[22px]"><?php echo $item['icon']; ?></span>
+                        <?php if (!empty($item['badge'])): ?>
+                            <span class="sidebar-rail-badge"><?php echo htmlspecialchars($item['badge']); ?></span>
+                        <?php endif; ?>
                     </div>
-                    <span class="sidebar-text truncate font-medium"><?php echo htmlspecialchars($item['label']); ?></span>
+                    <span class="sidebar-text truncate font-medium flex items-center justify-between flex-1">
+                        <span><?php echo htmlspecialchars($item['label']); ?></span>
+                        <?php if (!empty($item['badge'])): ?>
+                            <span class="text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded-md <?php echo $isActive ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-[#38bdf8]'; ?>">
+                                <?php echo htmlspecialchars($item['badge']); ?>
+                            </span>
+                        <?php endif; ?>
+                    </span>
                     <span class="sidebar-rail-label truncate"><?php echo htmlspecialchars($item['short_label'] ?? $item['label']); ?></span>
                 </a>
             <?php endforeach; ?>
@@ -280,6 +417,13 @@ require_once __DIR__ . '/nav_items.php';
             <div class="md:hidden w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm border border-outline-variant/30">
                 <img src="<?php echo $doctorBase; ?>../auth/logo.jpg" alt="SeDaP Logo" class="w-full h-full object-cover">
             </div>
-            <h1 class="font-headline text-xl md:text-2xl font-bold text-on-surface truncate"><?php echo htmlspecialchars($pageTitle ?? ''); ?></h1>
+            <div class="flex items-center gap-2.5 min-w-0">
+                <h1 class="font-headline text-xl md:text-2xl font-bold text-on-surface truncate"><?php echo htmlspecialchars($pageTitle ?? ''); ?></h1>
+                <?php if (($activeNav ?? '') === 'chat' || ($pageTitle ?? '') === 'Live Chat'): ?>
+                    <span class="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-[#38bdf8] border border-primary/20 shrink-0">
+                        BETA
+                    </span>
+                <?php endif; ?>
+            </div>
         </header>
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10">

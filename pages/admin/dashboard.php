@@ -22,7 +22,14 @@ require_once __DIR__ . '/includes/header.php';
             <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 text-primary group-hover:scale-110">
                 <span class="material-symbols-outlined text-[24px]"><?php echo $item['icon']; ?></span>
             </div>
-            <h3 class="font-headline font-bold text-lg text-on-surface mb-1"><?php echo htmlspecialchars($item['label']); ?></h3>
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="font-headline font-bold text-lg text-on-surface"><?php echo htmlspecialchars($item['label']); ?></h3>
+                <?php if (!empty($item['badge'])): ?>
+                    <span class="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-[#38bdf8] border border-primary/20">
+                        <?php echo htmlspecialchars($item['badge']); ?>
+                    </span>
+                <?php endif; ?>
+            </div>
             <p class="text-sm text-on-surface-variant"><?php echo htmlspecialchars($item['description']); ?></p>
         </a>
     <?php endforeach; ?>
