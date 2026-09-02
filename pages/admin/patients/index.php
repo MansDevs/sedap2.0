@@ -210,8 +210,8 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- ============================================================= -->
 <!-- MODAL: MULTI-STEP CATEGORY PATIENT REGISTRATION -->
 <!-- ============================================================= -->
-<div id="registrationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
-    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+<div id="registrationModal" class="fixed inset-0 z-[99999] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" style="display: none;">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[820px] text-left transform transition-all animate-scale-up" onclick="event.stopPropagation()">
         <!-- Modal Header -->
         <div class="px-6 py-5 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
@@ -497,8 +497,9 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- ============================================================= -->
 <!-- MODAL: VIEW PATIENT DETAILS -->
 <!-- ============================================================= -->
-<div id="patientDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
-    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+<div id="patientDetailsModal" class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div class="min-h-full flex items-center justify-center p-3 sm:p-6 text-center">
+        <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto text-left transform transition-all animate-scale-up" onclick="event.stopPropagation()">
         <div class="px-6 py-5 bg-primary text-on-primary flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-[28px]">badge</span>
@@ -516,6 +517,7 @@ require_once __DIR__ . '/../includes/header.php';
             <button type="button" onclick="closeDetailsModal()" class="bg-surface-container text-on-surface hover:bg-surface-container-high font-semibold text-sm px-6 py-2.5 rounded-[24px] transition-colors">
                 Close
             </button>
+        </div>
         </div>
     </div>
 </div>

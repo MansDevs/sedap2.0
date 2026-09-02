@@ -392,18 +392,31 @@ function initials(string $name): string
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('editProfileModal');
+        if (el && el.parentElement !== document.body) document.body.appendChild(el);
+    });
+
     function openEditProfileModal() {
-        document.getElementById('editProfileModal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+        var modal = document.getElementById('editProfileModal');
+        if (modal.parentElement !== document.body) document.body.appendChild(modal);
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        var mainEl = document.querySelector('main');
+        if (mainEl) mainEl.style.overflow = 'hidden';
     }
 
     function closeEditProfileModal() {
-        document.getElementById('editProfileModal').classList.add('hidden');
-        document.body.style.overflow = 'auto';
+        var modal = document.getElementById('editProfileModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        var mainEl = document.querySelector('main');
+        if (mainEl) mainEl.style.overflow = 'auto';
     }
 
     const adminDarkModeToggle = document.getElementById('adminDarkModeToggle');

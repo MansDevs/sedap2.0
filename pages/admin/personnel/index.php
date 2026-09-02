@@ -491,8 +491,8 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- ============================================================= -->
 <!-- MODAL: NORMALIZED SCHEMA VOLUNTEER REGISTRATION -->
 <!-- ============================================================= -->
-<div id="registrationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
-    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto animate-scale-up">
+<div id="registrationModal" class="fixed inset-0 z-[99999] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" style="display: none;">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[820px] text-left transform transition-all animate-scale-up" onclick="event.stopPropagation()">
         
         <!-- Modal Header -->
         <div class="px-6 py-5 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between shrink-0">
@@ -863,14 +863,15 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
 
         </form>
+        </div>
     </div>
 </div>
 
 <!-- ============================================================= -->
 <!-- MODAL: VIEW VOLUNTEER DOSSIER -->
 <!-- ============================================================= -->
-<div id="viewDossierModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
-    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto">
+<div id="viewDossierModal" class="fixed inset-0 z-[99999] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" style="display: none;">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[750px] text-left transform transition-all animate-scale-up" onclick="event.stopPropagation()">
         <div class="px-6 py-5 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
@@ -886,11 +887,11 @@ require_once __DIR__ . '/../includes/header.php';
             </button>
         </div>
 
-        <div class="overflow-y-auto p-6 space-y-5 flex-1 text-sm" id="dossierBody">
+        <div class="overflow-y-auto p-6 space-y-5 flex-1 min-h-0 text-sm text-left" id="dossierBody">
             <!-- Injected dynamically -->
         </div>
 
-        <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex justify-end">
+        <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex justify-end shrink-0">
             <button type="button" onclick="closeDossierModal()" class="px-5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-full transition-colors">
                 Close Dossier
             </button>
@@ -901,15 +902,34 @@ require_once __DIR__ . '/../includes/header.php';
 <script>
 let currentVStep = 1;
 
+// Teleport modals to document.body so they are never trapped in scrolling <main>
+document.addEventListener('DOMContentLoaded', function() {
+    ['viewDossierModal', 'registrationModal'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.parentElement !== document.body) {
+            document.body.appendChild(el);
+        }
+    });
+});
+
 function openRegistrationModal() {
-    document.getElementById('registrationModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    var modal = document.getElementById('registrationModal');
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    var formEl = document.getElementById('volunteerRegForm');
+    if (formEl) formEl.scrollTop = 0;
     jumpToStep(1);
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'hidden';
 }
 
 function closeRegistrationModal() {
-    document.getElementById('registrationModal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
+    var modal = document.getElementById('registrationModal');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'auto';
 }
 
 function toggleTrackView(type) {
@@ -1078,13 +1098,22 @@ function viewVolunteerDossier(v) {
     `;
 
     document.getElementById('dossierBody').innerHTML = html;
-    document.getElementById('viewDossierModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    var modal = document.getElementById('viewDossierModal');
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    var bodyEl = document.getElementById('dossierBody');
+    if (bodyEl) bodyEl.scrollTop = 0;
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'hidden';
 }
 
 function closeDossierModal() {
-    document.getElementById('viewDossierModal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
+    var modal = document.getElementById('viewDossierModal');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'auto';
 }
 </script>
 
