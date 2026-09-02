@@ -52,13 +52,14 @@ function initials(string $name): string
         #messages::-webkit-scrollbar { width: 6px; }
         #messages::-webkit-scrollbar-thumb { background: #c2c6d5; border-radius: 10px; }
         .bubble-mine {
-            background-color: #0058bd;
+            background-color: var(--chat-primary, #087383);
             color: #ffffff;
             border-radius: 18px 18px 4px 18px;
         }
         .bubble-theirs {
-            background-color: #eceef0;
-            color: #191c1e;
+            background-color: var(--chat-bg-surface-low, #f1f5f9);
+            color: var(--chat-text-main, #0f172a);
+            border: 1px solid var(--chat-border, #e2e8f0);
             border-radius: 18px 18px 18px 4px;
         }
     </style>
@@ -81,7 +82,10 @@ function initials(string $name): string
     <!-- Messages -->
     <div id="messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
         <?php if (empty($messages)): ?>
-            <p class="text-center text-on-surface-variant text-sm mt-10">No messages yet. Say hello 👋</p>
+            <p class="text-center text-on-surface-variant text-sm mt-10 flex items-center justify-center gap-1.5">
+                <span>No messages yet. Say hello</span>
+                <span class="material-symbols-outlined text-[18px] text-amber-500">waving_hand</span>
+            </p>
         <?php endif; ?>
 
         <?php foreach ($messages as $m): ?>

@@ -43,10 +43,10 @@ try {
 <html lang="<?= $_SESSION['lang'] ?? 'ms' ?>" data-coreui-theme="<?= $_cuiTheme ?>">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title><?= __('nav_ask_doctor', 'Tanya Doktor') ?> — SeDaP</title>
+  <title>Ask Doctor & Care Team — SeDaP</title>
   <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
   <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/sedap.css?v=2.5">
-  <link rel="stylesheet" href="../doctor/css/livechat.css?v=<?= time() ?>">
+  <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/livechat.css?v=<?= time() ?>">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 </head>
@@ -57,8 +57,8 @@ try {
     <div class="body flex-grow-1">
     <main class="container-fluid px-3 px-md-4 py-3 py-md-4">
       <div class="mb-4">
-        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">chat</span><?= __('nav_ask_doctor', 'Tanya Doktor / Petugas') ?></h1>
-        <p class="page-subtitle"><?= __('page_livechat_sub', 'Dapatkan nasihat perubatan dan panduan rawatan awal') ?></p>
+        <h1 class="page-title"><span class="material-symbols-outlined" style="color:var(--cui-primary);">chat</span>Ask Doctor / Care Team</h1>
+        <p class="page-subtitle">Consult with clinical officers and get guidance in real-time</p>
       </div>
 
       <div class="card chat-app-card shadow-sm mx-auto" style="max-width:850px;height:620px;display:flex;flex-direction:column;">
@@ -68,11 +68,11 @@ try {
               <span class="material-symbols-outlined" style="font-size:20px;">medical_services</span>
             </div>
             <div>
-              <strong class="chat-text-title">Dr. Sarah (Klinik Kesihatan)</strong>
-              <div class="small text-muted" style="font-size:0.75rem;"><span class="text-success fw-bold">•</span> <?= __('chat_status_active', 'Sedia Membantu') ?></div>
+              <strong class="chat-text-title">Dr. Sarah (Clinical Officer)</strong>
+              <div class="small text-muted" style="font-size:0.75rem;"><span class="text-success fw-bold">•</span> Online • Ready to assist</div>
             </div>
           </div>
-          <span class="badge bg-success rounded-pill px-3 py-1"><?= __('status_active', 'Aktif') ?></span>
+          <span class="badge bg-success rounded-pill px-3 py-1">Active</span>
         </div>
 
         <div class="chat-body-scroll flex-grow-1 p-3" id="patientChatBox">
@@ -87,10 +87,10 @@ try {
               <img id="patientPhotoPreviewImg" src="" class="rounded-2 shadow-sm" style="width:48px;height:48px;object-fit:cover;" alt="Preview">
               <div class="min-w-0">
                 <div class="small fw-semibold text-truncate chat-text-title" id="patientPhotoPreviewName">photo.jpg</div>
-                <div class="small text-muted" id="patientPhotoPreviewSize" style="font-size:0.75rem;">Sedia dihantar • Klik butang hantar</div>
+                <div class="small text-muted" id="patientPhotoPreviewSize" style="font-size:0.75rem;">Ready to send • Click send below</div>
               </div>
             </div>
-            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="<?= __('btn_remove_photo', 'Batal Foto') ?>" onclick="clearPatientSelectedPhoto()">
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="Discard Photo" onclick="clearPatientSelectedPhoto()">
               <span class="material-symbols-outlined" style="font-size:16px;">close</span>
             </button>
           </div>
@@ -101,7 +101,7 @@ try {
               <div id="patientRecordingIndicator" class="d-flex align-items-center gap-2">
                 <span class="recording-pulse-dot"></span>
                 <span class="small fw-bold text-danger" id="patientRecordingTimer">0:00</span>
-                <span class="small text-muted d-none d-sm-inline">Merakam Suara / Recording...</span>
+                <span class="small text-muted d-none d-sm-inline">Recording audio...</span>
               </div>
               <div id="patientAudioPlaybackWrapper" class="d-none flex-grow-1 d-flex align-items-center gap-2">
                 <audio id="patientVoiceAudioPreview" controls class="w-100" style="height:34px;"></audio>
@@ -109,9 +109,9 @@ try {
             </div>
             <div class="d-flex align-items-center gap-1">
               <button type="button" id="btnPatientStopRecord" class="btn btn-danger btn-sm rounded-pill px-3 d-flex align-items-center gap-1" onclick="stopPatientVoiceRecording()">
-                <span class="material-symbols-outlined" style="font-size:16px;">stop</span> Selesai
+                <span class="material-symbols-outlined" style="font-size:16px;">stop</span> Finish
               </button>
-              <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="Batal / Discard" onclick="cancelPatientVoiceRecording()">
+              <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="Discard" onclick="cancelPatientVoiceRecording()">
                 <span class="material-symbols-outlined" style="font-size:16px;">close</span>
               </button>
             </div>
@@ -120,17 +120,17 @@ try {
           <form onsubmit="sendPatientMsg(event)" class="d-flex align-items-center gap-2">
             
             <!-- Photo Upload Trigger Button -->
-            <button type="button" class="btn btn-ghost-secondary p-2 rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;" title="<?= __('btn_upload_photo', 'Muat Naik Foto') ?>" onclick="document.getElementById('patientPhotoInput').click()">
+            <button type="button" class="btn btn-ghost-secondary p-2 rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;" title="Upload Photo" onclick="document.getElementById('patientPhotoInput').click()">
               <span class="material-symbols-outlined text-primary" style="font-size:24px;">add_a_photo</span>
             </button>
             <input type="file" id="patientPhotoInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;" onchange="handlePatientPhotoSelect(this)">
 
             <div class="position-relative flex-grow-1">
-              <input type="text" id="patientInput" class="form-control chat-input-pill pe-5" placeholder="<?= __('ph_type_message', 'Tulis soalan kesihatan anda di sini...') ?>" autocomplete="off">
-              <span id="patientMicRecordBtn" class="material-symbols-outlined position-absolute end-0 top-50 translate-middle-y me-3 text-muted" style="font-size:22px;cursor:pointer;transition:color .2s;" title="Rakam Mesej Suara / Record Voice" onclick="togglePatientVoiceRecording()">mic</span>
+              <input type="text" id="patientInput" class="form-control chat-input-pill pe-5" placeholder="Type your message or health inquiry here..." autocomplete="off">
+              <span id="patientMicRecordBtn" class="material-symbols-outlined position-absolute end-0 top-50 translate-middle-y me-3 text-muted" style="font-size:22px;cursor:pointer;transition:color .2s;" title="Record Voice Note" onclick="togglePatientVoiceRecording()">mic</span>
             </div>
 
-            <button type="submit" class="btn chat-send-btn" title="<?= __('btn_send', 'Hantar') ?>">
+            <button type="submit" class="btn chat-send-btn" title="Send">
               <span class="material-symbols-outlined" style="font-size:20px;">send</span>
             </button>
           </form>
@@ -146,18 +146,18 @@ try {
   <!-- Floating Top Bar with Controls -->
   <div class="chat-lightbox-toolbar">
     <div class="chat-lightbox-btn-group">
-      <button type="button" class="chat-lightbox-btn" title="Zum Keluar (-)" onclick="zoomImage(-0.25)">
+      <button type="button" class="chat-lightbox-btn" title="Zoom Out (-)" onclick="zoomImage(-0.25)">
         <span class="material-symbols-outlined" style="font-size:20px;">zoom_out</span>
       </button>
       <span class="px-2 py-1 small text-white fw-bold d-flex align-items-center" id="zoomLevelText" style="min-width:55px;justify-content:center;">100%</span>
-      <button type="button" class="chat-lightbox-btn" title="Zum Masuk (+)" onclick="zoomImage(0.25)">
+      <button type="button" class="chat-lightbox-btn" title="Zoom In (+)" onclick="zoomImage(0.25)">
         <span class="material-symbols-outlined" style="font-size:20px;">zoom_in</span>
       </button>
-      <button type="button" class="chat-lightbox-btn" title="Set Semula Zum (100%)" onclick="resetZoomImage()">
+      <button type="button" class="chat-lightbox-btn" title="Reset Zoom (100%)" onclick="resetZoomImage()">
         <span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span>
       </button>
     </div>
-    <button type="button" class="chat-lightbox-btn-close" title="Tutup (Esc)" onclick="closeLightbox()">
+    <button type="button" class="chat-lightbox-btn-close" title="Close (Esc)" onclick="closeLightbox()">
       <span class="material-symbols-outlined" style="font-size:24px;">close</span>
     </button>
   </div>
@@ -168,7 +168,7 @@ try {
   </div>
 
   <div class="text-white-50 small mt-3 d-none d-md-block" style="text-shadow:0 1px 4px rgba(0,0,0,0.8);pointer-events:none;">
-    <span class="material-symbols-outlined align-middle" style="font-size:16px;">touch_app</span> Klik dua kali / Skrol tetikus untuk zum • Seret untuk gerakkan • Esc untuk tutup
+    <span class="material-symbols-outlined align-middle" style="font-size:16px;">touch_app</span> Double-click or scroll to zoom • Drag to pan • Esc to close
   </div>
 </div>
 
@@ -549,14 +549,14 @@ async function loadPatientMessages() {
           <ul class="dropdown-menu shadow-sm ${isMe ? 'dropdown-menu-end' : ''}" style="border-radius:0.75rem;font-size:0.85rem;">
             <li>
               <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" onclick="copyMessageText('${rawCopy}')">
-                <span class="material-symbols-outlined" style="font-size:16px;">content_copy</span> <?= __('btn_copy', 'Salin') ?>
+                <span class="material-symbols-outlined" style="font-size:16px;">content_copy</span> Copy Message
               </a>
             </li>
             ${m.can_delete ? `
             <li><hr class="dropdown-divider my-1"></li>
             <li>
               <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="javascript:void(0)" onclick="deletePatientMessage(${m.id})">
-                <span class="material-symbols-outlined" style="font-size:16px;">delete</span> <?= __('btn_delete', 'Padam Mesej') ?>
+                <span class="material-symbols-outlined" style="font-size:16px;">delete</span> Delete Message
               </a>
             </li>` : ''}
           </ul>
@@ -593,7 +593,7 @@ async function loadPatientMessages() {
       html = `
         <div class="text-center text-muted p-5 small">
           <span class="material-symbols-outlined d-block mb-2" style="font-size:36px;opacity:.4;">chat</span>
-          Selamat sejahtera. Sila kemukakan sebarang pertanyaan klinikal atau muat naik foto keadaan untuk semakan doktor.
+          Welcome to SeDaP Live Chat. Please type your medical inquiry or upload photos for review.
         </div>
       `;
     }

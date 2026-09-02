@@ -24,7 +24,7 @@ if (!isset($_ROOT)) {
     $_ROOT = sedap_root();
 }
 
-$host = '10.108.203.40';
+$host = 'localhost';
 $dbname = 'sedap';       // The database name created in phpMyAdmin
 $username = 'sedap';        // Default XAMPP MySQL user
 $password = 'sedapupnm';            // XAMPP MySQL password (empty)

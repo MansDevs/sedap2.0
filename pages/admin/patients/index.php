@@ -145,7 +145,7 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="w-full text-left text-sm" id="patientsTable">
                 <thead class="bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider">
                     <tr>
-                        <th class="py-3.5 px-6">Reg #</th>
+                        <th class="py-3.5 px-6">Reg</th>
                         <th class="py-3.5 px-4">Patient Name</th>
                         <th class="py-3.5 px-4">IC / ID</th>
                         <th class="py-3.5 px-4">Sex / Gender</th>

@@ -5,13 +5,56 @@ $pageTitle = 'Settings & Preferences';
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/access.php';
 requireRole($currentUser, [], $adminBase);
+
+$msg = '';
+$err = '';
+
+// Handle Profile Update Submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_profile') {
+    $newName     = trim($_POST['name'] ?? '');
+    $newUsername = trim($_POST['username'] ?? '');
+    $newPhone    = trim($_POST['phone'] ?? '');
+
+    if (empty($newName)) {
+        $err = 'Name cannot be empty.';
+    } elseif (empty($newUsername)) {
+        $err = 'Username cannot be empty.';
+    } else {
+        try {
+            // Check if username is already taken by another user
+            $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+            $checkStmt->execute([$newUsername, $currentUser['id']]);
+            if ($checkStmt->fetch()) {
+                $err = 'This username is already taken by another account. Please choose a different one.';
+            } else {
+                $upStmt = $pdo->prepare("UPDATE users SET name = ?, username = ?, phone = ? WHERE id = ?");
+                $upStmt->execute([$newName, $newUsername, $newPhone, $currentUser['id']]);
+
+                // Update session and local variable
+                $_SESSION['user_name'] = $newName;
+                $_SESSION['username']  = $newUsername;
+                $_SESSION['user_phone'] = $newPhone;
+                
+                $currentUser['name']     = $newName;
+                $currentUser['username'] = $newUsername;
+                $currentUser['phone']    = $newPhone;
+
+                $msg = 'Your profile information (username and phone number) has been updated successfully!';
+            }
+        } catch (Exception $e) {
+            $err = 'Failed to update profile: ' . $e->getMessage();
+        }
+    }
+}
+
 require_once __DIR__ . '/../includes/header.php';
 
-$userName = $currentUser['name'] ?? 'Admin';
-$userEmail = $currentUser['email'] ?? '';
-$userRole = $currentUser['role'] ?? 'admin';
-$userPhone = $currentUser['phone'] ?? 'Not set';
-$userId = (int) $currentUser['id'];
+$userName     = $currentUser['name'] ?? 'Admin';
+$userUsername = $currentUser['username'] ?? '';
+$userEmail    = $currentUser['email'] ?? '';
+$userRole     = $currentUser['role'] ?? 'admin';
+$userPhone    = !empty($currentUser['phone']) ? $currentUser['phone'] : '';
+$userId       = (int) $currentUser['id'];
 
 function initials(string $name): string
 {
@@ -22,6 +65,21 @@ function initials(string $name): string
 ?>
 
 <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Alert Messages -->
+    <?php if ($msg): ?>
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-[20px] flex items-center gap-3 shadow-sm animate-fade-in">
+            <span class="material-symbols-outlined text-emerald-600 text-[24px]">check_circle</span>
+            <div class="font-medium text-sm"><?php echo htmlspecialchars($msg); ?></div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($err): ?>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-[20px] flex items-center gap-3 shadow-sm animate-fade-in">
+            <span class="material-symbols-outlined text-rose-600 text-[24px]">error</span>
+            <div class="font-medium text-sm"><?php echo htmlspecialchars($err); ?></div>
+        </div>
+    <?php endif; ?>
 
     <!-- Grid Layout: Profile & Information + Settings Cards -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -35,31 +93,48 @@ function initials(string $name): string
                     <?php echo htmlspecialchars(initials($userName)); ?>
                 </div>
                 <h2 class="font-headline text-lg font-bold text-on-surface mb-0.5"><?php echo htmlspecialchars($userName); ?></h2>
+                <?php if (!empty($userUsername)): ?>
+                    <p class="text-xs font-mono font-semibold text-primary mb-1">@<?php echo htmlspecialchars($userUsername); ?></p>
+                <?php endif; ?>
                 <p class="text-xs text-on-surface-variant mb-3"><?php echo htmlspecialchars($userEmail); ?></p>
                 
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary uppercase tracking-wider">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    <?php echo htmlspecialchars(str_replace('_', ' ', $userRole)); ?>
-                </span>
+                <div class="flex flex-col items-center">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary uppercase tracking-wider">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                        <?php echo htmlspecialchars(str_replace('_', ' ', $userRole)); ?>
+                    </span>
+
+                    <!-- Edit Profile Trigger Button Directly Below Badge -->
+                    <button type="button" onclick="openEditProfileModal()" class="mt-3.5 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-on-primary border border-primary/20 shadow-xs hover:shadow transition-all duration-200 active:scale-95 group">
+                        <span class="material-symbols-outlined text-[16px] transition-transform group-hover:rotate-12">edit</span>
+                        <span>Edit Profile</span>
+                    </button>
+                </div>
 
                 <div class="mt-6 pt-5 border-t border-outline-variant/30 text-left space-y-3 text-sm">
                     <div class="flex items-center justify-between text-on-surface-variant">
-                        <span class="flex items-center gap-2">
+                        <span class="flex items-center gap-2 text-xs">
                             <span class="material-symbols-outlined text-[18px]">badge</span> User ID
                         </span>
-                        <span class="font-medium text-on-surface">#<?php echo (int) $userId; ?></span>
+                        <span class="font-medium text-on-surface text-xs">#<?php echo (int) $userId; ?></span>
                     </div>
                     <div class="flex items-center justify-between text-on-surface-variant">
-                        <span class="flex items-center gap-2">
+                        <span class="flex items-center gap-2 text-xs">
+                            <span class="material-symbols-outlined text-[18px]">alternate_email</span> Username
+                        </span>
+                        <span class="font-medium text-on-surface text-xs font-mono"><?php echo !empty($userUsername) ? htmlspecialchars($userUsername) : '<span class="text-on-surface-variant/60">Not set</span>'; ?></span>
+                    </div>
+                    <div class="flex items-center justify-between text-on-surface-variant">
+                        <span class="flex items-center gap-2 text-xs">
                             <span class="material-symbols-outlined text-[18px]">phone</span> Phone
                         </span>
-                        <span class="font-medium text-on-surface"><?php echo htmlspecialchars($userPhone); ?></span>
+                        <span class="font-medium text-on-surface text-xs"><?php echo !empty($userPhone) ? htmlspecialchars($userPhone) : '<span class="text-on-surface-variant/60">Not set</span>'; ?></span>
                     </div>
                     <div class="flex items-center justify-between text-on-surface-variant">
-                        <span class="flex items-center gap-2">
+                        <span class="flex items-center gap-2 text-xs">
                             <span class="material-symbols-outlined text-[18px]">shield_person</span> Access Level
                         </span>
-                        <span class="font-medium text-primary capitalize">Full Admin</span>
+                        <span class="font-medium text-primary capitalize text-xs">Full Admin</span>
                     </div>
                 </div>
             </div>
@@ -80,7 +155,9 @@ function initials(string $name): string
         <!-- Right Column: Settings Sections (8 cols) -->
         <div class="lg:col-span-8 space-y-6 stagger-2">
 
-            <!-- 1. DISPLAY & PREFERENCES -->
+
+
+            <!-- 2. DISPLAY & THEME PREFERENCES -->
             <div class="bg-surface-container-lowest rounded-[28px] p-6 sm:p-7 border border-outline-variant/40 shadow-sm">
                 <div class="flex items-center gap-3 mb-5">
                     <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -125,7 +202,7 @@ function initials(string $name): string
                 </div>
             </div>
 
-            <!-- 2. NOTIFICATIONS & ALERTS -->
+            <!-- 3. NOTIFICATIONS & ALERTS -->
             <div class="bg-surface-container-lowest rounded-[28px] p-6 sm:p-7 border border-outline-variant/40 shadow-sm">
                 <div class="flex items-center gap-3 mb-5">
                     <div class="w-9 h-9 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
@@ -170,7 +247,7 @@ function initials(string $name): string
                 </div>
             </div>
 
-            <!-- 3. SECURITY & PRIVACY -->
+            <!-- 4. SECURITY & PRIVACY -->
             <div class="bg-surface-container-lowest rounded-[28px] p-6 sm:p-7 border border-outline-variant/40 shadow-sm">
                 <div class="flex items-center gap-3 mb-5">
                     <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center">
@@ -209,7 +286,7 @@ function initials(string $name): string
                 </div>
             </div>
 
-            <!-- 4. SIGN OUT SECTION -->
+            <!-- 5. SIGN OUT SECTION -->
             <div class="bg-surface-container-lowest rounded-[28px] p-6 sm:p-7 border border-error/20 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 text-center sm:text-left">
                     <div class="w-10 h-10 rounded-xl bg-error/10 text-error flex items-center justify-center shrink-0">
@@ -233,7 +310,102 @@ function initials(string $name): string
 
 </div>
 
+<!-- ============================================================= -->
+<!-- MODAL: EDIT ADMINISTRATOR PROFILE -->
+<!-- ============================================================= -->
+<div id="editProfileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden overflow-y-auto">
+    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden my-auto animate-scale-up">
+        <div class="px-6 py-5 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[24px]">edit_note</span>
+                </div>
+                <div>
+                    <h3 class="font-headline font-bold text-lg text-on-surface">Edit Profile</h3>
+                    <p class="text-xs text-on-surface-variant">Update your administrator credentials and contacts</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeEditProfileModal()" class="text-on-surface-variant hover:text-on-surface p-1.5 rounded-full hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+        </div>
+
+        <form method="POST" class="p-6 space-y-4 text-sm">
+            <input type="hidden" name="action" value="update_profile">
+
+            <!-- Full Name -->
+            <div>
+                <label class="block text-xs font-semibold text-on-surface mb-1.5">
+                    Full Legal Name <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">person</span>
+                    <input type="text" name="name" required value="<?php echo htmlspecialchars($userName); ?>"
+                           class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm pl-10 pr-4 py-2.5 rounded-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div>
+                <label class="block text-xs font-semibold text-on-surface mb-1.5">
+                    Username (@username) <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">alternate_email</span>
+                    <input type="text" name="username" required value="<?php echo htmlspecialchars($userUsername); ?>" placeholder="e.g. admin_mans"
+                           class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm pl-10 pr-4 py-2.5 rounded-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 font-mono transition-all">
+                </div>
+                <div class="text-[11px] text-on-surface-variant mt-1">Unique handle used across system logs and chat.</div>
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+                <label class="block text-xs font-semibold text-on-surface mb-1.5">
+                    Phone Number
+                </label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">phone</span>
+                    <input type="tel" name="phone" value="<?php echo htmlspecialchars($userPhone); ?>" placeholder="e.g. +60 12-345 6789"
+                           class="w-full bg-surface-container border border-outline-variant/40 text-on-surface text-sm pl-10 pr-4 py-2.5 rounded-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                </div>
+            </div>
+
+            <!-- Email Address (Read-only) -->
+            <div>
+                <label class="block text-xs font-semibold text-on-surface mb-1.5">
+                    Email Address (Read-only)
+                </label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">mail</span>
+                    <input type="email" readonly disabled value="<?php echo htmlspecialchars($userEmail); ?>"
+                           class="w-full bg-surface-container/60 border border-outline-variant/30 text-on-surface-variant text-sm pl-10 pr-4 py-2.5 rounded-2xl cursor-not-allowed">
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-outline-variant/20 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeEditProfileModal()" class="px-5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-full transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="inline-flex items-center gap-1.5 px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary text-xs font-bold rounded-full shadow-sm transition-all duration-200 active:scale-95">
+                    <span class="material-symbols-outlined text-[16px]">save</span>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    function openEditProfileModal() {
+        document.getElementById('editProfileModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditProfileModal() {
+        document.getElementById('editProfileModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
     const adminDarkModeToggle = document.getElementById('adminDarkModeToggle');
     if (adminDarkModeToggle) {
         adminDarkModeToggle.addEventListener('change', async () => {

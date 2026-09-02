@@ -11,7 +11,7 @@ $userRole = htmlspecialchars($currentUser['role']);
 $_ROOT = sedap_root();
 ?>
 
-<!-- WhatsApp Style Fullscreen Clinical Live Chat Styles (Blue Theme) -->
+<link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/livechat.css?v=<?= time() ?>">
 <style>
   /* Remove outer padding and enable edge-to-edge container */
   html, body {
@@ -90,7 +90,7 @@ $_ROOT = sedap_root();
     white-space: nowrap;
   }
   .wa-filter-btn.active {
-    background-color: #0058bd;
+    background-color: var(--chat-primary, #087383);
     color: #ffffff;
     font-weight: 600;
   }
@@ -224,7 +224,7 @@ $_ROOT = sedap_root();
   }
   .wa-quick-chip:hover {
     background-color: #e2e8f0;
-    color: #0058bd;
+    color: var(--chat-primary, #087383);
   }
 
   /* Chat Input Footer */
@@ -268,7 +268,7 @@ $_ROOT = sedap_root();
   }
   .wa-icon-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
-    color: #0058bd;
+    color: var(--chat-primary, #087383);
   }
 
   /* Audio Waveform Bars */
@@ -280,7 +280,7 @@ $_ROOT = sedap_root();
     transition: height 0.15s ease, background-color 0.15s ease;
   }
   .waveform-bar.active {
-    background-color: #0058bd;
+    background-color: var(--chat-primary, #087383);
   }
 
   /* Custom Lightbox Fullscreen Modal */
@@ -336,7 +336,7 @@ $_ROOT = sedap_root();
     color: #94a3b8;
   }
   html.dark .wa-filter-btn.active {
-    background-color: #0058bd;
+    background-color: var(--chat-primary, #087383);
     color: #ffffff;
     font-weight: 600;
   }
@@ -419,7 +419,7 @@ $_ROOT = sedap_root();
   }
   html.dark #faqListContainer > div:hover {
     background-color: #18263c !important;
-    border-color: #0058bd !important;
+    border-color: var(--chat-primary, #087383) !important;
   }
 </style>
 
@@ -433,11 +433,11 @@ $_ROOT = sedap_root();
     <!-- Sidebar Header -->
     <div class="wa-sidebar-header">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-[#0058bd] dark:text-[#38bdf8] text-[24px]">forum</span>
-        <h2 class="font-headline font-bold text-base text-slate-800 dark:text-[#f8fafc]">Giliran Triaj</h2>
+        <span class="material-symbols-outlined text-primary text-[24px]">forum</span>
+        <h2 class="font-headline font-bold text-base text-slate-800 dark:text-[#f8fafc]">Triage & Chat Queue</h2>
         <span class="text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-[#38bdf8] border border-primary/20 ml-0.5">BETA</span>
       </div>
-      <button type="button" onclick="loadChatQueue()" class="wa-icon-btn" title="Muat Semula / Refresh Queue">
+      <button type="button" onclick="loadChatQueue()" class="wa-icon-btn" title="Refresh Queue">
         <span class="material-symbols-outlined text-[20px]">refresh</span>
       </button>
     </div>
@@ -446,23 +446,23 @@ $_ROOT = sedap_root();
     <div class="wa-search-bar">
       <div class="relative flex items-center">
         <span class="material-symbols-outlined absolute left-3 text-slate-400 dark:text-[#64748b] text-[18px]">search</span>
-        <input type="text" id="queueSearchInput" oninput="filterQueueList(this.value)" placeholder="Cari nama atau ID pesakit..."
+        <input type="text" id="queueSearchInput" oninput="filterQueueList(this.value)" placeholder="Search patient name or ID..."
                class="w-full bg-[#f0f2f5] dark:bg-[#131d2e] text-slate-800 dark:text-[#f8fafc] placeholder:text-slate-500 dark:placeholder:text-[#64748b] text-xs pl-9 pr-3 py-2 rounded-lg border-none focus:outline-none">
       </div>
     </div>
 
     <!-- Filter Tabs (All / Priority / Unread) -->
     <div class="wa-filter-chips">
-      <button type="button" class="wa-filter-btn active" onclick="setQueueFilter('all', this)">Semua</button>
-      <button type="button" class="wa-filter-btn" onclick="setQueueFilter('priority', this)">Kecemasan</button>
-      <button type="button" class="wa-filter-btn" onclick="setQueueFilter('unread', this)">Belum Dibaca</button>
+      <button type="button" class="wa-filter-btn active" onclick="setQueueFilter('all', this)">All</button>
+      <button type="button" class="wa-filter-btn" onclick="setQueueFilter('priority', this)">Priority</button>
+      <button type="button" class="wa-filter-btn" onclick="setQueueFilter('unread', this)">Unread</button>
     </div>
 
     <!-- Queue Patient List (Flat Rows) -->
     <div class="wa-queue-list custom-scrollbar" id="queueListContainer">
       <div class="py-12 text-center text-slate-400 dark:text-[#64748b] text-xs flex flex-col items-center gap-2">
-        <span class="material-symbols-outlined animate-spin text-[26px] text-[#0058bd]">sync</span>
-        <span>Memuatkan senarai giliran triaj...</span>
+        <span class="material-symbols-outlined animate-spin text-[26px] text-primary">sync</span>
+        <span>Loading triage queue...</span>
       </div>
     </div>
   </aside>
@@ -477,14 +477,14 @@ $_ROOT = sedap_root();
     <header class="wa-chat-header" id="chatHeaderArea">
       <div class="flex items-center gap-3 min-w-0">
         <div class="relative shrink-0">
-          <div id="activeAvatarCircle" class="w-10 h-10 rounded-full bg-primary/10 dark:bg-[#1e293b] font-bold text-[#0058bd] dark:text-[#38bdf8] text-sm flex items-center justify-center font-headline shadow-sm">
+          <div id="activeAvatarCircle" class="w-10 h-10 rounded-full bg-primary/10 dark:bg-[#1e293b] font-bold text-primary text-sm flex items-center justify-center font-headline shadow-sm">
             --
           </div>
-          <span class="w-2.5 h-2.5 bg-[#0058bd] dark:bg-[#38bdf8] rounded-full ring-2 ring-white dark:ring-[#0f172a] absolute bottom-0 right-0"></span>
+          <span class="w-2.5 h-2.5 bg-primary rounded-full ring-2 ring-white dark:ring-[#0f172a] absolute bottom-0 right-0"></span>
         </div>
         <div class="min-w-0">
           <h3 class="font-headline font-semibold text-sm sm:text-base text-slate-900 dark:text-[#f8fafc] truncate" id="activePatientName">
-            Pilih Pesakit dari Giliran
+            Select Patient from Queue
           </h3>
           <div class="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-[#94a3b8]">
             <span id="activePatientStatus">Active Session</span>
@@ -497,7 +497,7 @@ $_ROOT = sedap_root();
       <div class="flex items-center gap-2 shrink-0">
         <button type="button" onclick="openFaqModal()" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold wa-quick-chip">
           <span class="material-symbols-outlined text-[16px] text-amber-500">bolt</span>
-          <span>Templat FAQ</span>
+          <span>FAQ Templates</span>
         </button>
       </div>
     </header>
@@ -505,12 +505,12 @@ $_ROOT = sedap_root();
     <!-- Message History Area -->
     <div class="wa-messages-area custom-scrollbar" id="messagesContainer">
       <div class="h-full flex flex-col items-center justify-center text-slate-400 dark:text-[#64748b] text-center p-6 space-y-3">
-        <div class="w-16 h-16 rounded-full bg-slate-200 dark:bg-[#162334] flex items-center justify-center text-[#0058bd] dark:text-[#38bdf8] shadow-sm">
+        <div class="w-16 h-16 rounded-full bg-slate-200 dark:bg-[#162334] flex items-center justify-center text-primary shadow-sm">
           <span class="material-symbols-outlined text-[32px]">chat</span>
         </div>
         <div>
-          <h4 class="font-bold text-slate-700 dark:text-[#f8fafc] text-base">Sesi Perbualan WhatsApp</h4>
-          <p class="text-xs text-slate-500 dark:text-[#94a3b8] mt-1 max-w-sm">Pilih pesakit dari giliran di sebelah kiri untuk memulakan perbualan.</p>
+          <h4 class="font-bold text-slate-700 dark:text-[#f8fafc] text-base">Live Clinical Session</h4>
+          <p class="text-xs text-slate-500 dark:text-[#94a3b8] mt-1 max-w-sm">Select a patient from the queue on the left to start a real-time consultation.</p>
         </div>
       </div>
     </div>
@@ -519,17 +519,17 @@ $_ROOT = sedap_root();
     <div class="wa-quick-bar">
       <button type="button" onclick="openFaqModal()" class="wa-quick-chip">
         <span class="material-symbols-outlined text-[15px] text-amber-500">bolt</span>
-        <span>Templat FAQ</span>
+        <span>FAQ Templates</span>
       </button>
 
-      <button type="button" onclick="insertQuickMessage('Sila ambil dan hantar foto bahagian yang terjejas dengan pencahayaan yang jelas untuk penilaian lanjut.')" class="wa-quick-chip">
-        <span class="material-symbols-outlined text-[15px] text-[#0058bd] dark:text-[#38bdf8]">photo_camera</span>
-        <span>Minta Foto</span>
+      <button type="button" onclick="insertQuickMessage('Please take and send a clear photo of the affected area with good lighting for further assessment.')" class="wa-quick-chip">
+        <span class="material-symbols-outlined text-[15px] text-primary">photo_camera</span>
+        <span>Request Photo</span>
       </button>
 
-      <button type="button" onclick="insertQuickMessage('Berikut ialah panduan rawatan kesihatan komuniti: ' + window.location.origin + '<?= $_ROOT ?>/pages/doctor/health/water.php')" class="wa-quick-chip">
-        <span class="material-symbols-outlined text-[15px] text-[#0058bd] dark:text-[#38bdf8]">article</span>
-        <span>Hantar Artikel</span>
+      <button type="button" onclick="insertQuickMessage('Here is the official community health guide: ' + window.location.origin + '<?= $_ROOT ?>/pages/doctor/health/water.php')" class="wa-quick-chip">
+        <span class="material-symbols-outlined text-[15px] text-primary">article</span>
+        <span>Send Article</span>
       </button>
     </div>
 
@@ -539,7 +539,7 @@ $_ROOT = sedap_root();
         <img id="stagedPhotoImg" src="" class="w-10 h-10 object-cover rounded-md border border-slate-300 dark:border-slate-700" alt="Preview">
         <div>
           <div class="text-xs font-semibold text-slate-800 dark:text-[#f8fafc]" id="stagedPhotoName">photo.jpg</div>
-          <div class="text-[11px] text-slate-500 dark:text-[#94a3b8]">Sedia dihantar • Klik butang Send di bawah</div>
+          <div class="text-[11px] text-slate-500 dark:text-[#94a3b8]">Ready to send • Click send button below</div>
         </div>
       </div>
       <button type="button" onclick="clearStagedPhoto()" class="wa-icon-btn text-slate-400 hover:text-red-500">
@@ -552,12 +552,12 @@ $_ROOT = sedap_root();
       <div class="flex items-center gap-3">
         <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
         <span class="text-xs font-bold text-red-600 dark:text-red-400" id="recordingDuration">0:00</span>
-        <span class="text-xs text-slate-700 dark:text-slate-300">Merakam Mesej Suara...</span>
+        <span class="text-xs text-slate-700 dark:text-slate-300">Recording Voice Note...</span>
       </div>
       <div class="flex items-center gap-2">
         <button type="button" onclick="stopRecordingVoice()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
           <span class="material-symbols-outlined text-[16px]">stop</span>
-          <span>Selesai</span>
+          <span>Finish</span>
         </button>
         <button type="button" onclick="cancelRecordingVoice()" class="p-1 text-slate-400 hover:text-slate-700">
           <span class="material-symbols-outlined text-[20px]">close</span>
@@ -584,7 +584,7 @@ $_ROOT = sedap_root();
         </button>
 
         <!-- Send Button -->
-        <button type="submit" class="wa-icon-btn text-[#0058bd] hover:text-[#00479e] dark:text-[#38bdf8] dark:hover:text-[#7dd3fc]" title="Hantar Mesej">
+        <button type="submit" class="wa-icon-btn text-primary hover:opacity-80 dark:text-[#38bdf8] dark:hover:text-[#7dd3fc]" title="Send Message">
           <span class="material-symbols-outlined text-[24px]">send</span>
         </button>
       </form>
@@ -600,7 +600,7 @@ $_ROOT = sedap_root();
     <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 wa-modal-header">
       <div class="flex items-center gap-2 font-bold">
         <span class="material-symbols-outlined text-[22px] text-amber-500">bolt</span>
-        <span class="text-slate-800 dark:text-[#f8fafc]">Templat Respons Pantas (FAQ)</span>
+        <span class="text-slate-800 dark:text-[#f8fafc]">Quick Response Templates (FAQ)</span>
       </div>
       <button type="button" onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition-colors">
         <span class="material-symbols-outlined text-[20px]">close</span>
@@ -608,7 +608,7 @@ $_ROOT = sedap_root();
     </div>
     
     <div class="p-4 overflow-y-auto space-y-3 flex-1 custom-scrollbar" id="faqListContainer">
-      <div class="py-8 text-center text-slate-400 text-xs">Memuatkan templat...</div>
+      <div class="py-8 text-center text-slate-400 text-xs">Loading templates...</div>
     </div>
   </div>
 </div>
@@ -639,7 +639,7 @@ $_ROOT = sedap_root();
   </div>
 
   <div class="text-slate-400 text-xs mt-3 select-none pointer-events-none">
-    <span class="material-symbols-outlined text-[15px] align-middle">touch_app</span> Klik dua kali untuk zum • Esc untuk tutup
+    <span class="material-symbols-outlined text-[15px] align-middle">touch_app</span> Double-click to zoom • Esc to close
   </div>
 </div>
 
@@ -647,7 +647,7 @@ $_ROOT = sedap_root();
 <!-- JAVASCRIPT CLINICAL LIVE CHAT LOGIC                      -->
 <!-- ========================================================= -->
 <script>
-const API_URL = '/sedap/sedap2.0/pages/shared/actions/chat_api.php';
+const API_URL = '<?= $_ROOT ?>/pages/shared/actions/chat_api.php';
 let currentActiveConversationId = null;
 let currentActiveUserId = null;
 let queueData = [];
@@ -724,7 +724,7 @@ function filterQueueList() {
 function renderQueueList(items) {
   const container = document.getElementById('queueListContainer');
   if (!items || items.length === 0) {
-    container.innerHTML = `<div class="py-12 text-center text-slate-400 dark:text-[#64748b] text-xs">Tiada pesakit dalam giliran buat masa ini.</div>`;
+    container.innerHTML = `<div class="py-12 text-center text-slate-400 dark:text-[#64748b] text-xs">No patients in queue at the moment.</div>`;
     return;
   }
 
@@ -738,21 +738,21 @@ function renderQueueList(items) {
       <div onclick='selectPatient(${JSON.stringify(item)})'
            class="wa-patient-row ${activeClass} ${priorityClass}">
         <div class="relative shrink-0">
-          <div class="w-12 h-12 rounded-full ${isPriority ? 'bg-red-600 text-white' : 'bg-primary/10 dark:bg-[#1e293b] text-[#0058bd] dark:text-[#38bdf8]'} font-bold text-sm flex items-center justify-center shadow-sm">
+          <div class="w-12 h-12 rounded-full ${isPriority ? 'bg-red-600 text-white' : 'bg-primary/10 dark:bg-[#1e293b] text-primary'} font-bold text-sm flex items-center justify-center shadow-sm">
             ${isPriority ? '<span class="material-symbols-outlined text-[20px]">warning</span>' : item.initials}
           </div>
-          <span class="w-3 h-3 ${isPriority ? 'bg-red-500' : 'bg-[#0058bd] dark:bg-[#38bdf8]'} rounded-full ring-2 ring-white dark:ring-[#0f172a] absolute bottom-0 right-0"></span>
+          <span class="w-3 h-3 ${isPriority ? 'bg-red-500' : 'bg-primary'} rounded-full ring-2 ring-white dark:ring-[#0f172a] absolute bottom-0 right-0"></span>
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between mb-0.5">
             <h4 class="font-headline font-semibold text-sm ${isPriority ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-900 dark:text-[#f8fafc]'} truncate">
               ${escapeHtml(item.name)}
             </h4>
-            <span class="text-[11px] ${isActive ? 'text-[#0058bd] dark:text-[#38bdf8] font-semibold' : 'text-slate-400 dark:text-[#94a3b8]'} shrink-0">${item.time || ''}</span>
+            <span class="text-[11px] ${isActive ? 'text-primary font-semibold' : 'text-slate-400 dark:text-[#94a3b8]'} shrink-0">${item.time || ''}</span>
           </div>
           <div class="flex items-center justify-between text-xs">
             <p class="truncate text-[12px] flex-1 text-slate-500 dark:text-[#94a3b8] pr-2">${escapeHtml(item.snippet)}</p>
-            ${item.unread > 0 ? `<span class="bg-[#0058bd] text-white font-bold text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0 shadow-sm">${item.unread}</span>` : ''}
+            ${item.unread > 0 ? `<span class="bg-primary text-white text-white font-bold text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shrink-0 shadow-sm">${item.unread}</span>` : ''}
           </div>
         </div>
       </div>
@@ -781,7 +781,7 @@ function selectPatient(patient) {
 async function loadMessages(convId, isBackground = false) {
   const container = document.getElementById('messagesContainer');
   if (!isBackground) {
-    container.innerHTML = `<div class="py-12 text-center text-slate-400 dark:text-[#64748b] text-xs flex items-center justify-center gap-2"><span class="material-symbols-outlined animate-spin text-[20px] text-[#0058bd]">sync</span> Memuatkan mesej...</div>`;
+    container.innerHTML = `<div class="py-12 text-center text-slate-400 dark:text-[#64748b] text-xs flex items-center justify-center gap-2"><span class="material-symbols-outlined animate-spin text-[20px] text-primary">sync</span> Loading messages...</div>`;
   }
 
   try {
@@ -862,7 +862,7 @@ function formatMessageContent(content, msgId, isOutgoing = false) {
     const audioUrl = audioMatch[1];
     return `
       <div class="voice-note-card flex items-center gap-2.5 py-1 min-w-[200px] sm:min-w-[240px]">
-        <button type="button" onclick="togglePlayVoice(this, '${audioUrl}')" class="w-9 h-9 rounded-full bg-[#0058bd] hover:bg-[#00479e] text-white flex items-center justify-center shrink-0 shadow">
+        <button type="button" onclick="togglePlayVoice(this, '${audioUrl}')" class="w-9 h-9 rounded-full bg-primary text-white hover:bg-primary/90 text-white flex items-center justify-center shrink-0 shadow">
           <span class="material-symbols-outlined text-[20px] play-icon">play_arrow</span>
         </button>
         <div class="flex-1 flex flex-col gap-1">
@@ -892,7 +892,7 @@ function formatMessageContent(content, msgId, isOutgoing = false) {
   }
 
   // Normal Text with URL auto-linking
-  return escapeHtml(content).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-[#0058bd] dark:text-[#38bdf8] underline break-all">$1</a>');
+  return escapeHtml(content).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-primary underline break-all">$1</a>');
 }
 
 function generateWaveformBars() {

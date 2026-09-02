@@ -16,7 +16,7 @@ require_once __DIR__ . '/../../config/db.php';
 
 $currentUserId = (int) $_SESSION['user_id'];
 
-$stmt = $pdo->prepare("SELECT id, name, email, role, avatar_url, dark_mode FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, name, username, email, role, phone, avatar_url, dark_mode FROM users WHERE id = ?");
 $stmt->execute([$currentUserId]);
 $currentUser = $stmt->fetch();
 
