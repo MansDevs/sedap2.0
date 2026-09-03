@@ -245,9 +245,8 @@ $patients = $pdo->query("SELECT * FROM patients ORDER BY created_at DESC LIMIT 5
               <thead class="table-light">
                 <tr>
                   <th class="ps-4">No. Pendaftaran</th>
-                  <th>Nama Penuh</th>
-                  <th>No. IC</th>
-                  <th>Telefon</th>
+                  <th>Maklumat Pesakit (Nama, IC, Telefon)</th>
+                  <th>Simptom Utama / Sebab Lawatan</th>
                   <th>Kontak Kecemasan</th>
                   <th>Insurans</th>
                   <th>Tarikh Daftar</th>
@@ -256,17 +255,32 @@ $patients = $pdo->query("SELECT * FROM patients ORDER BY created_at DESC LIMIT 5
               </thead>
               <tbody>
                 <?php if (empty($patients)): ?>
-                  <tr><td colspan="8" class="text-center text-muted py-5">Tiada rekod pesakit buat masa ini.</td></tr>
+                  <tr><td colspan="7" class="text-center text-muted py-5">Tiada rekod pesakit buat masa ini.</td></tr>
                 <?php else: ?>
                   <?php foreach ($patients as $p): ?>
                     <tr class="vpatient-row">
                       <td class="ps-4 fw-semibold text-primary"><?= htmlspecialchars($p['registration_number'] ?? 'PT-' . $p['id']) ?></td>
-                      <td class="fw-semibold"><?= htmlspecialchars($p['full_name']) ?></td>
-                      <td class="small text-muted"><?= htmlspecialchars($p['ic_number'] ?? '—') ?></td>
-                      <td class="small"><?= htmlspecialchars($p['phone'] ?? '—') ?></td>
+                      <td>
+                        <div class="fw-bold text-dark"><?= htmlspecialchars($p['full_name']) ?></div>
+                        <div class="small text-muted font-monospace text-nowrap">
+                          <span><?= htmlspecialchars($p['ic_number'] ?: '—') ?></span>
+                          <?php if (!empty($p['gender'])): ?> (<?= ucfirst(htmlspecialchars($p['gender'])) ?>)<?php endif; ?>
+                        </div>
+                        <?php if (!empty($p['phone'])): ?>
+                          <div class="small text-primary font-monospace text-nowrap mt-1">
+                            <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">call</span>
+                            <span><?= htmlspecialchars($p['phone']) ?></span>
+                          </div>
+                        <?php endif; ?>
+                      </td>
+                      <td>
+                        <div class="small text-danger fw-semibold" style="max-width:280px;">
+                          <?= nl2br(htmlspecialchars($p['clinical_reason_for_visit'] ?: '—')) ?>
+                        </div>
+                      </td>
                       <td class="small"><?= !empty($p['emergency_contact_name']) ? htmlspecialchars($p['emergency_contact_name']) . ' (' . htmlspecialchars($p['emergency_contact_phone'] ?? '') . ')' : '—' ?></td>
                       <td class="small"><?= !empty($p['insurance_payer']) ? htmlspecialchars($p['insurance_payer']) : '—' ?></td>
-                      <td class="small text-muted"><?= !empty($p['created_at']) ? date('d/m/Y H:i', strtotime($p['created_at'])) : '—' ?></td>
+                      <td class="small text-muted text-nowrap"><?= !empty($p['created_at']) ? date('d/m/Y H:i', strtotime($p['created_at'])) : '—' ?></td>
                       <td class="text-center pe-4">
                         <button class="btn btn-sm btn-outline-primary rounded-pill px-3 view-p-btn"
                                 data-patient='<?= htmlspecialchars(json_encode($p), ENT_QUOTES, 'UTF-8') ?>'

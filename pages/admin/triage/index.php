@@ -449,14 +449,14 @@ require_once __DIR__ . '/../includes/header.php';
                             <tr class="hover:bg-surface-container/50 transition-colors triage-table-row" data-level="<?php echo $lvl; ?>">
                                 <td class="py-4 px-6 font-semibold text-primary"><?php echo htmlspecialchars($tr['triage_id'] ?: 'TI-' . str_pad($tr['id'], 3, '0', STR_PAD_LEFT)); ?></td>
                                 <td class="py-4 px-4 font-medium">
-                                    <div class="font-bold text-on-surface"><?php echo htmlspecialchars($displayName); ?></div>
-                                    <div class="text-xs text-on-surface-variant font-mono mt-0.5">
-                                        <span><?php echo htmlspecialchars($displayIC); ?></span>
+                                    <div class="font-bold text-on-surface line-clamp-2"><?php echo htmlspecialchars($displayName); ?></div>
+                                    <div class="text-xs text-on-surface-variant font-mono whitespace-nowrap mt-0.5">
+                                        <span class="whitespace-nowrap"><?php echo htmlspecialchars($displayIC); ?></span>
                                         <?php if (!empty($displayAge)): ?> • <?php echo $displayAge; ?> yrs<?php endif; ?>
                                         <?php if (!empty($displayGender)): ?> (<?php echo ucfirst($displayGender); ?>)<?php endif; ?>
                                     </div>
                                     <?php if (!empty($displayPhone)): ?>
-                                        <div class="text-[11px] text-primary/80 font-mono flex items-center gap-1 mt-0.5">
+                                        <div class="text-[11px] text-primary/80 font-mono flex items-center gap-1 mt-0.5 whitespace-nowrap">
                                             <span class="material-symbols-outlined text-[13px]">call</span>
                                             <span><?php echo htmlspecialchars($displayPhone); ?></span>
                                         </div>
@@ -467,7 +467,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <div class="text-on-surface-variant"><strong>BP:</strong> <?php echo htmlspecialchars($tr['blood_pressure'] ?: '—'); ?> | <strong>Gluc:</strong> <?php echo $tr['glucose_level'] ? $tr['glucose_level'] . ' mmol/L' : '—'; ?></div>
                                 </td>
                                 <td class="py-4 px-4">
-                                    <div class="text-xs font-semibold text-red-700 max-w-xs break-words">
+                                    <div class="text-xs font-semibold text-red-700 max-w-xs line-clamp-2 break-words" title="<?php echo htmlspecialchars($sympText); ?>">
                                         <?php echo nl2br(htmlspecialchars($sympText ?: '—')); ?>
                                     </div>
                                 </td>

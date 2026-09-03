@@ -168,13 +168,11 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="w-full text-left text-sm" id="patientsTable">
                 <thead class="bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider">
                     <tr>
-                        <th class="py-3.5 px-6">Reg</th>
-                        <th class="py-3.5 px-4">Patient Name</th>
-                        <th class="py-3.5 px-4">IC / ID</th>
-                        <th class="py-3.5 px-4">Sex / Gender</th>
-                        <th class="py-3.5 px-4">Phone</th>
+                        <th class="py-3.5 px-6">Reg ID</th>
+                        <th class="py-3.5 px-4">Patient Information</th>
+                        <th class="py-3.5 px-4">Primary Symptoms / Chief Complaint</th>
                         <th class="py-3.5 px-4">Emergency Contact</th>
-                        <th class="py-3.5 px-4">Insurance</th>
+                        <th class="py-3.5 px-4">Insurance / Payer</th>
                         <th class="py-3.5 px-4">Date Registered</th>
                         <th class="py-3.5 px-6 text-center">Action</th>
                     </tr>
@@ -182,7 +180,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <tbody class="divide-y divide-outline-variant/20 text-on-surface">
                     <?php if (empty($patients)): ?>
                         <tr>
-                            <td colspan="9" class="py-10 text-center text-on-surface-variant">
+                            <td colspan="7" class="py-10 text-center text-on-surface-variant">
                                 No registered patients found. Click "New Patient Registration" above to add one.
                             </td>
                         </tr>
@@ -191,25 +189,30 @@ require_once __DIR__ . '/../includes/header.php';
                             <tr class="hover:bg-surface-container/50 transition-colors patient-table-row">
                                 <td class="py-4 px-6 font-semibold text-primary"><?php echo htmlspecialchars($p['registration_number'] ?? 'PT-' . $p['id']); ?></td>
                                 <td class="py-4 px-4 font-medium">
-                                    <?php echo htmlspecialchars($p['full_name']); ?>
-                                    <?php if (!empty($p['clinical_reason_for_visit'])): ?>
-                                        <div class="text-xs text-on-surface-variant truncate max-w-xs"><?php echo htmlspecialchars($p['clinical_reason_for_visit']); ?></div>
+                                    <div class="font-bold text-on-surface line-clamp-2"><?php echo htmlspecialchars($p['full_name']); ?></div>
+                                    <div class="text-xs text-on-surface-variant font-mono whitespace-nowrap mt-0.5">
+                                        <span class="whitespace-nowrap"><?php echo htmlspecialchars($p['ic_number'] ?: '—'); ?></span>
+                                        <?php if (!empty($p['gender'])): ?> (<?php echo ucfirst(htmlspecialchars($p['gender'])); ?>)<?php endif; ?>
+                                    </div>
+                                    <?php if (!empty($p['phone'])): ?>
+                                        <div class="text-[11px] text-primary font-mono flex items-center gap-1 mt-0.5 whitespace-nowrap">
+                                            <span class="material-symbols-outlined text-[13px]">call</span>
+                                            <span><?php echo htmlspecialchars($p['phone']); ?></span>
+                                        </div>
                                     <?php endif; ?>
                                 </td>
-                                <td class="py-4 px-4 text-on-surface-variant"><?php echo htmlspecialchars($p['ic_number'] ?? '—'); ?></td>
                                 <td class="py-4 px-4">
-                                    <span class="inline-block bg-surface-container px-2.5 py-1 rounded-full text-xs font-semibold">
-                                        <?php echo ucfirst(htmlspecialchars($p['gender'] ?? '—')); ?>
-                                    </span>
+                                    <div class="text-xs font-semibold text-red-700 dark:text-red-400 max-w-xs line-clamp-2 break-words" title="<?php echo htmlspecialchars($p['clinical_reason_for_visit'] ?? ''); ?>">
+                                        <?php echo nl2br(htmlspecialchars($p['clinical_reason_for_visit'] ?: '—')); ?>
+                                    </div>
                                 </td>
-                                <td class="py-4 px-4"><?php echo htmlspecialchars($p['phone'] ?? '—'); ?></td>
                                 <td class="py-4 px-4 text-xs">
                                     <?php echo !empty($p['emergency_contact_name']) ? htmlspecialchars($p['emergency_contact_name']) . ' (' . htmlspecialchars($p['emergency_contact_phone'] ?? '') . ')' : '<span class="text-on-surface-variant/60">—</span>'; ?>
                                 </td>
                                 <td class="py-4 px-4 text-xs">
                                     <?php echo !empty($p['insurance_payer']) ? htmlspecialchars($p['insurance_payer']) : '<span class="text-on-surface-variant/60">—</span>'; ?>
                                 </td>
-                                <td class="py-4 px-4 text-xs text-on-surface-variant"><?php echo !empty($p['created_at']) ? date('d M Y, H:i', strtotime($p['created_at'])) : '—'; ?></td>
+                                <td class="py-4 px-4 text-xs text-on-surface-variant whitespace-nowrap"><?php echo !empty($p['created_at']) ? date('d M Y, H:i', strtotime($p['created_at'])) : '—'; ?></td>
                                 <td class="py-4 px-6 text-center">
                                     <button type="button" onclick='viewPatientDetails(<?php echo htmlspecialchars(json_encode($p), ENT_QUOTES, 'UTF-8'); ?>)'
                                             class="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-semibold text-xs bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors">
