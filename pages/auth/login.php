@@ -113,8 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="material-symbols-outlined filled !text-[22px]">health_and_safety</span>
                 </div>
                 <div>
-                    <h3 class="text-xs font-semibold text-on-surface">SeDaP Healthcare Portal</h3>
-                    <p class="text-[11px] text-on-surface-variant">Connecting providers, volunteers, and communities effortlessly.</p>
+                    <h3 class="text-xs font-semibold text-on-surface">SeDaP: Senyum dari Perut Usus Sihat, Komuniti Bahagia</h3>
+                    <p class="text-[11px] text-on-surface-variant">Fakulti Perubatan dan Kesihatan Pertahanan (FPKP), Universiti Pertahanan Nasional Malaysia</p>
                 </div>
             </div>
         </div>
