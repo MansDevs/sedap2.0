@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./assets/css/output.css --minify",
+    "watch:css": "npx @tailwindcss/cli -i ./src/input.css -o ./assets/css/output.css --watch"
+  },
   "dependencies": {
-    "material": "github:material-esm/material"
+    "@tailwindcss/cli": "^4.3.3",
+    "material": "github:material-esm/material",
+    "tailwindcss": "^4.3.3"
   }
 }

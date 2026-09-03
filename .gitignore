@@ -1,3 +1,4 @@
 .env
 config/db.php
 config.rar
+node_modules/

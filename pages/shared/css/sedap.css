@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ============================================================
    sedap.css — SeDaP Shared Design System
    Primary: #0058bd (Blue) | Surface: #f7f9fb | Surface Container: #eceef0
@@ -280,9 +282,6 @@ body {
   font-size: 0.85rem;
   color: var(--on-muted);
   border-bottom: 1px solid var(--surface-dark);
-}
-  color: #fff;
-  font-weight: 600;
 }
 
 .sedap-sidebar .nav-link .material-symbols-outlined {
