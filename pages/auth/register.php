@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
 
                             <!-- Role Selector Dropdown -->
-                            <!-- <div class="flex flex-col mt-2">
+                            <div class="flex flex-col mt-2">
                                 <div class="flex items-center justify-between px-1">
                                     <label class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider" for="role">Select Role</label>
                                     <span class="invisible text-[10.5px]">&nbsp;</span>
@@ -211,12 +211,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span
                                         class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none !text-[20px]">arrow_drop_down</span>
                                 </div>
-                            </div> -->
+                            </div>
 
-                            <!-- Spacing Balance Card -->
+                            <!-- Role Info Helper Card -->
                             <div class="p-3 bg-surface-container-low/70 rounded-2xl border border-surface-variant/30 flex items-center gap-2.5 mt-3 mb-1">
-                                <!-- <span class="material-symbols-outlined text-primary !text-[18px]">verified</span> -->
-                                <!-- <p class="text-[11px] text-on-surface-variant">Select your healthcare role to access customized portal features.</p> -->
+                                <span class="material-symbols-outlined text-primary !text-[18px]">verified</span>
+                                <p class="text-[11px] text-on-surface-variant">Select your healthcare role to access customized portal features.</p>
                             </div>
 
                             <!-- Step 1 Button -->
