@@ -9,8 +9,11 @@ requireRole($currentUser, [], $adminBase);
 $msg = '';
 $err = '';
 
-// Handle Patient Registration Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add') {
+// Handle Patient Registration & Edit Form Submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['add', 'edit'])) {
+    $isEdit    = ($_POST['action'] ?? '') === 'edit';
+    $patientId = !empty($_POST['patient_id']) ? (int)$_POST['patient_id'] : null;
+
     // 1. Demographics & Identification
     $fullName        = trim($_POST['full_name'] ?? '');
     $dob             = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
@@ -46,34 +49,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
         $err = 'Please provide the patient\'s full legal name.';
     } else {
         try {
-            $maxId = (int)$pdo->query("SELECT MAX(id) FROM patients")->fetchColumn();
-            $regNumber = 'PT-' . str_pad((string)($maxId + 1), 6, '0', STR_PAD_LEFT);
+            if ($isEdit && $patientId) {
+                $stmt = $pdo->prepare("UPDATE patients SET 
+                    full_name = ?, date_of_birth = ?, gender = ?, gender_identity = ?, ic_number = ?, phone = ?, email = ?, address = ?,
+                    emergency_contact_name = ?, emergency_contact_relationship = ?, emergency_contact_phone = ?, emergency_contact_alt_phone = ?,
+                    insurance_payer = ?, insurance_policy_id = ?, insurance_group_number = ?, insurance_subscriber_details = ?, insurance_coverage_type = ?, billing_address = ?,
+                    clinical_reason_for_visit = ?, clinical_active_medications = ?, clinical_allergies = ?, clinical_surgical_history = ?, clinical_family_history = ?
+                    WHERE id = ?
+                ");
 
-            $stmt = $pdo->prepare("INSERT INTO patients (
-                registration_number, full_name, date_of_birth, gender, gender_identity, ic_number, phone, email, address,
-                emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, emergency_contact_alt_phone,
-                insurance_payer, insurance_policy_id, insurance_group_number, insurance_subscriber_details, insurance_coverage_type, billing_address,
-                clinical_reason_for_visit, clinical_active_medications, clinical_allergies, clinical_surgical_history, clinical_family_history,
-                registered_by, created_at
-            ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?,
-                ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?,
-                ?, NOW()
-            )");
+                $stmt->execute([
+                    $fullName, $dob, $gender, $genderIdentity, $icNumber, $phone, $email, $address,
+                    $emName, $emRelationship, $emPhone, $emAltPhone,
+                    $insPayer, $insPolicyId, $insGroupNum, $insSubscriber, $insCoverageType, $billingAddress,
+                    $reasonForVisit, $activeMeds, $allergies, $surgicalHistory, $familyHistory,
+                    $patientId
+                ]);
 
-            $stmt->execute([
-                $regNumber, $fullName, $dob, $gender, $genderIdentity, $icNumber, $phone, $email, $address,
-                $emName, $emRelationship, $emPhone, $emAltPhone,
-                $insPayer, $insPolicyId, $insGroupNum, $insSubscriber, $insCoverageType, $billingAddress,
-                $reasonForVisit, $activeMeds, $allergies, $surgicalHistory, $familyHistory,
-                $currentUser['id']
-            ]);
+                $msg = "Patient record for <strong>" . htmlspecialchars($fullName) . "</strong> has been updated successfully.";
+            } else {
+                $maxId = (int)$pdo->query("SELECT MAX(id) FROM patients")->fetchColumn();
+                $regNumber = 'PT-' . str_pad((string)($maxId + 1), 6, '0', STR_PAD_LEFT);
 
-            $msg = "Patient <strong>" . htmlspecialchars($fullName) . "</strong> ($regNumber) has been registered successfully.";
+                $stmt = $pdo->prepare("INSERT INTO patients (
+                    registration_number, full_name, date_of_birth, gender, gender_identity, ic_number, phone, email, address,
+                    emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, emergency_contact_alt_phone,
+                    insurance_payer, insurance_policy_id, insurance_group_number, insurance_subscriber_details, insurance_coverage_type, billing_address,
+                    clinical_reason_for_visit, clinical_active_medications, clinical_allergies, clinical_surgical_history, clinical_family_history,
+                    registered_by, created_at
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, NOW()
+                )");
+
+                $stmt->execute([
+                    $regNumber, $fullName, $dob, $gender, $genderIdentity, $icNumber, $phone, $email, $address,
+                    $emName, $emRelationship, $emPhone, $emAltPhone,
+                    $insPayer, $insPolicyId, $insGroupNum, $insSubscriber, $insCoverageType, $billingAddress,
+                    $reasonForVisit, $activeMeds, $allergies, $surgicalHistory, $familyHistory,
+                    $currentUser['id']
+                ]);
+
+                $msg = "Patient <strong>" . htmlspecialchars($fullName) . "</strong> ($regNumber) has been registered successfully.";
+            }
         } catch (PDOException $e) {
-            $err = 'Registration error: ' . $e->getMessage();
+            $err = 'Database error: ' . $e->getMessage();
         }
     }
 }
@@ -184,11 +207,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <?php echo !empty($p['emergency_contact_name']) ? htmlspecialchars($p['emergency_contact_name']) . ' (' . htmlspecialchars($p['emergency_contact_phone'] ?? '') . ')' : '<span class="text-on-surface-variant/60">—</span>'; ?>
                                 </td>
                                 <td class="py-4 px-4 text-xs">
-                                    <?php if (!empty($p['insurance_payer'])): ?>
-                                        <span class="bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium"><?php echo htmlspecialchars($p['insurance_payer']); ?></span>
-                                    <?php else: ?>
-                                        <span class="text-on-surface-variant/60">—</span>
-                                    <?php endif; ?>
+                                    <?php echo !empty($p['insurance_payer']) ? htmlspecialchars($p['insurance_payer']) : '<span class="text-on-surface-variant/60">—</span>'; ?>
                                 </td>
                                 <td class="py-4 px-4 text-xs text-on-surface-variant"><?php echo !empty($p['created_at']) ? date('d M Y, H:i', strtotime($p['created_at'])) : '—'; ?></td>
                                 <td class="py-4 px-6 text-center">
@@ -210,7 +229,7 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- ============================================================= -->
 <!-- MODAL: MULTI-STEP CATEGORY PATIENT REGISTRATION -->
 <!-- ============================================================= -->
-<div id="registrationModal" class="fixed inset-0 z-[99999] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" style="display: none;">
+<div id="registrationModal" class="fixed inset-0 z-[99999] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" style="display: none;" onclick="closeRegistrationModal()">
     <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[820px] text-left transform transition-all animate-scale-up" onclick="event.stopPropagation()">
         <!-- Modal Header -->
         <div class="px-6 py-5 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between shrink-0">
@@ -219,7 +238,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <span class="material-symbols-outlined text-[24px]">person_add</span>
                 </div>
                 <div>
-                    <h3 class="font-headline font-bold text-lg text-on-surface">Patient Registration Form</h3>
+                    <h3 class="font-headline font-bold text-lg text-on-surface" id="patientRegModalTitle">Patient Registration Form</h3>
                     <p class="text-xs text-on-surface-variant">Step-by-step category data collection</p>
                 </div>
             </div>
@@ -260,7 +279,8 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Form Body -->
         <form method="POST" id="patientMultiStepForm" class="overflow-y-auto p-6 space-y-6 flex-1">
-            <input type="hidden" name="action" value="add">
+            <input type="hidden" name="action" id="patient_form_action" value="add">
+            <input type="hidden" name="patient_id" id="edit_patient_id" value="">
 
             <!-- ============================================== -->
             <!-- CATEGORY 1: Demographics & Identification -->
@@ -487,7 +507,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </button>
                 <button type="submit" form="patientMultiStepForm" id="submitBtn" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-[24px] shadow-sm transition-all hover:shadow hidden">
                     <span class="material-symbols-outlined text-[18px]">save</span>
-                    <span>Submit & Register Patient</span>
+                    <span id="patientSubmitBtnText">Submit & Register Patient</span>
                 </button>
             </div>
         </div>
@@ -508,12 +528,22 @@ require_once __DIR__ . '/../includes/header.php';
                     <p class="text-xs text-on-primary/80" id="detailPatientReg"></p>
                 </div>
             </div>
-            <button type="button" onclick="closeDetailsModal()" class="text-on-primary/80 hover:text-on-primary p-1.5 rounded-full hover:bg-white/10 transition-colors">
-                <span class="material-symbols-outlined text-[22px]">close</span>
-            </button>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="editPatientFromModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-full transition-colors" title="Edit Patient Information">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                    <span>Edit</span>
+                </button>
+                <button type="button" onclick="closeDetailsModal()" class="text-on-primary/80 hover:text-on-primary p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                    <span class="material-symbols-outlined text-[22px]">close</span>
+                </button>
+            </div>
         </div>
         <div class="p-6 overflow-y-auto space-y-5" id="detailModalContent"></div>
-        <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex justify-end shrink-0">
+        <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex items-center justify-between shrink-0">
+            <button type="button" onclick="editPatientFromModal()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary text-xs font-bold rounded-full shadow-sm transition-colors">
+                <span class="material-symbols-outlined text-[16px]">edit</span>
+                <span>Edit Patient Information</span>
+            </button>
             <button type="button" onclick="closeDetailsModal()" class="bg-surface-container text-on-surface hover:bg-surface-container-high font-semibold text-sm px-6 py-2.5 rounded-[24px] transition-colors">
                 Close
             </button>
@@ -617,14 +647,117 @@ function jumpToStep(step) {
     updateStepUI();
 }
 
+let currentViewedPatient = null;
+
 function openRegistrationModal() {
-    document.getElementById('registrationModal').classList.remove('hidden');
+    currentViewedPatient = null;
+    var form = document.getElementById('patientMultiStepForm');
+    if (form) form.reset();
+
+    document.getElementById('patientRegModalTitle').innerText = 'Patient Registration Form';
+    document.getElementById('patient_form_action').value = 'add';
+    document.getElementById('edit_patient_id').value = '';
+    document.getElementById('patientSubmitBtnText').innerText = 'Submit & Register Patient';
+
+    var modal = document.getElementById('registrationModal');
+    if (!modal) return;
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'hidden';
+    if (form) form.scrollTop = 0;
     currentCategoryStep = 1;
     updateStepUI();
 }
 
 function closeRegistrationModal() {
-    document.getElementById('registrationModal').classList.add('hidden');
+    var modal = document.getElementById('registrationModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'auto';
+}
+
+function editPatientFromModal() {
+    if (currentViewedPatient) {
+        openEditPatientModal(currentViewedPatient);
+    }
+}
+
+function openEditPatientModal(p) {
+    if (!p) return;
+    currentViewedPatient = p;
+    closeDetailsModal();
+
+    var form = document.getElementById('patientMultiStepForm');
+    if (form) form.reset();
+
+    const regNum = p.registration_number || ('PT-' + String(p.id).padStart(6, '0'));
+    document.getElementById('patientRegModalTitle').innerText = `Edit Patient Profile (${regNum} — ${p.full_name || ''})`;
+    document.getElementById('patient_form_action').value = 'edit';
+    document.getElementById('edit_patient_id').value = p.id;
+    document.getElementById('patientSubmitBtnText').innerText = 'Update Patient Record';
+
+    // Category 1: Demographics
+    document.getElementById('c1_full_name').value = p.full_name || '';
+    document.getElementById('c1_ic').value = p.ic_number || '';
+    document.getElementById('c1_dob').value = p.date_of_birth || '';
+    const genSelect = document.querySelector('select[name="gender"]');
+    if (genSelect) genSelect.value = p.gender || 'male';
+    const genIdInput = document.querySelector('input[name="gender_identity"]');
+    if (genIdInput) genIdInput.value = p.gender_identity || '';
+    document.getElementById('c1_phone').value = p.phone || '';
+    const emailInput = document.querySelector('input[name="email"]');
+    if (emailInput) emailInput.value = p.email || '';
+    document.getElementById('c1_address').value = p.address || '';
+
+    // Category 2: Emergency Contacts
+    document.getElementById('c2_name').value = p.emergency_contact_name || '';
+    const relSelect = document.querySelector('select[name="emergency_contact_relationship"]');
+    if (relSelect) relSelect.value = p.emergency_contact_relationship || 'Spouse';
+    document.getElementById('c2_phone').value = p.emergency_contact_phone || '';
+    const altPhoneInput = document.querySelector('input[name="emergency_contact_alt_phone"]');
+    if (altPhoneInput) altPhoneInput.value = p.emergency_contact_alt_phone || '';
+
+    // Category 3: Insurance & Billing
+    const payerInput = document.querySelector('input[name="insurance_payer"]');
+    if (payerInput) payerInput.value = p.insurance_payer || '';
+    const covSelect = document.querySelector('select[name="insurance_coverage_type"]');
+    if (covSelect) covSelect.value = p.insurance_coverage_type || 'Primary';
+    const polIdInput = document.querySelector('input[name="insurance_policy_id"]');
+    if (polIdInput) polIdInput.value = p.insurance_policy_id || '';
+    const grpInput = document.querySelector('input[name="insurance_group_number"]');
+    if (grpInput) grpInput.value = p.insurance_group_number || '';
+    const subDetailsInput = document.querySelector('input[name="insurance_subscriber_details"]');
+    if (subDetailsInput) subDetailsInput.value = p.insurance_subscriber_details || '';
+    document.getElementById('c3_billing_address').value = p.billing_address || '';
+
+    // Category 4: Clinical Screening
+    document.getElementById('c4_reason').value = p.clinical_reason_for_visit || '';
+    const actMeds = document.querySelector('textarea[name="clinical_active_medications"]');
+    if (actMeds) actMeds.value = p.clinical_active_medications || '';
+    const allergies = document.querySelector('textarea[name="clinical_allergies"]');
+    if (allergies) allergies.value = p.clinical_allergies || '';
+    const surgHist = document.querySelector('textarea[name="clinical_surgical_history"]');
+    if (surgHist) surgHist.value = p.clinical_surgical_history || '';
+    const famHist = document.querySelector('textarea[name="clinical_family_history"]');
+    if (famHist) famHist.value = p.clinical_family_history || '';
+
+    var modal = document.getElementById('registrationModal');
+    if (!modal) return;
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    var mainEl = document.querySelector('main');
+    if (mainEl) mainEl.style.overflow = 'hidden';
+    if (form) form.scrollTop = 0;
+    currentCategoryStep = 1;
+    updateStepUI();
 }
 
 function copyAddress() {
@@ -642,6 +775,7 @@ document.getElementById('patientSearchInput')?.addEventListener('keyup', functio
 
 // View Patient Profile Details
 function viewPatientDetails(p) {
+    currentViewedPatient = p;
     document.getElementById('detailPatientName').innerText = p.full_name || 'Patient Profile';
     document.getElementById('detailPatientReg').innerText = (p.registration_number || 'PT-' + p.id) + ' • Registered: ' + (p.created_at || '—');
 

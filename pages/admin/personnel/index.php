@@ -893,7 +893,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/20 flex justify-end shrink-0">
             <button type="button" onclick="closeDossierModal()" class="px-5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-full transition-colors">
-                Close Dossier
+                Close
             </button>
         </div>
     </div>

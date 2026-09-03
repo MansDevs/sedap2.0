@@ -2,11 +2,10 @@
 /**
  * ============================================================================
  *   SeDaP 2.0 — Family & Household Registration Module (Pendaftaran Isi Rumah)
- *   Multi-Step Wizard matching SQL Schema:
+ *   Multi-Step Wizard matching Updated SQL Schema:
  *   1. Household Table (Dwelling & Location)
  *   2. HeadOfHousehold Table (Primary Contact)
- *   3. Member Table (Dynamic Household Members & Health Profile)
- *   4. HouseholdFinance Table (Income, Expenses & Aid Eligibility)
+ *   3. Member Table (Demographics, Vulnerability, Chronic, Outbreak Screening, Food Exposure)
  * ============================================================================
  */
 session_start();
@@ -50,13 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $membersData     = $_POST['members'] ?? [];
         $total_residents = max(1, count($membersData));
 
-        // Step 4: Financial Profile Data
-        $gross_income    = floatval($_POST['gross_income'] ?? 0.00);
-        $rent_mortgage   = floatval($_POST['rent_mortgage'] ?? 0.00);
-        $utilities       = floatval($_POST['utilities'] ?? 0.00);
-        $education_fees  = floatval($_POST['education_fees'] ?? 0.00);
-        $medical_costs   = floatval($_POST['medical_costs'] ?? 0.00);
-
         if (empty($street_address) || empty($postal_code) || empty($head_ic) || empty($head_name)) {
             throw new Exception("Sila lengkapkan alamat kediaman dan maklumat ketua keluarga yang wajib.");
         }
@@ -83,47 +75,105 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if (!empty($membersData) && is_array($membersData)) {
             $stmtM = $pdo->prepare("
                 INSERT INTO Member (
-                    full_name, national_id, date_of_birth, gender, relationship_to_head,
+                    full_name, national_id, date_of_birth, age, gender, relationship_to_head,
                     marital_status, citizenship_status, education_level, employment_status,
-                    chronic_condition, healthcare_coverage, vulnerable_dependent, household_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    vulnerable_infant_under5, vulnerable_senior_60plus, vulnerable_pregnant_mother,
+                    vulnerable_disability_oku, vulnerable_bedridden,
+                    chronic_diabetes, chronic_hypertension, chronic_kidney_disease,
+                    chronic_gastric_intestinal, chronic_other,
+                    drug_allergies, food_allergies,
+                    has_diarrhea, has_vomiting, has_fever, is_affected_member, symptom_onset_date,
+                    shared_outside_food, outside_food_notes, shared_feast_meal, shared_same_meal_before_symptom, meal_type,
+                    healthcare_coverage, household_id, created_at
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?,
+                    ?, ?, ?,
+                    ?, ?,
+                    ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, NOW()
+                )
             ");
 
             foreach ($membersData as $m) {
                 $m_name       = trim($m['full_name'] ?? '');
                 $m_ic         = trim($m['national_id'] ?? '');
                 $m_dob        = !empty($m['date_of_birth']) ? $m['date_of_birth'] : null;
-                $m_gender     = $m['gender'] ?? 'Lelaki';
-                $m_relation   = $m['relationship_to_head'] ?? 'Ketua Keluarga';
-                $m_marital    = $m['marital_status'] ?? 'Bujang';
-                $m_citizen    = $m['citizenship_status'] ?? 'Warganegara';
-                $m_edu        = $m['education_level'] ?? 'Menengah (SPM)';
-                $m_job        = $m['employment_status'] ?? 'Bekerja';
-                $m_chronic    = trim($m['chronic_condition'] ?? 'Tiada');
-                $m_health_cov = $m['healthcare_coverage'] ?? 'KKM / Kerajaan';
-                $m_vulnerable = $m['vulnerable_dependent'] ?? 'Tiada';
+                $m_age        = !empty($m['age']) ? (int)$m['age'] : null;
+                
+                if ($m_age === null && $m_dob) {
+                    $birthDate = new DateTime($m_dob);
+                    $today = new DateTime();
+                    $m_age = $today->diff($birthDate)->y;
+                }
 
-                if (!empty($m_name)) {
+                $m_gender     = in_array($m['gender'] ?? '', ['Male', 'Female']) ? $m['gender'] : 'Male';
+                $validRelations = ['Head', 'Spouse', 'Child', 'Mother', 'Father', 'Grandfather', 'Grandmother', 'Relative', 'Others'];
+                $m_relation   = in_array($m['relationship_to_head'] ?? '', $validRelations) ? $m['relationship_to_head'] : 'Head';
+                
+                $validMarital = ['Single', 'Married', 'Divorced', 'Widowed'];
+                $m_marital    = in_array($m['marital_status'] ?? '', $validMarital) ? $m['marital_status'] : 'Single';
+                
+                $m_citizen    = trim($m['citizenship_status'] ?? 'Warganegara');
+                
+                $validEdu     = ['No Formal Education', 'Primary', 'Secondary', 'Tertiary', 'Post-Graduate'];
+                $m_edu        = in_array($m['education_level'] ?? '', $validEdu) ? $m['education_level'] : 'Secondary';
+                
+                $validEmp     = ['Employed', 'Self-Employed', 'Unemployed', 'Student', 'Retired', 'Homemaker', 'Informal'];
+                $m_job        = in_array($m['employment_status'] ?? '', $validEmp) ? $m['employment_status'] : 'Employed';
+
+                // Vulnerabilities
+                $v_infant     = !empty($m['vulnerable_infant_under5']) ? 1 : 0;
+                $v_senior     = !empty($m['vulnerable_senior_60plus']) ? 1 : 0;
+                $v_pregnant   = !empty($m['vulnerable_pregnant_mother']) ? 1 : 0;
+                $v_oku        = !empty($m['vulnerable_disability_oku']) ? 1 : 0;
+                $v_bedridden  = !empty($m['vulnerable_bedridden']) ? 1 : 0;
+
+                // Chronic
+                $c_diab       = !empty($m['chronic_diabetes']) ? 1 : 0;
+                $c_hyper      = !empty($m['chronic_hypertension']) ? 1 : 0;
+                $c_kidney     = !empty($m['chronic_kidney_disease']) ? 1 : 0;
+                $c_gastric    = !empty($m['chronic_gastric_intestinal']) ? 1 : 0;
+                $c_other      = trim($m['chronic_other'] ?? '');
+
+                // Allergies
+                $drug_allergies = trim($m['drug_allergies'] ?? '');
+                $food_allergies = trim($m['food_allergies'] ?? '');
+
+                // Health Screening (Past 3 Days)
+                $has_diarrhea = !empty($m['has_diarrhea']) ? 1 : 0;
+                $has_vomiting = !empty($m['has_vomiting']) ? 1 : 0;
+                $has_fever    = !empty($m['has_fever']) ? 1 : 0;
+                $is_affected  = (!empty($m['is_affected_member']) || $has_diarrhea || $has_vomiting || $has_fever) ? 1 : 0;
+                $symptom_date = !empty($m['symptom_onset_date']) ? $m['symptom_onset_date'] : null;
+
+                // Food Exposure
+                $shared_out_food = in_array($m['shared_outside_food'] ?? '', ['Yes', 'No', 'Not Applicable']) ? $m['shared_outside_food'] : 'Not Applicable';
+                $out_food_notes  = trim($m['outside_food_notes'] ?? '');
+                $shared_feast    = !empty($m['shared_feast_meal']) ? 1 : 0;
+                $shared_same     = !empty($m['shared_same_meal_before_symptom']) ? 1 : 0;
+                $meal_type       = trim($m['meal_type'] ?? '');
+
+                $m_health_cov    = trim($m['healthcare_coverage'] ?? 'KKM / Kerajaan');
+
+                if (!empty($m_name) && !empty($m_ic)) {
                     $stmtM->execute([
-                        $m_name, $m_ic, $m_dob, $m_gender, $m_relation,
+                        $m_name, $m_ic, $m_dob, $m_age, $m_gender, $m_relation,
                         $m_marital, $m_citizen, $m_edu, $m_job,
-                        $m_chronic, $m_health_cov, $m_vulnerable, $householdId
+                        $v_infant, $v_senior, $v_pregnant, $v_oku, $v_bedridden,
+                        $c_diab, $c_hyper, $c_kidney, $c_gastric, $c_other,
+                        $drug_allergies, $food_allergies,
+                        $has_diarrhea, $has_vomiting, $has_fever, $is_affected, $symptom_date,
+                        $shared_out_food, $out_food_notes, $shared_feast, $shared_same, $meal_type,
+                        $m_health_cov, $householdId
                     ]);
                 }
             }
         }
-
-        // 4. Insert Household Financial Info
-        $stmtF = $pdo->prepare("
-            INSERT INTO HouseholdFinance (
-                household_id, gross_household_income, rent_mortgage,
-                utilities, education_fees, medical_costs
-            ) VALUES (?, ?, ?, ?, ?, ?)
-        ");
-        $stmtF->execute([
-            $householdId, $gross_income, $rent_mortgage,
-            $utilities, $education_fees, $medical_costs
-        ]);
 
         $pdo->commit();
         $successMsg = "Pendaftaran Isi Rumah (ID: #HH-" . str_pad($householdId, 5, '0', STR_PAD_LEFT) . ") berjaya disimpan ke dalam pangkalan data SeDaP.";
@@ -142,11 +192,10 @@ $latestHouseholds = [];
 try {
     $hQuery = $pdo->query("
         SELECT h.*, head.full_name as head_name, head.phone_number as head_phone, head.ic_number as head_ic,
-               f.gross_household_income, f.medical_costs,
-               (SELECT COUNT(*) FROM Member m WHERE m.household_id = h.household_id) as member_count
+               (SELECT COUNT(*) FROM Member m WHERE m.household_id = h.household_id) as member_count,
+               (SELECT COUNT(*) FROM Member m WHERE m.household_id = h.household_id AND (m.has_diarrhea = 1 OR m.has_vomiting = 1 OR m.has_fever = 1 OR m.is_affected_member = 1)) as symptom_count
         FROM Household h
         LEFT JOIN HeadOfHousehold head ON h.household_id = head.household_id
-        LEFT JOIN HouseholdFinance f ON h.household_id = f.household_id
         ORDER BY h.household_id DESC
         LIMIT 5
     ");
@@ -158,7 +207,7 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pendaftaran Isi Rumah & Keluarga — SeDaP 2.0</title>
+  <title>Pendaftaran Isi Rumah & Profil Keluarga — SeDaP 2.0</title>
   
   <!-- CoreUI & SeDaP Styles -->
   <link rel="stylesheet" href="<?= $_ROOT ?>/assets/css/coreui.min.css?v=2.2">
@@ -223,16 +272,6 @@ try {
       color: #ffffff;
       border-color: #10b981;
     }
-    .step-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
     .dwelling-card {
       cursor: pointer;
       border: 2px solid var(--sedap-border);
@@ -253,20 +292,14 @@ try {
     .member-box {
       border: 1px solid var(--sedap-border);
       border-radius: 20px;
-      padding: 20px;
+      padding: 24px;
       background: var(--sedap-surface-dim);
       position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       transition: all 0.3s ease;
     }
     .member-box:hover {
       border-color: rgba(2, 132, 199, 0.4);
-    }
-    .calculator-stat {
-      border-radius: 16px;
-      padding: 16px;
-      background: var(--sedap-surface);
-      border: 1px solid var(--sedap-border);
     }
     .form-control, .form-select {
       border-radius: 12px;
@@ -296,7 +329,7 @@ try {
               <h1 class="h3 fw-bold mb-0">Pendaftaran Isi Rumah & Profil Keluarga</h1>
             </div>
             <p class="text-secondary small mb-0">
-              Sistem pendaftaran bersepadu mengikut piawaian data isi rumah SeDaP 2.0 untuk bantuan kecemasan dan saringan perubatan.
+              Sistem pendaftaran data demografi, golongan rentan, saringan wabak (gastroenteritis/cirit-birit), dan rekod pendedahan makanan SeDaP 2.0.
             </p>
           </div>
           <div class="d-flex gap-2">
@@ -332,7 +365,7 @@ try {
         <!-- ================================================================= -->
         <div class="wizard-card p-4 p-md-5 mb-5">
           
-          <!-- Stepper Progress Bar -->
+          <!-- Stepper Progress Bar (4 Steps) -->
           <div class="mb-5">
             <div class="d-flex justify-content-between align-items-center position-relative mb-3">
               <div class="position-absolute start-0 end-0 top-50 translate-middle-y bg-secondary bg-opacity-25" style="height: 3px; z-index: 1;"></div>
@@ -353,19 +386,13 @@ try {
               <!-- Step 3 Indicator -->
               <div class="stepper-step text-center position-relative" style="z-index: 3;" id="stepInd3" onclick="jumpToStep(3)">
                 <div class="stepper-circle mx-auto mb-1">3</div>
-                <div class="small fw-bold text-nowrap d-none d-md-block">3. Ahli Rumah</div>
+                <div class="small fw-bold text-nowrap d-none d-md-block">3. Ahli & Kesihatan</div>
               </div>
 
               <!-- Step 4 Indicator -->
               <div class="stepper-step text-center position-relative" style="z-index: 3;" id="stepInd4" onclick="jumpToStep(4)">
                 <div class="stepper-circle mx-auto mb-1">4</div>
-                <div class="small fw-bold text-nowrap d-none d-md-block">4. Kewangan</div>
-              </div>
-
-              <!-- Step 5 Indicator -->
-              <div class="stepper-step text-center position-relative" style="z-index: 3;" id="stepInd5" onclick="jumpToStep(5)">
-                <div class="stepper-circle mx-auto mb-1">5</div>
-                <div class="small fw-bold text-nowrap d-none d-md-block">5. Pengesahan</div>
+                <div class="small fw-bold text-nowrap d-none d-md-block">4. Pengesahan</div>
               </div>
             </div>
           </div>
@@ -454,8 +481,8 @@ try {
               </div>
 
               <div class="d-flex justify-content-end mt-5">
-                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="goToStep(2)">
-                  <span>Seterusnya: Ketua Keluarga</span>
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="validateStep1() && goToStep(2)">
+                  <span>Seterusnya (Ketua Keluarga)</span>
                   <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
                 </button>
               </div>
@@ -472,33 +499,24 @@ try {
 
               <div class="row g-4">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold small text-secondary">No. Kad Pengenalan / MyKad (12 Digit) <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold small text-secondary">Nama Penuh (Mengikut MyKad) <span class="text-danger">*</span></label>
+                  <input type="text" name="head_name" id="head_name" class="form-control" placeholder="Ahmad bin Abdullah" value="<?= $userName ?>" required>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small text-secondary">No. Kad Pengenalan (MyKad) <span class="text-danger">*</span></label>
                   <input type="text" name="head_ic" id="head_ic" class="form-control" placeholder="Contoh: 850714105431" maxlength="14" required oninput="parseHeadIC(this.value)">
-                  <div class="form-text small text-primary" id="head_ic_hint">Format: 12 digit tanpa sempang atau dengan sempang.</div>
+                  <div class="form-text small" id="head_ic_hint">12 digit tanpa sempang atau dengan sempang.</div>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold small text-secondary">Nama Penuh Ketua Keluarga (Full Legal Name) <span class="text-danger">*</span></label>
-                  <input type="text" name="head_name" id="head_name" class="form-control" value="<?= $userName ?>" required>
+                  <label class="form-label fw-semibold small text-secondary">Nombor Telefon Bimbit <span class="text-danger">*</span></label>
+                  <input type="tel" name="head_phone" id="head_phone" class="form-control" placeholder="012-3456789" value="<?= $userPhone ?>" required>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold small text-secondary">No. Telefon Bimbit (WhatsApp Aktif) <span class="text-danger">*</span></label>
-                  <input type="tel" name="head_phone" id="head_phone" class="form-control" placeholder="0123456789" value="<?= $userPhone ?>" required>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold small text-secondary">Alamat Emel (Opsional)</label>
-                  <input type="email" name="head_email" id="head_email" class="form-control" placeholder="nama@email.com" value="<?= $userEmail ?>">
-                </div>
-
-                <div class="col-12">
-                  <div class="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 d-flex align-items-start gap-3">
-                    <span class="material-symbols-outlined text-primary fs-3">info</span>
-                    <div class="small">
-                      <strong>Maklumat Ketua Keluarga:</strong> Nama dan No. Kad Pengenalan ini akan menjadi kunci rujukan utama isi rumah bagi memudahkan semakan bantuan dan komunikasi perubatan berpusat.
-                    </div>
-                  </div>
+                  <label class="form-label fw-semibold small text-secondary">Alamat Emel</label>
+                  <input type="email" name="head_email" id="head_email" class="form-control" placeholder="ahmad@example.com" value="<?= $userEmail ?>">
                 </div>
               </div>
 
@@ -507,34 +525,38 @@ try {
                   <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
                   <span>Kembali</span>
                 </button>
-                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="syncHeadToMember1(); goToStep(3)">
-                  <span>Seterusnya: Ahli Rumah</span>
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="validateStep2() && goToStep(3)">
+                  <span>Seterusnya (Ahli Keluarga & Kesihatan)</span>
                   <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
                 </button>
               </div>
             </div>
 
             <!-- ============================================================= -->
-            <!-- STEP 3: HOUSEHOLD MEMBERS (DYNAMIC LIST) -->
+            <!-- STEP 3: HOUSEHOLD MEMBERS & HEALTH INTAKE -->
             <!-- ============================================================= -->
             <div id="stepSection3" class="step-content d-none">
-              <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                  <span class="material-symbols-outlined text-primary fs-4">groups</span>
-                  <div>
-                    <h4 class="h5 fw-bold mb-0">Langkah 3: Senarai Ahli Isi Rumah (Members)</h4>
-                    <span class="small text-secondary" id="totalMembersBadge">Jumlah Ahli: 1 Orang</span>
-                  </div>
+              <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
+                <div>
+                  <h4 class="h5 fw-bold mb-1 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">groups</span>
+                    <span>Langkah 3: Profil Ahli Rumah, Kesihatan & Saringan Wabak</span>
+                  </h4>
+                  <p class="text-secondary small mb-0">
+                    Sila daftarkan maklumat setiap ahli keluarga yang menetap bersama, termasuk kategori rentan, rekod kronik, dan gejala cirit-birit/muntah terkini.
+                  </p>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 d-flex align-items-center gap-1 shadow-sm" onclick="addMemberCard()">
-                  <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
-                  <span class="fw-semibold">Tambah Ahli Keluarga</span>
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" id="totalMembersBadge">Jumlah Ahli: 0 Orang</span>
+                  <button type="button" class="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-1 px-3 py-2 shadow-sm" onclick="addMemberCard()">
+                    <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                    <span class="small fw-bold">Tambah Ahli</span>
+                  </button>
+                </div>
               </div>
 
-              <!-- Container for Repeatable Member Cards -->
               <div id="membersContainer">
-                <!-- Member 1 (Head / Self) is injected dynamically or rendered by default -->
+                <!-- Member Cards injected dynamically via JS -->
               </div>
 
               <div class="d-flex justify-content-between mt-5">
@@ -542,164 +564,55 @@ try {
                   <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
                   <span>Kembali</span>
                 </button>
-                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="goToStep(4)">
-                  <span>Seterusnya: Maklumat Kewangan</span>
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="validateStep3() && goToStep(4)">
+                  <span>Seterusnya (Semakan & Pengesahan)</span>
                   <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
                 </button>
               </div>
             </div>
 
             <!-- ============================================================= -->
-            <!-- STEP 4: FINANCIAL INFORMATION & AID ELIGIBILITY -->
+            <!-- STEP 4: REVIEW & CONFIRMATION -->
             <!-- ============================================================= -->
             <div id="stepSection4" class="step-content d-none">
               <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                <span class="material-symbols-outlined text-primary fs-4">payments</span>
-                <h4 class="h5 fw-bold mb-0">Langkah 4: Maklumat Kewangan & Komitmen Isi Rumah</h4>
+                <span class="material-symbols-outlined text-success fs-4">verified</span>
+                <h4 class="h5 fw-bold mb-0">Langkah 4: Semakan & Pengesahan Pendaftaran</h4>
               </div>
 
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <div class="p-4 rounded-4 bg-surface border h-100">
-                    <h5 class="h6 fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-                      <span class="material-symbols-outlined">account_balance_wallet</span>
-                      <span>Pendapatan Bulanan</span>
-                    </h5>
-                    <div>
-                      <label class="form-label fw-semibold small text-secondary">Pendapatan Kasar Isi Rumah (Gross Income) *</label>
-                      <div class="input-group">
-                        <span class="input-group-text fw-bold">RM</span>
-                        <input type="number" step="0.01" name="gross_income" id="f_gross_income" class="form-control" value="0.00" oninput="calculateFinances()" required>
-                      </div>
-                      <div class="form-text small">Jumlah pendapatan semua ahli yang bekerja dalam isi rumah.</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-md-6">
-                  <div class="p-4 rounded-4 bg-surface border h-100">
-                    <h5 class="h6 fw-bold text-danger mb-3 d-flex align-items-center gap-2">
-                      <span class="material-symbols-outlined">receipt</span>
-                      <span>Perbelanjaan & Komitmen Asas</span>
-                    </h5>
-                    <div class="row g-3">
-                      <div class="col-12">
-                        <label class="form-label fw-semibold small text-secondary">Sewa / Pinjaman Perumahan (Rent/Mortgage)</label>
-                        <div class="input-group input-group-sm">
-                          <span class="input-group-text fw-bold">RM</span>
-                          <input type="number" step="0.01" name="rent_mortgage" id="f_rent" class="form-control" value="0.00" oninput="calculateFinances()">
-                        </div>
-                      </div>
-                      <div class="col-12">
-                        <label class="form-label fw-semibold small text-secondary">Bil Utiliti (Elektrik, Air, Internet)</label>
-                        <div class="input-group input-group-sm">
-                          <span class="input-group-text fw-bold">RM</span>
-                          <input type="number" step="0.01" name="utilities" id="f_utilities" class="form-control" value="0.00" oninput="calculateFinances()">
-                        </div>
-                      </div>
-                      <div class="col-12">
-                        <label class="form-label fw-semibold small text-secondary">Pendidikan & Yuran Anak (Education Fees)</label>
-                        <div class="input-group input-group-sm">
-                          <span class="input-group-text fw-bold">RM</span>
-                          <input type="number" step="0.01" name="education_fees" id="f_education" class="form-control" value="0.00" oninput="calculateFinances()">
-                        </div>
-                      </div>
-                      <div class="col-12">
-                        <label class="form-label fw-semibold small text-secondary">Kos Perubatan & Ubat Berkala (Medical Costs)</label>
-                        <div class="input-group input-group-sm">
-                          <span class="input-group-text fw-bold">RM</span>
-                          <input type="number" step="0.01" name="medical_costs" id="f_medical" class="form-control" value="0.00" oninput="calculateFinances()">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Real-time Financial Health Card -->
-              <div class="p-4 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 mb-4">
-                <div class="row g-3 text-center text-md-start">
-                  <div class="col-md-3">
-                    <div class="small text-secondary fw-semibold">Jumlah Komitmen</div>
-                    <div class="h5 fw-bold text-danger mb-0" id="stat_total_expenses">RM 0.00</div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="small text-secondary fw-semibold">Baki Bersih (Net Disposable)</div>
-                    <div class="h5 fw-bold text-success mb-0" id="stat_net_income">RM 0.00</div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="small text-secondary fw-semibold">Pendapatan Per-Kapita</div>
-                    <div class="h5 fw-bold text-primary mb-0" id="stat_per_capita">RM 0.00 / ahli</div>
-                  </div>
-                  <div class="col-md-3 text-md-end">
-                    <div class="small text-secondary fw-semibold">Status Sosio-Ekonomi</div>
-                    <div class="badge bg-primary px-3 py-2 fs-6 rounded-pill" id="stat_tier_badge">B40 (Layak Bantuan)</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-between mt-5">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="goToStep(3)">
-                  <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-                  <span>Kembali</span>
-                </button>
-                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="buildReviewSummary(); goToStep(5)">
-                  <span>Seterusnya: Semakan & Pengesahan</span>
-                  <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- ============================================================= -->
-            <!-- STEP 5: REVIEW, CONFIRMATION & SUBMISSION -->
-            <!-- ============================================================= -->
-            <div id="stepSection5" class="step-content d-none">
-              <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                <span class="material-symbols-outlined text-success fs-4">fact_check</span>
-                <h4 class="h5 fw-bold mb-0">Langkah 5: Semakan & Pengesahan Maklumat</h4>
-              </div>
-
-              <div class="row g-4 mb-4">
-                <!-- Dwelling & Head Card -->
+              <div class="row g-4">
+                <!-- Household Info Card -->
                 <div class="col-md-6">
                   <div class="p-4 rounded-4 bg-surface border h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <h6 class="fw-bold mb-0 d-flex align-items-center gap-2 text-primary">
                         <span class="material-symbols-outlined">home</span>
-                        <span>Kediaman & Ketua Keluarga</span>
+                        <span>Maklumat Kediaman</span>
                       </h6>
                       <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="goToStep(1)">Kemaskini</button>
                     </div>
                     <div class="small space-y-2">
-                      <div><strong>Alamat:</strong> <span id="rev_address">-</span></div>
-                      <div><strong>Poskod & Bandar:</strong> <span id="rev_city_state">-</span></div>
-                      <div><strong>Jenis Rumah:</strong> <span id="rev_house_type">-</span></div>
-                      <hr class="my-2 opacity-25">
-                      <div><strong>Ketua Keluarga:</strong> <span id="rev_head_name">-</span></div>
-                      <div><strong>No. Kad Pengenalan:</strong> <span id="rev_head_ic">-</span></div>
-                      <div><strong>No. Telefon:</strong> <span id="rev_head_phone">-</span></div>
+                      <div><span class="text-secondary">Alamat:</span> <span class="fw-semibold" id="rev_address">—</span></div>
+                      <div><span class="text-secondary">Bandar & Negeri:</span> <span class="fw-semibold" id="rev_city_state">—</span></div>
+                      <div><span class="text-secondary">Jenis Kediaman:</span> <span class="fw-semibold" id="rev_house_type">—</span></div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Financial & Members Summary Card -->
+                <!-- Head of Household Info Card -->
                 <div class="col-md-6">
                   <div class="p-4 rounded-4 bg-surface border h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <h6 class="fw-bold mb-0 d-flex align-items-center gap-2 text-primary">
-                        <span class="material-symbols-outlined">savings</span>
-                        <span>Ringkasan Sosio-Ekonomi</span>
+                        <span class="material-symbols-outlined">person</span>
+                        <span>Ketua Keluarga</span>
                       </h6>
-                      <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="goToStep(4)">Kemaskini</button>
+                      <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="goToStep(2)">Kemaskini</button>
                     </div>
                     <div class="small space-y-2">
-                      <div><strong>Jumlah Ahli Isi Rumah:</strong> <span id="rev_total_members">1 Orang</span></div>
-                      <div><strong>Pendapatan Kasar:</strong> <span id="rev_gross_income">RM 0.00</span></div>
-                      <div><strong>Jumlah Komitmen Bulanan:</strong> <span id="rev_expenses">RM 0.00</span></div>
-                      <div><strong>Baki Bersih Isi Rumah:</strong> <span id="rev_net_income">RM 0.00</span></div>
-                      <div class="mt-2">
-                        <span class="badge bg-success rounded-pill px-3 py-1.5" id="rev_badge">B40 / Subsidized</span>
-                      </div>
+                      <div><span class="text-secondary">Nama Penuh:</span> <span class="fw-semibold" id="rev_head_name">—</span></div>
+                      <div><span class="text-secondary">No. MyKad:</span> <span class="fw-semibold font-monospace" id="rev_head_ic">—</span></div>
+                      <div><span class="text-secondary">No. Telefon:</span> <span class="fw-semibold" id="rev_head_phone">—</span></div>
                     </div>
                   </div>
                 </div>
@@ -710,7 +623,7 @@ try {
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <h6 class="fw-bold mb-0 d-flex align-items-center gap-2 text-primary">
                         <span class="material-symbols-outlined">badge</span>
-                        <span>Senarai Ahli Keluarga</span>
+                        <span>Senarai Ahli Keluarga (<span id="rev_total_members">0 Orang</span>)</span>
                       </h6>
                       <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="goToStep(3)">Kemaskini</button>
                     </div>
@@ -722,9 +635,9 @@ try {
                             <th>Nama Penuh</th>
                             <th>No. KP / MyKid</th>
                             <th>Hubungan</th>
-                            <th>Jantina</th>
-                            <th>Penyakit Kronik</th>
-                            <th>Kategori Khas</th>
+                            <th>Jantina / Umur</th>
+                            <th>Golongan Rentan</th>
+                            <th>Saringan Gejala Wabak</th>
                           </tr>
                         </thead>
                         <tbody class="small" id="rev_members_body">
@@ -740,14 +653,14 @@ try {
                   <div class="form-check p-3 rounded-3 border bg-surface-dim d-flex align-items-center gap-3">
                     <input class="form-check-input ms-0 me-2" type="checkbox" id="confirmDataCheck" required>
                     <label class="form-check-label small fw-semibold" for="confirmDataCheck">
-                      Saya mengesahkan bahawa segala maklumat isi rumah, ahli keluarga, dan pendapatan yang diberikan adalah benar dan tepat untuk tujuan rekod perubatan dan agihan bantuan SeDaP 2.0.
+                      Saya mengesahkan bahawa segala maklumat isi rumah, profil kesihatan, dan pendedahan makanan yang diberikan adalah benar dan tepat untuk tujuan rekod perubatan dan pemantauan wabak SeDaP 2.0.
                     </label>
                   </div>
                 </div>
               </div>
 
               <div class="d-flex justify-content-between mt-5">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="goToStep(4)">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 fw-semibold" onclick="goToStep(3)">
                   <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
                   <span>Kembali</span>
                 </button>
@@ -783,7 +696,7 @@ try {
                   <th>Alamat & Lokasi</th>
                   <th>Jenis Kediaman</th>
                   <th>Ahli</th>
-                  <th>Pendapatan</th>
+                  <th>Status Saringan</th>
                   <th>Tarikh Daftar</th>
                 </tr>
               </thead>
@@ -799,9 +712,15 @@ try {
                     <div class="text-truncate" style="max-width:250px;"><?= htmlspecialchars($lh['street_address']) ?></div>
                     <div class="text-secondary" style="font-size:11px;"><?= htmlspecialchars($lh['postal_code'] . ' ' . $lh['city'] . ', ' . $lh['state']) ?></div>
                   </td>
-                  <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($lh['house_type']) ?></span></td>
+                  <td class="text-secondary"><?= htmlspecialchars($lh['house_type']) ?></td>
                   <td><span class="badge bg-primary rounded-pill"><?= (int)$lh['member_count'] ?> Orang</span></td>
-                  <td class="fw-semibold text-success">RM <?= number_format($lh['gross_household_income'] ?? 0, 2) ?></td>
+                  <td>
+                    <?php if (($lh['symptom_count'] ?? 0) > 0): ?>
+                      <span class="badge bg-danger rounded-pill px-2.5 py-1"><?= (int)$lh['symptom_count'] ?> Bergejala</span>
+                    <?php else: ?>
+                      <span class="badge bg-success rounded-pill px-2.5 py-1">Tiada Gejala</span>
+                    <?php endif; ?>
+                  </td>
                   <td class="text-secondary"><?= date('d M Y', strtotime($lh['created_at'])) ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -827,10 +746,10 @@ try {
 
     // Step navigation controller
     function goToStep(step) {
-      if (step < 1 || step > 5) return;
+      if (step < 1 || step > 4) return;
       
       // Hide all steps
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 4; i++) {
         const sec = document.getElementById('stepSection' + i);
         const ind = document.getElementById('stepInd' + i);
         if (sec) sec.classList.add('d-none');
@@ -847,8 +766,12 @@ try {
       if (targetSec) targetSec.classList.remove('d-none');
       if (targetInd) targetInd.classList.add('active');
 
+      if (step === 4) {
+        buildReviewSummary();
+      }
+
       // Update progress line
-      const progressPercentage = ((step - 1) / 4) * 100;
+      const progressPercentage = ((step - 1) / 3) * 100;
       document.getElementById('wizardProgressLine').style.width = progressPercentage + '%';
 
       currentStep = step;
@@ -856,7 +779,52 @@ try {
     }
 
     function jumpToStep(step) {
+      if (step > currentStep) {
+        if (currentStep === 1 && !validateStep1()) return;
+        if (currentStep === 2 && !validateStep2()) return;
+        if (currentStep === 3 && !validateStep3()) return;
+      }
       goToStep(step);
+    }
+
+    function validateStep1() {
+      const street = document.getElementById('h_street').value.trim();
+      const postal = document.getElementById('h_postal').value.trim();
+      const city = document.getElementById('h_city').value.trim();
+      if (!street || !postal || !city) {
+        alert('Sila lengkapkan alamat kediaman, poskod, dan bandar.');
+        return false;
+      }
+      return true;
+    }
+
+    function validateStep2() {
+      const name = document.getElementById('head_name').value.trim();
+      const ic = document.getElementById('head_ic').value.trim();
+      const phone = document.getElementById('head_phone').value.trim();
+      if (!name || !ic || !phone) {
+        alert('Sila lengkapkan nama penuh, no. MyKad, dan telefon ketua keluarga.');
+        return false;
+      }
+      syncHeadToMember1();
+      return true;
+    }
+
+    function validateStep3() {
+      const cards = document.querySelectorAll('#membersContainer .member-box');
+      if (cards.length === 0) {
+        alert('Sila daftarkan sekurang-kurangnya seorang ahli isi rumah.');
+        return false;
+      }
+      for (let i = 0; i < cards.length; i++) {
+        const nameInput = cards[i].querySelector(`[name*="[full_name]"]`);
+        const icInput = cards[i].querySelector(`[name*="[national_id]"]`);
+        if (!nameInput?.value.trim() || !icInput?.value.trim()) {
+          alert(`Sila lengkapkan nama dan no. KP bagi Ahli #${i + 1}.`);
+          return false;
+        }
+      }
+      return true;
     }
 
     // Dwelling selection card handler
@@ -871,17 +839,13 @@ try {
       if (postal.length === 5) {
         const p = parseInt(postal, 10);
         const stateSelect = document.getElementById('h_state');
-        if (p >= 43000 && p <= 48000) {
-          stateSelect.value = 'Selangor';
-        } else if (p >= 50000 && p <= 60000) {
-          stateSelect.value = 'Kuala Lumpur';
-        } else if (p >= 62000 && p <= 62988) {
-          stateSelect.value = 'Putrajaya';
-        } else if (p >= 80000 && p <= 86900) {
-          stateSelect.value = 'Johor';
-        } else if (p >= 15000 && p <= 18500) {
-          stateSelect.value = 'Kelantan';
-        }
+        if (p >= 43000 && p <= 48000) stateSelect.value = 'Selangor';
+        else if (p >= 50000 && p <= 60000) stateSelect.value = 'Kuala Lumpur';
+        else if (p >= 62000 && p <= 62988) stateSelect.value = 'Putrajaya';
+        else if (p >= 80000 && p <= 86900) stateSelect.value = 'Johor';
+        else if (p >= 15000 && p <= 18500) stateSelect.value = 'Kelantan';
+        else if (p >= 10000 && p <= 14400) stateSelect.value = 'Pulau Pinang';
+        else if (p >= 30000 && p <= 36810) stateSelect.value = 'Perak';
       }
     }
 
@@ -916,20 +880,14 @@ try {
       const m1Rel = document.getElementById('m_rel_0');
       
       if (m1Name && !m1Name.value) m1Name.value = headName;
-      if (m1IC && !m1IC.value) m1IC.value = headIC;
-      if (m1Rel) m1Rel.value = 'Ketua Keluarga';
-
-      if (headIC.length === 12) {
-        const yy = headIC.substring(0, 2);
-        const mm = headIC.substring(2, 4);
-        const dd = headIC.substring(4, 6);
-        const year = parseInt(yy, 10) > 40 ? '19' + yy : '20' + yy;
-        const m1Dob = document.getElementById('m_dob_0');
-        if (m1Dob && !m1Dob.value) m1Dob.value = `${year}-${mm}-${dd}`;
+      if (m1IC && !m1IC.value) {
+        m1IC.value = headIC;
+        autoDetectMemberDOB(0, headIC);
       }
+      if (m1Rel) m1Rel.value = 'Head';
     }
 
-    // Add Dynamic Member Card
+    // Add Dynamic Member Card (Updated Schema)
     function addMemberCard(isHead = false) {
       const idx = memberCount++;
       const container = document.getElementById('membersContainer');
@@ -939,7 +897,7 @@ try {
       card.id = `memberCard_${idx}`;
 
       card.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
           <div class="d-flex align-items-center gap-2">
             <span class="badge bg-primary rounded-pill px-3 py-1.5">Ahli #${idx + 1}</span>
             <span class="fw-bold small text-secondary">${isHead ? '(Ketua Keluarga)' : ''}</span>
@@ -952,115 +910,268 @@ try {
           ` : ''}
         </div>
 
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary">Nama Penuh <span class="text-danger">*</span></label>
-            <input type="text" name="members[${idx}][full_name]" id="m_name_${idx}" class="form-control" required placeholder="Nama seperti dalam MyKad / MyKid">
-          </div>
+        <!-- 1. Demographics & Identification -->
+        <div class="mb-4">
+          <div class="small fw-bold text-primary text-uppercase tracking-wider mb-2">1. Demografi & Pengenalan Diri</div>
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold text-secondary">Nama Penuh (Mengikut MyKad/MyKid) <span class="text-danger">*</span></label>
+              <input type="text" name="members[${idx}][full_name]" id="m_name_${idx}" class="form-control" placeholder="Nama penuh ahli" required>
+            </div>
 
-          <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary">No. Kad Pengenalan / MyKid / Pasport <span class="text-danger">*</span></label>
-            <input type="text" name="members[${idx}][national_id]" id="m_ic_${idx}" class="form-control" required placeholder="e.g. 950812105566" oninput="autoDetectMemberDOB(${idx}, this.value)">
-          </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">No. MyKad / MyKid <span class="text-danger">*</span></label>
+              <input type="text" name="members[${idx}][national_id]" id="m_ic_${idx}" class="form-control" placeholder="12 digit tanpa sempang" required oninput="autoDetectMemberDOB(${idx}, this.value)">
+            </div>
 
-          <div class="col-md-3">
-            <label class="form-label small fw-semibold text-secondary">Tarikh Lahir</label>
-            <input type="date" name="members[${idx}][date_of_birth]" id="m_dob_${idx}" class="form-control">
-          </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold text-secondary">Tarikh Lahir</label>
+              <input type="date" name="members[${idx}][date_of_birth]" id="m_dob_${idx}" class="form-control">
+            </div>
 
-          <div class="col-md-3">
-            <label class="form-label small fw-semibold text-secondary">Jantina</label>
-            <select name="members[${idx}][gender]" id="m_gender_${idx}" class="form-select">
-              <option value="Lelaki">Lelaki</option>
-              <option value="Perempuan">Perempuan</option>
-            </select>
-          </div>
+            <div class="col-md-2">
+              <label class="form-label small fw-semibold text-secondary">Umur (Tahun)</label>
+              <input type="number" name="members[${idx}][age]" id="m_age_${idx}" class="form-control" placeholder="Umur">
+            </div>
 
-          <div class="col-md-3">
-            <label class="form-label small fw-semibold text-secondary">Hubungan dgn Ketua</label>
-            <select name="members[${idx}][relationship_to_head]" id="m_rel_${idx}" class="form-select">
-              <option value="Ketua Keluarga">Ketua Keluarga</option>
-              <option value="Pasangan (Isteri/Suami)">Pasangan (Isteri/Suami)</option>
-              <option value="Anak Kandung">Anak Kandung</option>
-              <option value="Anak Angkat/Tiri">Anak Angkat/Tiri</option>
-              <option value="Ibu / Bapa">Ibu / Bapa</option>
-              <option value="Adik-beradik">Adik-beradik</option>
-              <option value="Saudara Mara">Saudara Mara</option>
-              <option value="Lain-lain">Lain-lain</option>
-            </select>
-          </div>
+            <div class="col-md-2">
+              <label class="form-label small fw-semibold text-secondary">Jantina <span class="text-danger">*</span></label>
+              <select name="members[${idx}][gender]" id="m_gender_${idx}" class="form-select" required>
+                <option value="Male">Lelaki (Male)</option>
+                <option value="Female">Perempuan (Female)</option>
+              </select>
+            </div>
 
-          <div class="col-md-3">
-            <label class="form-label small fw-semibold text-secondary">Status Perkahwinan</label>
-            <select name="members[${idx}][marital_status]" class="form-select">
-              <option value="Bujang">Bujang</option>
-              <option value="Berkahwin">Berkahwin</option>
-              <option value="Duda">Duda</option>
-              <option value="Janda">Janda</option>
-            </select>
-          </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold text-secondary">Hubungan dengan Ketua <span class="text-danger">*</span></label>
+              <select name="members[${idx}][relationship_to_head]" id="m_rel_${idx}" class="form-select" required>
+                <option value="Head" ${isHead ? 'selected' : ''}>Ketua Keluarga (Head)</option>
+                <option value="Spouse">Pasangan (Spouse)</option>
+                <option value="Child" ${!isHead ? 'selected' : ''}>Anak (Child)</option>
+                <option value="Mother">Ibu (Mother)</option>
+                <option value="Father">Bapa (Father)</option>
+                <option value="Grandfather">Datuk (Grandfather)</option>
+                <option value="Grandmother">Nenek (Grandmother)</option>
+                <option value="Relative">Saudara (Relative)</option>
+                <option value="Others">Lain-lain (Others)</option>
+              </select>
+            </div>
 
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary">Taraf Kerakyatan</label>
-            <select name="members[${idx}][citizenship_status]" class="form-select">
-              <option value="Warganegara">Warganegara</option>
-              <option value="Pemastautin Tetap">Pemastautin Tetap</option>
-              <option value="Bukan Warganegara">Bukan Warganegara</option>
-            </select>
-          </div>
+            <div class="col-md-2">
+              <label class="form-label small fw-semibold text-secondary">Taraf Perkahwinan</label>
+              <select name="members[${idx}][marital_status]" class="form-select">
+                <option value="Single">Bujang (Single)</option>
+                <option value="Married" ${isHead ? 'selected' : ''}>Berkahwin (Married)</option>
+                <option value="Divorced">Bercerai (Divorced)</option>
+                <option value="Widowed">Balu / Duda (Widowed)</option>
+              </select>
+            </div>
 
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary">Tahap Pendidikan Tertinggi</label>
-            <select name="members[${idx}][education_level]" class="form-select">
-              <option value="Menengah (SPM)">Menengah (SPM)</option>
-              <option value="Rendah (UPSR/Sekolah Rendah)">Rendah (Sekolah Rendah)</option>
-              <option value="Diploma / STPM">Diploma / STPM</option>
-              <option value="Ijazah Sarjana Muda">Ijazah Sarjana Muda</option>
-              <option value="Pascasiswazah">Pascasiswazah</option>
-              <option value="Tiada Pendidikan Formal">Tiada Pendidikan Formal</option>
-            </select>
-          </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold text-secondary">Taraf Kerakyatan</label>
+              <input type="text" name="members[${idx}][citizenship_status]" value="Warganegara" class="form-control">
+            </div>
 
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary">Status Pekerjaan</label>
-            <select name="members[${idx}][employment_status]" class="form-select">
-              <option value="Bekerja Sektor Swasta">Bekerja Sektor Swasta</option>
-              <option value="Bekerja Sektor Awam">Bekerja Sektor Awam</option>
-              <option value="Bekerja Sendiri / Peniaga">Bekerja Sendiri / Peniaga</option>
-              <option value="Suri Rumah">Suri Rumah</option>
-              <option value="Pelajar">Pelajar</option>
-              <option value="Bersara">Bersara</option>
-              <option value="Menganggur">Menganggur</option>
-            </select>
-          </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Tahap Pendidikan</label>
+              <select name="members[${idx}][education_level]" class="form-select">
+                <option value="Secondary">Menengah (Secondary)</option>
+                <option value="Primary">Rendah (Primary)</option>
+                <option value="Tertiary">Diploma / Ijazah (Tertiary)</option>
+                <option value="Post-Graduate">Pascasiswazah (Post-Graduate)</option>
+                <option value="No Formal Education">Tiada Pendidikan Formal</option>
+              </select>
+            </div>
 
-          <!-- Health & Vulnerability Profile -->
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary">Penyakit Kronik (Jika Ada)</label>
-            <input type="text" name="members[${idx}][chronic_condition]" id="m_chronic_${idx}" class="form-control" placeholder="e.g. Diabetes, Hipertensi, Tiada" value="Tiada">
-          </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Status Pekerjaan</label>
+              <select name="members[${idx}][employment_status]" class="form-select">
+                <option value="Employed">Bekerja (Employed)</option>
+                <option value="Self-Employed">Bekerja Sendiri / Peniaga</option>
+                <option value="Unemployed">Menganggur (Unemployed)</option>
+                <option value="Student">Pelajar (Student)</option>
+                <option value="Retired">Bersara (Retired)</option>
+                <option value="Homemaker">Suri Rumah (Homemaker)</option>
+                <option value="Informal">Sektor Tidak Formal</option>
+              </select>
+            </div>
 
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary">Liputan Kesihatan (Healthcare)</label>
-            <select name="members[${idx}][healthcare_coverage]" class="form-select">
-              <option value="KKM / Kerajaan">KKM / Kerajaan</option>
-              <option value="Insurans Swasta">Insurans Swasta</option>
-              <option value="PERKESO / SOCSO">PERKESO / SOCSO</option>
-              <option value="Majikan">Ditanggung Majikan</option>
-              <option value="Tiada">Tiada Liputan</option>
-            </select>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Liputan Kesihatan</label>
+              <select name="members[${idx}][healthcare_coverage]" class="form-select">
+                <option value="KKM / Kerajaan">KKM / Kerajaan</option>
+                <option value="Insurans Swasta">Insurans Swasta</option>
+                <option value="PERKESO / SOCSO">PERKESO / SOCSO</option>
+                <option value="Ditanggung Majikan">Ditanggung Majikan</option>
+                <option value="Tiada">Tiada Liputan</option>
+              </select>
+            </div>
           </div>
+        </div>
 
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary">Kategori Rentan (Vulnerable)</label>
-            <select name="members[${idx}][vulnerable_dependent]" id="m_vul_${idx}" class="form-select">
-              <option value="Tiada">Tiada / Normal</option>
-              <option value="Warga Emas (60+)">Warga Emas (60+)</option>
-              <option value="Kanak-kanak / Bayi">Kanak-kanak / Bayi</option>
-              <option value="OKU (Kurang Upaya)">OKU (Kurang Upaya)</option>
-              <option value="Pesakit Terlantar">Pesakit Terlantar</option>
-              <option value="Ibu Mengandung">Ibu Mengandung</option>
-            </select>
+        <!-- 2. Vulnerable / High-Risk Categories -->
+        <div class="mb-4 pt-3 border-top">
+          <div class="small fw-bold text-warning text-dark text-uppercase tracking-wider mb-2 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6 text-warning">shield</span>
+            <span>2. Golongan Rentan & Berisiko Tinggi</span>
+          </div>
+          <div class="row g-2">
+            <div class="col-6 col-md">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][vulnerable_infant_under5]" id="m_v_infant_${idx}" value="1">
+                <label class="form-check-label small" for="m_v_infant_${idx}">Kanak-kanak (<5 thn)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][vulnerable_senior_60plus]" id="m_v_senior_${idx}" value="1">
+                <label class="form-check-label small" for="m_v_senior_${idx}">Warga Emas (60+)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][vulnerable_pregnant_mother]" id="m_v_preg_${idx}" value="1">
+                <label class="form-check-label small" for="m_v_preg_${idx}">Ibu Mengandung</label>
+              </div>
+            </div>
+            <div class="col-6 col-md">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][vulnerable_disability_oku]" id="m_v_oku_${idx}" value="1">
+                <label class="form-check-label small" for="m_v_oku_${idx}">OKU (Kurang Upaya)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][vulnerable_bedridden]" id="m_v_bed_${idx}" value="1">
+                <label class="form-check-label small" for="m_v_bed_${idx}">Pesakit Terlantar</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Chronic Diseases & Allergies -->
+        <div class="mb-4 pt-3 border-top">
+          <div class="small fw-bold text-danger text-uppercase tracking-wider mb-2 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6 text-danger">medical_services</span>
+            <span>3. Penyakit Kronik & Alahan</span>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][chronic_diabetes]" id="m_c_diab_${idx}" value="1">
+                <label class="form-check-label small" for="m_c_diab_${idx}">Diabetes (Kencing Manis)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][chronic_hypertension]" id="m_c_hyper_${idx}" value="1">
+                <label class="form-check-label small" for="m_c_hyper_${idx}">Darah Tinggi (Hypertension)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][chronic_kidney_disease]" id="m_c_kidney_${idx}" value="1">
+                <label class="form-check-label small" for="m_c_kidney_${idx}">Buah Pinggang (Kidney)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][chronic_gastric_intestinal]" id="m_c_gastric_${idx}" value="1">
+                <label class="form-check-label small" for="m_c_gastric_${idx}">Gastrik / Usus (Gastric)</label>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Penyakit Kronik Lain</label>
+              <input type="text" name="members[${idx}][chronic_other]" class="form-control" placeholder="e.g. Asma, Jantung, Tiada">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Alahan Ubat (Drug Allergies)</label>
+              <input type="text" name="members[${idx}][drug_allergies]" class="form-control" placeholder="e.g. Penicillin, Tiada">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Alahan Makanan (Food Allergies)</label>
+              <input type="text" name="members[${idx}][food_allergies]" class="form-control" placeholder="e.g. Makanan Laut, Kacang, Tiada">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Acute Health Screening (Past 3 Days) -->
+        <div class="mb-4 pt-3 border-top">
+          <div class="small fw-bold text-danger text-uppercase tracking-wider mb-2 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6 text-danger">coronavirus</span>
+            <span>4. Saringan Gejala Wabak Akut (Dalam Tempoh 3 Hari Lepas)</span>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][has_diarrhea]" id="m_s_diar_${idx}" value="1">
+                <label class="form-check-label small text-danger fw-semibold" for="m_s_diar_${idx}">Cirit-Birit (Diarrhea)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][has_vomiting]" id="m_s_vom_${idx}" value="1">
+                <label class="form-check-label small text-danger fw-semibold" for="m_s_vom_${idx}">Muntah (Vomiting)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][has_fever]" id="m_s_fev_${idx}" value="1">
+                <label class="form-check-label small text-danger fw-semibold" for="m_s_fev_${idx}">Demam (Fever)</label>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][is_affected_member]" id="m_s_aff_${idx}" value="1">
+                <label class="form-check-label small text-danger fw-semibold" for="m_s_aff_${idx}">Ahli Terjejas Gejala</label>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Tarikh Mula Gejala (Onset Date)</label>
+              <input type="date" name="members[${idx}][symptom_onset_date]" class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Food Exposure & Meal History -->
+        <div class="pt-3 border-top">
+          <div class="small fw-bold text-primary text-uppercase tracking-wider mb-2 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-6 text-primary">restaurant</span>
+            <span>5. Pendedahan Makanan & Sejarah Hidangan (Epidemiologi)</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Makan Makanan Luar Bersama?</label>
+              <select name="members[${idx}][shared_outside_food]" class="form-select">
+                <option value="Not Applicable">Tidak Berkaitan</option>
+                <option value="Yes">Ya (Makan Luar)</option>
+                <option value="No">Tidak (Makan di Rumah Sahaja)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Lokasi / Premis Makanan Luar</label>
+              <input type="text" name="members[${idx}][outside_food_notes]" class="form-control" placeholder="Contoh: Gerai Pasar Malam, Kedai Makan ABC">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Jenis Hidangan / Menu</label>
+              <input type="text" name="members[${idx}][meal_type]" class="form-control" placeholder="Contoh: Nasi Ayam, Sambal Sotong">
+            </div>
+            <div class="col-md-6">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][shared_feast_meal]" id="m_f_feast_${idx}" value="1">
+                <label class="form-check-label small" for="m_f_feast_${idx}">Menghadiri Kenduri / Jamuan / Majlis Makan</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check p-2.5 rounded-3 bg-surface border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="members[${idx}][shared_same_meal_before_symptom]" id="m_f_same_${idx}" value="1">
+                <label class="form-check-label small" for="m_f_same_${idx}">Berkongsi makanan yang sama sebelum timbul gejala</label>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -1081,7 +1192,6 @@ try {
       const activeCount = document.querySelectorAll('#membersContainer .member-box').length;
       const badge = document.getElementById('totalMembersBadge');
       if (badge) badge.innerText = `Jumlah Ahli: ${activeCount} Orang`;
-      calculateFinances();
     }
 
     function autoDetectMemberDOB(idx, ic) {
@@ -1093,44 +1203,25 @@ try {
         const year = parseInt(yy, 10) > 40 ? '19' + yy : '20' + yy;
         const dobField = document.getElementById(`m_dob_${idx}`);
         if (dobField) dobField.value = `${year}-${mm}-${dd}`;
-        
+
+        const birthYear = parseInt(year, 10);
+        const currentYear = new Date().getFullYear();
+        const ageField = document.getElementById(`m_age_${idx}`);
+        if (ageField) ageField.value = Math.max(0, currentYear - birthYear);
+
         const lastDigit = parseInt(cleanIC.substring(11, 12), 10);
         const genderField = document.getElementById(`m_gender_${idx}`);
-        if (genderField) genderField.value = (lastDigit % 2 === 0) ? 'Perempuan' : 'Lelaki';
+        if (genderField) genderField.value = (lastDigit % 2 === 0) ? 'Female' : 'Male';
+
+        const age = currentYear - birthYear;
+        const infantCb = document.getElementById(`m_v_infant_${idx}`);
+        const seniorCb = document.getElementById(`m_v_senior_${idx}`);
+        if (infantCb) infantCb.checked = (age <= 5);
+        if (seniorCb) seniorCb.checked = (age >= 60);
       }
     }
 
-    // Financial calculations & B40/M40 Tier classification
-    function calculateFinances() {
-      const gross = parseFloat(document.getElementById('f_gross_income').value) || 0;
-      const rent = parseFloat(document.getElementById('f_rent').value) || 0;
-      const utilities = parseFloat(document.getElementById('f_utilities').value) || 0;
-      const education = parseFloat(document.getElementById('f_education').value) || 0;
-      const medical = parseFloat(document.getElementById('f_medical').value) || 0;
-
-      const totalExpenses = rent + utilities + education + medical;
-      const net = gross - totalExpenses;
-      const residents = Math.max(1, document.querySelectorAll('#membersContainer .member-box').length);
-      const perCapita = net / residents;
-
-      document.getElementById('stat_total_expenses').innerText = 'RM ' + totalExpenses.toFixed(2);
-      document.getElementById('stat_net_income').innerText = 'RM ' + net.toFixed(2);
-      document.getElementById('stat_per_capita').innerText = 'RM ' + perCapita.toFixed(2) + ' / ahli';
-
-      const tierBadge = document.getElementById('stat_tier_badge');
-      if (gross <= 5250) {
-        tierBadge.className = 'badge bg-success px-3 py-2 fs-6 rounded-pill';
-        tierBadge.innerText = 'B40 (Layak Bantuan Penuh)';
-      } else if (gross <= 11819) {
-        tierBadge.className = 'badge bg-primary px-3 py-2 fs-6 rounded-pill';
-        tierBadge.innerText = 'M40 (Kumpulan Sederhana)';
-      } else {
-        tierBadge.className = 'badge bg-secondary px-3 py-2 fs-6 rounded-pill';
-        tierBadge.innerText = 'T20 (Pendapatan Tinggi)';
-      }
-    }
-
-    // Build Review Summary for Step 5
+    // Build Review Summary for Step 4
     function buildReviewSummary() {
       document.getElementById('rev_address').innerText = document.getElementById('h_street').value || '—';
       document.getElementById('rev_city_state').innerText = (document.getElementById('h_postal').value + ' ' + document.getElementById('h_city').value + ', ' + document.getElementById('h_state').value) || '—';
@@ -1139,26 +1230,6 @@ try {
       document.getElementById('rev_head_name').innerText = document.getElementById('head_name').value || '—';
       document.getElementById('rev_head_ic').innerText = document.getElementById('head_ic').value || '—';
       document.getElementById('rev_head_phone').innerText = document.getElementById('head_phone').value || '—';
-
-      const gross = parseFloat(document.getElementById('f_gross_income').value) || 0;
-      const expenses = (parseFloat(document.getElementById('f_rent').value) || 0) +
-                       (parseFloat(document.getElementById('f_utilities').value) || 0) +
-                       (parseFloat(document.getElementById('f_education').value) || 0) +
-                       (parseFloat(document.getElementById('f_medical').value) || 0);
-      const net = gross - expenses;
-
-      document.getElementById('rev_gross_income').innerText = 'RM ' + gross.toFixed(2);
-      document.getElementById('rev_expenses').innerText = 'RM ' + expenses.toFixed(2);
-      document.getElementById('rev_net_income').innerText = 'RM ' + net.toFixed(2);
-
-      const revBadge = document.getElementById('rev_badge');
-      if (gross <= 5250) {
-        revBadge.className = 'badge bg-success rounded-pill px-3 py-1.5';
-        revBadge.innerText = 'Kategori B40 / Layak Subsidi Perubatan';
-      } else {
-        revBadge.className = 'badge bg-primary rounded-pill px-3 py-1.5';
-        revBadge.innerText = 'Kategori M40 / T20';
-      }
 
       // Populate Members Table
       const tbody = document.getElementById('rev_members_body');
@@ -1171,18 +1242,30 @@ try {
         const ic = c.querySelector(`[name*="[national_id]"]`)?.value || '—';
         const rel = c.querySelector(`[name*="[relationship_to_head]"]`)?.value || '—';
         const gender = c.querySelector(`[name*="[gender]"]`)?.value || '—';
-        const chronic = c.querySelector(`[name*="[chronic_condition]"]`)?.value || 'Tiada';
-        const vul = c.querySelector(`[name*="[vulnerable_dependent]"]`)?.value || 'Tiada';
+        const age = c.querySelector(`[name*="[age]"]`)?.value || '—';
+
+        const vulns = [];
+        if (c.querySelector(`[name*="[vulnerable_infant_under5]"]`)?.checked) vulns.push('Kanak-kanak <5');
+        if (c.querySelector(`[name*="[vulnerable_senior_60plus]"]`)?.checked) vulns.push('Warga Emas');
+        if (c.querySelector(`[name*="[vulnerable_pregnant_mother]"]`)?.checked) vulns.push('Mengandung');
+        if (c.querySelector(`[name*="[vulnerable_disability_oku]"]`)?.checked) vulns.push('OKU');
+        if (c.querySelector(`[name*="[vulnerable_bedridden]"]`)?.checked) vulns.push('Terlantar');
+
+        const symptoms = [];
+        if (c.querySelector(`[name*="[has_diarrhea]"]`)?.checked) symptoms.push('Cirit-birit');
+        if (c.querySelector(`[name*="[has_vomiting]"]`)?.checked) symptoms.push('Muntah');
+        if (c.querySelector(`[name*="[has_fever]"]`)?.checked) symptoms.push('Demam');
+        if (c.querySelector(`[name*="[is_affected_member]"]`)?.checked && symptoms.length === 0) symptoms.push('Terjejas');
 
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${i + 1}</td>
           <td class="fw-bold">${name}</td>
-          <td>${ic}</td>
+          <td class="font-monospace">${ic}</td>
           <td>${rel}</td>
-          <td>${gender}</td>
-          <td><span class="badge ${chronic !== 'Tiada' ? 'bg-danger' : 'bg-light text-dark'}">${chronic}</span></td>
-          <td><span class="badge ${vul !== 'Tiada' ? 'bg-warning text-dark' : 'bg-light text-dark'}">${vul}</span></td>
+          <td>${gender} (${age} thn)</td>
+          <td>${vulns.length > 0 ? vulns.map(v => `<span class="badge bg-warning text-dark me-1">${v}</span>`).join('') : '<span class="text-muted">Tiada</span>'}</td>
+          <td>${symptoms.length > 0 ? symptoms.map(s => `<span class="badge bg-danger me-1">${s}</span>`).join('') : '<span class="badge bg-success">Sihat / Tiada Gejala</span>'}</td>
         `;
         tbody.appendChild(row);
       });
@@ -1196,7 +1279,6 @@ try {
     // Initialize Default Member on page load
     document.addEventListener('DOMContentLoaded', () => {
       syncHeadToMember1();
-      calculateFinances();
     });
   </script>
 </body>

@@ -474,71 +474,7 @@ CREATE TABLE `password_resets` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `patients`
---
 
-CREATE TABLE `patients` (
-  `id` int(11) NOT NULL,
-  `registration_number` varchar(50) NOT NULL COMMENT 'e.g. PT-000001',
-  `full_name` varchar(255) NOT NULL,
-  `ic_number` varchar(20) DEFAULT NULL,
-  `date_of_birth` date DEFAULT NULL,
-  `gender` enum('male','female') DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `status` enum('registered','in_triage','admitted','discharged','referred') NOT NULL DEFAULT 'registered',
-  `registered_by` int(11) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL COMMENT 'FK to users.id for patient login account',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `patient_family_members`
---
-
-CREATE TABLE `patient_family_members` (
-  `id` int(11) NOT NULL,
-  `patient_id` int(11) NOT NULL,
-  `full_name` varchar(255) NOT NULL,
-  `relationship` varchar(50) DEFAULT NULL,
-  `ic_number` varchar(20) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `is_emergency_contact` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `personnel`
---
-
-CREATE TABLE `personnel` (
-  `id` int(11) NOT NULL,
-  `type` enum('doctor','volunteer') NOT NULL COMMENT 'doctor = medical staff / MA / nurse',
-  `full_name` varchar(255) NOT NULL,
-  `ic_number` varchar(20) DEFAULT NULL,
-  `gender` enum('male','female') DEFAULT NULL,
-  `date_of_birth` date DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `department` varchar(100) DEFAULT NULL,
-  `skills` text DEFAULT NULL,
-  `availability_date` date DEFAULT NULL,
-  `emergency_contact_name` varchar(255) DEFAULT NULL,
-  `emergency_contact_phone` varchar(20) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `status` enum('pending','active','inactive') NOT NULL DEFAULT 'pending',
-  `registered_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `personnel`
@@ -632,28 +568,39 @@ CREATE TABLE `screening_responses` (
 --
 
 CREATE TABLE `triage_records` (
-  `id` int(11) NOT NULL,
-  `patient_id` int(11) NOT NULL,
-  `zone_code` varchar(50) DEFAULT NULL COMMENT 'Kod Kawasan / Rujukan',
-  `occupation` varchar(100) DEFAULT NULL COMMENT 'Pekerjaan pesakit',
-  `education_level` enum('none','primary','secondary','tertiary') DEFAULT NULL,
-  `triage_level` enum('red','yellow','green','black') NOT NULL COMMENT 'Triage color code',
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `triage_id` varchar(20) NOT NULL UNIQUE COMMENT 'Formatted Triage ID (e.g. TI-001)',
+  `patient_id` int(11) DEFAULT NULL COMMENT 'Optional Foreign Key to patients.id',
+  `full_name` varchar(150) NOT NULL COMMENT 'Full Name of Patient',
+  `ic_number` varchar(12) NOT NULL COMMENT 'National Identity Card (IC) No. (12 Digits without hyphen)',
+  `phone_number` varchar(20) DEFAULT NULL COMMENT 'Patient Phone Number',
+  `age` int(11) DEFAULT NULL COMMENT 'Patient Age in Years',
+  `gender` enum('Male','Female') DEFAULT 'Male' COMMENT 'Patient Gender',
+  `occupation` varchar(100) DEFAULT NULL COMMENT 'Patient Occupation',
+  `education_level` enum('No Formal Education','Primary School','Secondary School','Diploma / Degree') DEFAULT 'Secondary School' COMMENT 'Education Level',
+  `temperature` decimal(4,1) DEFAULT NULL COMMENT 'Body Temperature (°C)',
+  `blood_pressure` varchar(20) DEFAULT NULL COMMENT 'Blood Pressure (BP)',
+  `glucose_level` decimal(5,2) DEFAULT NULL COMMENT 'Blood Glucose Level (mmol/L)',
+  `lipid_profile` decimal(5,2) DEFAULT NULL COMMENT 'Lipid Profile Reading (mmol/L)',
+  `symptoms` varchar(500) NOT NULL COMMENT 'Main / Acute Symptoms checklist as JSON or text',
+  `medical_history` text DEFAULT NULL COMMENT 'Pre-existing Medical Conditions (Diabetes, Hypertension, Gastritis, Drug Allergies)',
+  `interview_notes` text DEFAULT NULL COMMENT 'Volunteer Interview Notes (cause, symptom onset time, complaints)',
+  `triage_level` enum('green','yellow','red') NOT NULL DEFAULT 'green' COMMENT 'Triage Urgency Category (Single Selection)',
   `chief_complaint` varchar(255) DEFAULT NULL,
-  `blood_pressure` varchar(20) DEFAULT NULL,
   `pulse_rate` int(11) DEFAULT NULL,
   `respiratory_rate` int(11) DEFAULT NULL,
-  `temperature` decimal(4,1) DEFAULT NULL COMMENT 'Body temperature in °C',
   `spo2` int(11) DEFAULT NULL,
-  `consciousness_level` varchar(50) DEFAULT NULL COMMENT 'AVPU scale',
-  `glucose_level` decimal(5,2) DEFAULT NULL COMMENT 'Paras Glukosa Darah mmol/L',
-  `lipid_profile` decimal(5,2) DEFAULT NULL COMMENT 'Profil Lipid mmol/L',
-  `symptoms` text DEFAULT NULL COMMENT 'JSON array: cirit-birit, muntah, demam, sakit perut, pening',
-  `medical_history` text DEFAULT NULL COMMENT 'Penyakit sedia ada, alahan ubat',
-  `interview_notes` text DEFAULT NULL COMMENT 'Catatan temu bual sukarelawan',
+  `consciousness_level` varchar(50) DEFAULT NULL,
   `status` enum('waiting','in_treatment','referred','discharged') NOT NULL DEFAULT 'waiting',
-  `triaged_by` int(11) NOT NULL,
+  `triaged_by` int(11) NOT NULL DEFAULT 1,
   `notes` text DEFAULT NULL,
-  `triaged_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `triaged_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  INDEX `idx_triage_custom_id` (`triage_id`),
+  INDEX `idx_triage_ic` (`ic_number`),
+  INDEX `idx_triage_patient` (`patient_id`),
+  INDEX `idx_triage_level` (`triage_level`),
+  INDEX `idx_triage_date` (`triaged_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -849,24 +796,6 @@ ALTER TABLE `password_resets`
   ADD KEY `email` (`email`);
 
 --
--- Indexes for table `patients`
---
-ALTER TABLE `patients`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `registration_number` (`registration_number`),
-  ADD UNIQUE KEY `ic_number` (`ic_number`),
-  ADD UNIQUE KEY `user_id` (`user_id`),
-  ADD KEY `registered_by` (`registered_by`),
-  ADD KEY `status` (`status`);
-
---
--- Indexes for table `patient_family_members`
---
-ALTER TABLE `patient_family_members`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `patient_id` (`patient_id`);
-
---
 -- Indexes for table `personnel`
 --
 ALTER TABLE `personnel`
@@ -1047,18 +976,6 @@ ALTER TABLE `mood_journal_entries`
 -- AUTO_INCREMENT for table `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `patients`
---
-ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `patient_family_members`
---
-ALTER TABLE `patient_family_members`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
